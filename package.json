@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:migrate": "node --env-file=.env.local scripts/migrate.js",
-    "test:api": "node --env-file=.env.local scripts/test-question-generation.js"
+    "test:api": "node --env-file=.env.local scripts/test-question-generation.js",
+    "db:test": "node --env-file=.env.local scripts/test-db.js"
   },
   "dependencies": {
     "@libsql/client": "^0.17.2",
