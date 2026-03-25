@@ -15,6 +15,14 @@ npm run test:api       # Call Claude API and validate question generation output
 
 All `db:*` and `test:*` scripts require `.env.local` with `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, and `ANTHROPIC_API_KEY`. Copy `.env.example` to get started.
 
+## Project rules
+
+This is a v1 — bias towards shipping over perfection. Don't over-engineer, don't gold-plate, don't add abstractions that aren't immediately needed.
+
+The two things that matter most for this app:
+1. **Question generation speed** — the upload → questions pipeline is the critical path. Keep it fast; don't add unnecessary async work before returning to the user.
+2. **Question quality** — questions must be specific, answerable from the source content, and genuinely useful for long-term retention. If a change touches the prompt or parsing logic in `lib/ai/generate-questions.js`, run `npm run test:api` and manually review the sample output before committing.
+
 ## Architecture
 
 **Stack:** Next.js 16 (App Router, JavaScript — no TypeScript), Tailwind CSS v4, Turso (libsql/SQLite), deployed on Vercel. `"type": "module"` is set in `package.json` — use ESM imports everywhere.
