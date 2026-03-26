@@ -20,7 +20,7 @@ function truncate(text, max = 80) {
 }
 
 const GRADE_STYLE = {
-  easy:    { label: 'Easy',    color: 'var(--color-easy)' },
+  easy:    { label: 'Easy',    color: '#4ADE80' },
   hard:    { label: 'Hard',    color: 'var(--color-hard)' },
   forgot:  { label: 'Forgot',  color: 'var(--color-forgot)' },
   skipped: { label: 'Skipped', color: 'var(--color-muted)' },
@@ -34,31 +34,27 @@ function ProgressBar({ current, total }) {
     <div className="mb-6">
       <div className="flex justify-between text-sm mb-1.5" style={{ color: 'var(--color-muted)' }}>
         <span>Question {current + 1} of {total}</span>
-        <span>{pct}%</span>
+        <span style={{ color: '#4ADE80' }}>{pct}%</span>
       </div>
       <div className="h-1.5 rounded-full" style={{ background: 'var(--color-border)' }}>
         <div
           className="h-1.5 rounded-full transition-all duration-300"
-          style={{ width: `${pct}%`, background: 'var(--color-accent)' }}
+          style={{ width: `${pct}%`, background: '#4ADE80' }}
         />
       </div>
     </div>
   );
 }
 
-function GradeButton({ label, sublabel, onClick, colorVar, bgVar, disabled }) {
+function GradeButton({ label, sublabel, onClick, bgClass, disabled }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className="flex-1 flex flex-col items-center justify-center py-4 px-2 rounded-xl font-medium transition-opacity active:opacity-70 disabled:opacity-40 disabled:cursor-not-allowed"
-      style={{
-        background: `var(${bgVar})`,
-        color: `var(${colorVar})`,
-        minHeight: '64px',
-      }}
+      className={`flex-1 flex flex-col items-center justify-center py-5 px-2 rounded-xl font-medium text-white transition-all active:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed ${bgClass}`}
+      style={{ minHeight: '64px' }}
     >
-      <span className="text-base leading-tight">{label}</span>
+      <span className="text-lg leading-tight">{label}</span>
       {sublabel && <span className="text-xs mt-0.5 opacity-70">{sublabel}</span>}
     </button>
   );
@@ -72,6 +68,7 @@ export default function StudyPage() {
   const [questions, setQuestions] = useState([]);
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
   const [userAttempt, setUserAttempt] = useState('');
   const [summary, setSummary] = useState(null);
   const [endedEarly, setEndedEarly] = useState(false);
@@ -98,6 +95,7 @@ export default function StudyPage() {
     setForgotCount(0);
     setGradeHistory([]);
     setEndedEarly(false);
+    setShowDetail(false);
     try {
       const res = await fetch('/api/sessions/start', { method: 'POST' });
       const data = await res.json();
@@ -160,6 +158,7 @@ export default function StudyPage() {
       } else {
         setIndex((i) => i + 1);
         setRevealed(false);
+        setShowDetail(false);
         setUserAttempt('');
         setFading(false);
       }
@@ -196,7 +195,7 @@ export default function StudyPage() {
       <div className="min-h-dvh flex items-center justify-center">
         <div className="text-center" style={{ color: 'var(--color-muted)' }}>
           <div className="inline-block w-8 h-8 border-2 rounded-full animate-spin mb-4"
-            style={{ borderColor: 'var(--color-border)', borderTopColor: 'var(--color-accent)' }} />
+            style={{ borderColor: 'var(--color-border)', borderTopColor: '#4ADE80' }} />
           <p>Loading your session…</p>
         </div>
       </div>
@@ -249,7 +248,6 @@ export default function StudyPage() {
       <div className="min-h-dvh py-8 px-4">
         <div className="w-full max-w-sm mx-auto">
           <div className="text-center mb-6">
-            <div className="text-4xl mb-3">{endedEarly ? '🧠' : '🎉'}</div>
             <h1 className="text-2xl font-semibold text-[#EEFF99] mb-2">Session Complete</h1>
             {endedEarly ? (
               <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
@@ -262,12 +260,12 @@ export default function StudyPage() {
           <div className="rounded-2xl p-5 mb-5 space-y-3"
             style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
             <div className="flex justify-between">
-              <span style={{ color: 'var(--color-muted)' }}>Questions reviewed</span>
+              <span>Questions reviewed</span>
               <span className="font-medium">{summary.questionsAnswered}</span>
             </div>
             <div className="flex justify-between">
-              <span style={{ color: 'var(--color-easy)' }}>Remembered (Easy + Hard)</span>
-              <span className="font-medium" style={{ color: 'var(--color-easy)' }}>{remembered}</span>
+              <span style={{ color: '#4ADE80' }}>Remembered (Easy + Hard)</span>
+              <span className="font-medium" style={{ color: '#4ADE80' }}>{remembered}</span>
             </div>
             <div className="flex justify-between">
               <span style={{ color: 'var(--color-forgot)' }}>Reinforced (Forgot)</span>
@@ -280,7 +278,7 @@ export default function StudyPage() {
               </div>
             )}
             <div className="flex justify-between pt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
-              <span style={{ color: 'var(--color-muted)' }}>Duration</span>
+              <span>Duration</span>
               <span className="font-medium">{formatDuration(summary.durationSeconds)}</span>
             </div>
           </div>
@@ -334,37 +332,36 @@ export default function StudyPage() {
       className="min-h-dvh py-6 px-4 transition-opacity duration-200"
       style={{ opacity: fading ? 0 : 1 }}
     >
-      <div className="max-w-xl mx-auto">
+      <div className="max-w-xl mx-auto space-y-5">
         <ProgressBar current={index} total={questions.length} />
 
         {index === 0 && (
-          <p className="text-xl text-center mb-4 text-green-400">
+          <p className="text-xl text-center text-green-400">
             🔒 {questions.length} questions. No other choice. Complete.
           </p>
         )}
 
-        {/* Question card */}
+        {/* Question card — keeps subtle border as primary element */}
         <div
-          className="rounded-2xl p-5 mb-5"
+          className="rounded-2xl p-5"
           style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
         >
-          <div className="text-xs font-medium uppercase tracking-wide mb-3"
-            style={{ color: 'var(--color-muted)' }}>
+          <div className="text-xs uppercase tracking-wider text-gray-500 mb-3">
             {question.question_type}
           </div>
-          <p className="text-lg leading-snug font-medium">{question.question_text}</p>
+          <p className="text-xl font-semibold leading-snug">{question.question_text}</p>
         </div>
 
         {/* Answer area */}
         {!revealed ? (
-          <>
+          <div className="space-y-3">
             <textarea
               ref={textareaRef}
               value={userAttempt}
               onChange={(e) => setUserAttempt(e.target.value)}
               placeholder="Type your answer… (3+ words to unlock Reveal)"
               rows={4}
-              className="w-full rounded-xl px-4 py-3 mb-3 text-base leading-relaxed resize-none focus:outline-none"
+              className="w-full rounded-xl px-4 py-3 text-base leading-relaxed resize-none focus:outline-none"
               style={{
                 background: 'var(--color-surface)',
                 border: '1px solid var(--color-border)',
@@ -374,77 +371,82 @@ export default function StudyPage() {
             <button
               onClick={() => setRevealed(true)}
               disabled={!canReveal}
-              className="w-full py-4 rounded-xl font-medium text-base transition-opacity disabled:opacity-40 disabled:cursor-not-allowed bg-violet-600 text-white"
+              className="w-full py-4 rounded-xl font-medium text-base transition-opacity disabled:opacity-40 disabled:cursor-not-allowed bg-violet-600 text-white hover:bg-violet-700"
             >
               Reveal Answer
             </button>
-          </>
+          </div>
         ) : (
-          <>
-            {/* User's answer */}
+          <div className="space-y-5">
+
+            {/* Your answer — compact and secondary */}
             {userAttempt.trim() && (
-              <div className="rounded-xl px-4 py-3 mb-4"
-                style={{ background: 'var(--color-surface-hover)', border: '1px solid var(--color-border)' }}>
-                <div className="text-xs font-medium uppercase tracking-wide mb-1.5"
-                  style={{ color: 'var(--color-muted)' }}>Your answer</div>
-                <p className="text-base leading-relaxed">{userAttempt}</p>
+              <div className="rounded-xl px-3 py-2 bg-gray-800/40">
+                <div className="text-xs uppercase tracking-wider text-gray-500 mb-1">Your answer</div>
+                <p className="text-sm text-gray-400 leading-relaxed">{userAttempt}</p>
               </div>
             )}
 
-            {/* Model answer */}
-            <div className="rounded-xl p-4 mb-4"
-              style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-              <div className="text-xs font-medium uppercase tracking-wide mb-2"
-                style={{ color: 'var(--color-accent)' }}>Answer</div>
-              <p className="text-base leading-relaxed mb-3">{question.answer_text}</p>
+            {/* Model answer — always visible, no border */}
+            <div>
+              <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">Answer</div>
+              <p className="text-lg font-medium leading-snug">{question.answer_text}</p>
+            </div>
 
-              <div className="text-xs font-medium uppercase tracking-wide mb-1.5"
-                style={{ color: 'var(--color-muted)' }}>Explanation</div>
-              <p className="text-sm leading-relaxed mb-3" style={{ color: 'var(--color-muted)' }}>
-                {question.explanation}
-              </p>
+            {/* Collapsible explanation & source */}
+            <div>
+              <button
+                onClick={() => setShowDetail((v) => !v)}
+                className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-300 transition-colors"
+              >
+                <span>{showDetail ? 'Hide' : 'Show'} explanation & source</span>
+                <svg
+                  className={`w-4 h-4 transition-transform duration-200 ${showDetail ? 'rotate-180' : ''}`}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
 
-              {question.source_reference && (
-                <>
-                  <div className="text-xs font-medium uppercase tracking-wide mb-1.5"
-                    style={{ color: 'var(--color-muted)' }}>Source</div>
-                  <blockquote
-                    className="text-sm leading-relaxed pl-3 italic"
-                    style={{
-                      borderLeft: '2px solid var(--color-border)',
-                      color: 'var(--color-muted)',
-                    }}
-                  >
-                    {question.source_reference}
-                  </blockquote>
-                </>
+              {showDetail && (
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-gray-500 mb-1.5">Explanation</div>
+                    <p className="text-sm text-gray-400 leading-relaxed">{question.explanation}</p>
+                  </div>
+                  {question.source_reference && (
+                    <div>
+                      <div className="text-xs uppercase tracking-wider text-gray-500 mb-1.5">Source</div>
+                      <blockquote className="text-sm text-gray-400 leading-relaxed pl-3 italic border-l-2 border-gray-700">
+                        {question.source_reference}
+                      </blockquote>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
             {/* Grade buttons */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-3 mt-6">
               <GradeButton
                 label="Easy"
                 sublabel="Knew it"
                 onClick={() => handleGrade('easy')}
-                colorVar="--color-easy"
-                bgVar="--color-easy-bg"
+                bgClass="bg-green-400 hover:bg-green-300"
                 disabled={grading}
               />
               <GradeButton
                 label="Hard"
                 sublabel="Struggled"
                 onClick={() => handleGrade('hard')}
-                colorVar="--color-hard"
-                bgVar="--color-hard-bg"
+                bgClass="bg-amber-600 hover:bg-amber-700"
                 disabled={grading}
               />
               <GradeButton
                 label="Forgot"
                 sublabel="Missed it"
                 onClick={() => handleGrade('forgot')}
-                colorVar="--color-forgot"
-                bgVar="--color-forgot-bg"
+                bgClass="bg-red-600 hover:bg-red-700"
                 disabled={grading}
               />
             </div>
@@ -457,7 +459,8 @@ export default function StudyPage() {
             >
               Skip
             </button>
-          </>
+
+          </div>
         )}
       </div>
     </div>
