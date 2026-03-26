@@ -225,7 +225,7 @@ export default function StudyPage() {
       <div className="min-h-dvh flex items-center justify-center px-4">
         <div className="text-center max-w-sm">
           <div className="text-4xl mb-4">✓</div>
-          <h1 className="text-xl font-semibold mb-2">All caught up!</h1>
+          <h1 className="text-xl font-semibold text-[#EEFF99] mb-2">All caught up!</h1>
           <p className="mb-6" style={{ color: 'var(--color-muted)' }}>
             No questions due right now. Check back tomorrow or add more content.
           </p>
@@ -250,7 +250,7 @@ export default function StudyPage() {
         <div className="w-full max-w-sm mx-auto">
           <div className="text-center mb-6">
             <div className="text-4xl mb-3">{endedEarly ? '🧠' : '🎉'}</div>
-            <h1 className="text-2xl font-semibold mb-2">Session Complete</h1>
+            <h1 className="text-2xl font-semibold text-[#EEFF99] mb-2">Session Complete</h1>
             {endedEarly ? (
               <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
                 Session ended early — take a break, you'll see these again tomorrow.
@@ -338,7 +338,7 @@ export default function StudyPage() {
         <ProgressBar current={index} total={questions.length} />
 
         {index === 0 && (
-          <p className="text-sm text-center mb-4" style={{ color: 'var(--color-muted)' }}>
+          <p className="text-xl text-center mb-4 text-green-400">
             🔒 {questions.length} questions. No other choice. Complete.
           </p>
         )}
@@ -374,11 +374,7 @@ export default function StudyPage() {
             <button
               onClick={() => setRevealed(true)}
               disabled={!canReveal}
-              className="w-full py-4 rounded-xl font-medium text-base transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{
-                background: canReveal ? 'var(--color-foreground)' : 'var(--color-border)',
-                color: canReveal ? 'var(--color-background)' : 'var(--color-muted)',
-              }}
+              className="w-full py-4 rounded-xl font-medium text-base transition-opacity disabled:opacity-40 disabled:cursor-not-allowed bg-violet-600 text-white"
             >
               Reveal Answer
             </button>

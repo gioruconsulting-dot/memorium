@@ -43,8 +43,7 @@ export default function ProgressPage() {
   if (loading) {
     return (
       <div className="py-8">
-        <h1 className="text-2xl font-bold tracking-tight mb-8"
-          style={{ fontFamily: 'var(--font-dm-serif-display), serif' }}>
+        <h1 className="text-2xl font-semibold text-center text-[#EEFF99] mb-8">
           Progress
         </h1>
         <div className="grid grid-cols-2 gap-3">
@@ -60,8 +59,7 @@ export default function ProgressPage() {
   if (error) {
     return (
       <div className="py-8">
-        <h1 className="text-2xl font-bold tracking-tight mb-6"
-          style={{ fontFamily: 'var(--font-dm-serif-display), serif' }}>
+        <h1 className="text-2xl font-semibold text-center text-[#EEFF99] mb-6">
           Progress
         </h1>
         <p className="mb-4" style={{ color: 'var(--color-forgot)' }}>{error}</p>
@@ -79,8 +77,7 @@ export default function ProgressPage() {
   if (stats?.totalQuestions === 0) {
     return (
       <div className="py-8">
-        <h1 className="text-2xl font-bold tracking-tight mb-6"
-          style={{ fontFamily: 'var(--font-dm-serif-display), serif' }}>
+        <h1 className="text-2xl font-semibold text-center text-[#EEFF99] mb-6">
           Progress
         </h1>
         <p className="mb-5" style={{ color: 'var(--color-muted)' }}>
@@ -99,8 +96,7 @@ export default function ProgressPage() {
 
   return (
     <div className="py-8">
-      <h1 className="text-2xl font-bold tracking-tight mb-6"
-        style={{ fontFamily: 'var(--font-dm-serif-display), serif' }}>
+      <h1 className="text-2xl font-semibold text-center text-[#EEFF99] mb-6">
         Progress
       </h1>
       <div className="grid grid-cols-2 gap-3">

@@ -54,10 +54,7 @@ export default function LibraryPage() {
   }
 
   const heading = (
-    <h1
-      className="text-2xl font-bold tracking-tight mb-6"
-      style={{ fontFamily: 'var(--font-dm-serif-display), serif' }}
-    >
+    <h1 className="text-2xl font-semibold text-center text-[#EEFF99] mb-6">
       Library
     </h1>
   );
