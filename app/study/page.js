@@ -337,6 +337,12 @@ export default function StudyPage() {
       <div className="max-w-xl mx-auto">
         <ProgressBar current={index} total={questions.length} />
 
+        {index === 0 && (
+          <p className="text-sm text-center mb-4" style={{ color: 'var(--color-muted)' }}>
+            🔒 {questions.length} questions. No other choice. Complete.
+          </p>
+        )}
+
         {/* Question card */}
         <div
           className="rounded-2xl p-5 mb-5"
