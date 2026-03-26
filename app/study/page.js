@@ -1,15 +1,402 @@
-export default function StudyPage() {
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+function wordCount(text) {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function formatDuration(seconds) {
+  if (!seconds || seconds < 60) return `${Math.max(0, Math.round(seconds))} seconds`;
+  const m = Math.floor(seconds / 60);
+  return `${m} minute${m !== 1 ? 's' : ''}`;
+}
+
+// ── sub-components ────────────────────────────────────────────────────────────
+
+function ProgressBar({ current, total }) {
+  const pct = total > 0 ? Math.round((current / total) * 100) : 0;
   return (
-    <main className="py-8">
-      <h1
-        className="text-2xl font-bold tracking-tight"
-        style={{ fontFamily: "var(--font-dm-serif-display), serif" }}
-      >
-        Study
-      </h1>
-      <p className="mt-2" style={{ color: "var(--color-muted)" }}>
-        Your daily spaced repetition session.
-      </p>
-    </main>
+    <div className="mb-6">
+      <div className="flex justify-between text-sm mb-1.5" style={{ color: 'var(--color-muted)' }}>
+        <span>Question {current + 1} of {total}</span>
+        <span>{pct}%</span>
+      </div>
+      <div className="h-1.5 rounded-full" style={{ background: 'var(--color-border)' }}>
+        <div
+          className="h-1.5 rounded-full transition-all duration-300"
+          style={{ width: `${pct}%`, background: 'var(--color-accent)' }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function GradeButton({ label, sublabel, onClick, colorVar, bgVar, disabled }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="flex-1 flex flex-col items-center justify-center py-4 px-2 rounded-xl font-medium transition-opacity active:opacity-70 disabled:opacity-40 disabled:cursor-not-allowed"
+      style={{
+        background: `var(${bgVar})`,
+        color: `var(${colorVar})`,
+        minHeight: '64px',
+      }}
+    >
+      <span className="text-base leading-tight">{label}</span>
+      {sublabel && <span className="text-xs mt-0.5 opacity-70">{sublabel}</span>}
+    </button>
+  );
+}
+
+// ── main component ────────────────────────────────────────────────────────────
+
+export default function StudyPage() {
+  const [phase, setPhase] = useState('loading'); // loading | empty | studying | complete | error
+  const [sessionId, setSessionId] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [index, setIndex] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const [userAttempt, setUserAttempt] = useState('');
+  const [summary, setSummary] = useState(null);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [grading, setGrading] = useState(false);
+  const [fading, setFading] = useState(false);
+  const textareaRef = useRef(null);
+
+  // Start session on mount
+  useEffect(() => {
+    startSession();
+  }, []);
+
+  // Focus textarea when a new question appears
+  useEffect(() => {
+    if (phase === 'studying' && !revealed) {
+      textareaRef.current?.focus();
+    }
+  }, [phase, index, revealed]);
+
+  async function startSession() {
+    setPhase('loading');
+    setErrorMsg('');
+    try {
+      const res = await fetch('/api/sessions/start', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to start session');
+
+      if (!data.sessionId || data.questions.length === 0) {
+        setPhase('empty');
+        return;
+      }
+
+      setSessionId(data.sessionId);
+      setQuestions(data.questions);
+      setIndex(0);
+      setRevealed(false);
+      setUserAttempt('');
+      setPhase('studying');
+    } catch (err) {
+      setErrorMsg(err.message);
+      setPhase('error');
+    }
+  }
+
+  async function handleGrade(grade) {
+    if (grading) return;
+    setGrading(true);
+
+    const question = questions[index];
+    try {
+      const res = await fetch('/api/questions/grade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questionId: question.id,
+          grade,
+          userAttempt: userAttempt.trim() || null,
+          sessionId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Grading failed');
+
+      const isLast = index === questions.length - 1;
+
+      // Brief fade transition
+      setFading(true);
+      await new Promise((r) => setTimeout(r, 200));
+
+      if (isLast) {
+        await completeSession();
+      } else {
+        setIndex((i) => i + 1);
+        setRevealed(false);
+        setUserAttempt('');
+        setFading(false);
+      }
+    } catch (err) {
+      setErrorMsg(err.message);
+      setPhase('error');
+    } finally {
+      setGrading(false);
+    }
+  }
+
+  async function completeSession() {
+    try {
+      const res = await fetch('/api/sessions/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to complete session');
+      setSummary(data.summary);
+      setFading(false);
+      setPhase('complete');
+    } catch (err) {
+      setErrorMsg(err.message);
+      setPhase('error');
+    }
+  }
+
+  // ── render states ───────────────────────────────────────────────────────────
+
+  if (phase === 'loading') {
+    return (
+      <div className="min-h-dvh flex items-center justify-center">
+        <div className="text-center" style={{ color: 'var(--color-muted)' }}>
+          <div className="inline-block w-8 h-8 border-2 rounded-full animate-spin mb-4"
+            style={{ borderColor: 'var(--color-border)', borderTopColor: 'var(--color-accent)' }} />
+          <p>Loading your session…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'error') {
+    return (
+      <div className="min-h-dvh flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <p className="mb-4" style={{ color: 'var(--color-forgot)' }}>{errorMsg}</p>
+          <button
+            onClick={startSession}
+            className="px-6 py-3 rounded-lg font-medium"
+            style={{ background: 'var(--color-foreground)', color: 'var(--color-background)' }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'empty') {
+    return (
+      <div className="min-h-dvh flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <div className="text-4xl mb-4">✓</div>
+          <h1 className="text-xl font-semibold mb-2">All caught up!</h1>
+          <p className="mb-6" style={{ color: 'var(--color-muted)' }}>
+            No questions due right now. Check back tomorrow or add more content.
+          </p>
+          <a
+            href="/upload"
+            className="inline-block px-6 py-3 rounded-lg font-medium"
+            style={{ background: 'var(--color-foreground)', color: 'var(--color-background)' }}
+          >
+            Upload More Content
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'complete' && summary) {
+    const remembered = summary.correctCount;
+    const reinforced = summary.incorrectCount;
+    const skipped = summary.skippedCount;
+    return (
+      <div className="min-h-dvh flex items-center justify-center px-4">
+        <div className="w-full max-w-sm text-center">
+          <div className="text-4xl mb-4">🎉</div>
+          <h1 className="text-2xl font-semibold mb-6">Session Complete</h1>
+
+          <div className="rounded-2xl p-6 mb-6 text-left space-y-3"
+            style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+            <div className="flex justify-between">
+              <span style={{ color: 'var(--color-muted)' }}>Questions reviewed</span>
+              <span className="font-medium">{summary.questionsAnswered}</span>
+            </div>
+            <div className="flex justify-between">
+              <span style={{ color: 'var(--color-easy)' }}>Remembered (Easy + Hard)</span>
+              <span className="font-medium" style={{ color: 'var(--color-easy)' }}>{remembered}</span>
+            </div>
+            <div className="flex justify-between">
+              <span style={{ color: 'var(--color-forgot)' }}>Reinforced (Forgot)</span>
+              <span className="font-medium" style={{ color: 'var(--color-forgot)' }}>{reinforced}</span>
+            </div>
+            {skipped > 0 && (
+              <div className="flex justify-between">
+                <span style={{ color: 'var(--color-muted)' }}>Skipped</span>
+                <span className="font-medium">{skipped}</span>
+              </div>
+            )}
+            <div className="flex justify-between pt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
+              <span style={{ color: 'var(--color-muted)' }}>Duration</span>
+              <span className="font-medium">{formatDuration(summary.durationSeconds)}</span>
+            </div>
+          </div>
+
+          <a
+            href="/upload"
+            className="block w-full py-3.5 rounded-xl font-medium text-center"
+            style={{ background: 'var(--color-foreground)', color: 'var(--color-background)' }}
+          >
+            Upload More Content
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  // ── studying phase ──────────────────────────────────────────────────────────
+
+  const question = questions[index];
+  const canReveal = wordCount(userAttempt) >= 3;
+
+  return (
+    <div
+      className="min-h-dvh py-6 px-4 transition-opacity duration-200"
+      style={{ opacity: fading ? 0 : 1 }}
+    >
+      <div className="max-w-xl mx-auto">
+        <ProgressBar current={index} total={questions.length} />
+
+        {/* Question card */}
+        <div
+          className="rounded-2xl p-5 mb-5"
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+        >
+          <div className="text-xs font-medium uppercase tracking-wide mb-3"
+            style={{ color: 'var(--color-muted)' }}>
+            {question.question_type}
+          </div>
+          <p className="text-lg leading-snug font-medium">{question.question_text}</p>
+        </div>
+
+        {/* Answer area */}
+        {!revealed ? (
+          <>
+            <textarea
+              ref={textareaRef}
+              value={userAttempt}
+              onChange={(e) => setUserAttempt(e.target.value)}
+              placeholder="Type your answer… (3+ words to unlock Reveal)"
+              rows={4}
+              className="w-full rounded-xl px-4 py-3 mb-3 text-base leading-relaxed resize-none focus:outline-none"
+              style={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-foreground)',
+              }}
+            />
+            <button
+              onClick={() => setRevealed(true)}
+              disabled={!canReveal}
+              className="w-full py-4 rounded-xl font-medium text-base transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background: canReveal ? 'var(--color-foreground)' : 'var(--color-border)',
+                color: canReveal ? 'var(--color-background)' : 'var(--color-muted)',
+              }}
+            >
+              Reveal Answer
+            </button>
+          </>
+        ) : (
+          <>
+            {/* User's answer */}
+            {userAttempt.trim() && (
+              <div className="rounded-xl px-4 py-3 mb-4"
+                style={{ background: 'var(--color-surface-hover)', border: '1px solid var(--color-border)' }}>
+                <div className="text-xs font-medium uppercase tracking-wide mb-1.5"
+                  style={{ color: 'var(--color-muted)' }}>Your answer</div>
+                <p className="text-base leading-relaxed">{userAttempt}</p>
+              </div>
+            )}
+
+            {/* Model answer */}
+            <div className="rounded-xl p-4 mb-4"
+              style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+              <div className="text-xs font-medium uppercase tracking-wide mb-2"
+                style={{ color: 'var(--color-accent)' }}>Answer</div>
+              <p className="text-base leading-relaxed mb-3">{question.answer_text}</p>
+
+              <div className="text-xs font-medium uppercase tracking-wide mb-1.5"
+                style={{ color: 'var(--color-muted)' }}>Explanation</div>
+              <p className="text-sm leading-relaxed mb-3" style={{ color: 'var(--color-muted)' }}>
+                {question.explanation}
+              </p>
+
+              {question.source_reference && (
+                <>
+                  <div className="text-xs font-medium uppercase tracking-wide mb-1.5"
+                    style={{ color: 'var(--color-muted)' }}>Source</div>
+                  <blockquote
+                    className="text-sm leading-relaxed pl-3 italic"
+                    style={{
+                      borderLeft: '2px solid var(--color-border)',
+                      color: 'var(--color-muted)',
+                    }}
+                  >
+                    {question.source_reference}
+                  </blockquote>
+                </>
+              )}
+            </div>
+
+            {/* Grade buttons */}
+            <div className="flex gap-2 mb-4">
+              <GradeButton
+                label="Easy"
+                sublabel="Knew it"
+                onClick={() => handleGrade('easy')}
+                colorVar="--color-easy"
+                bgVar="--color-easy-bg"
+                disabled={grading}
+              />
+              <GradeButton
+                label="Hard"
+                sublabel="Struggled"
+                onClick={() => handleGrade('hard')}
+                colorVar="--color-hard"
+                bgVar="--color-hard-bg"
+                disabled={grading}
+              />
+              <GradeButton
+                label="Forgot"
+                sublabel="Missed it"
+                onClick={() => handleGrade('forgot')}
+                colorVar="--color-forgot"
+                bgVar="--color-forgot-bg"
+                disabled={grading}
+              />
+            </div>
+
+            <button
+              onClick={() => handleGrade('skipped')}
+              disabled={grading}
+              className="w-full py-3 rounded-xl text-sm font-medium transition-opacity disabled:opacity-40"
+              style={{ color: 'var(--color-muted)', border: '1px solid var(--color-border)' }}
+            >
+              Skip
+            </button>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
