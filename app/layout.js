@@ -36,7 +36,7 @@ export default function RootLayout({ children }) {
         style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}
       >
         <Navigation />
-        <main className="max-w-2xl mx-auto px-4 pb-24 md:pt-14">
+        <main className="max-w-2xl mx-auto px-4 pb-24 md:pt-20">
           {children}
         </main>
       </body>
