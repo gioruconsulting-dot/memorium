@@ -32,11 +32,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${dmSans.variable} ${dmSerifDisplay.variable}`}>
       <body
-        className="min-h-dvh pb-24 md:pt-14 max-w-2xl mx-auto px-4"
+        className="min-h-dvh"
         style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}
       >
         <Navigation />
-        {children}
+        <main className="max-w-2xl mx-auto px-4 pb-24 md:pt-14">
+          {children}
+        </main>
       </body>
     </html>
   );
