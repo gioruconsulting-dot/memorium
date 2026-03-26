@@ -14,6 +14,18 @@ function formatDuration(seconds) {
   return `${m} minute${m !== 1 ? 's' : ''}`;
 }
 
+function truncate(text, max = 80) {
+  if (!text || text.length <= max) return text;
+  return text.slice(0, max).trimEnd() + '…';
+}
+
+const GRADE_STYLE = {
+  easy:    { label: 'Easy',    color: 'var(--color-easy)' },
+  hard:    { label: 'Hard',    color: 'var(--color-hard)' },
+  forgot:  { label: 'Forgot',  color: 'var(--color-forgot)' },
+  skipped: { label: 'Skipped', color: 'var(--color-muted)' },
+};
+
 // ── sub-components ────────────────────────────────────────────────────────────
 
 function ProgressBar({ current, total }) {
@@ -62,17 +74,18 @@ export default function StudyPage() {
   const [revealed, setRevealed] = useState(false);
   const [userAttempt, setUserAttempt] = useState('');
   const [summary, setSummary] = useState(null);
+  const [endedEarly, setEndedEarly] = useState(false);
+  const [gradeHistory, setGradeHistory] = useState([]); // [{ question, grade }]
+  const [forgotCount, setForgotCount] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
   const [grading, setGrading] = useState(false);
   const [fading, setFading] = useState(false);
   const textareaRef = useRef(null);
 
-  // Start session on mount
   useEffect(() => {
     startSession();
   }, []);
 
-  // Focus textarea when a new question appears
   useEffect(() => {
     if (phase === 'studying' && !revealed) {
       textareaRef.current?.focus();
@@ -82,6 +95,9 @@ export default function StudyPage() {
   async function startSession() {
     setPhase('loading');
     setErrorMsg('');
+    setForgotCount(0);
+    setGradeHistory([]);
+    setEndedEarly(false);
     try {
       const res = await fetch('/api/sessions/start', { method: 'POST' });
       const data = await res.json();
@@ -109,6 +125,13 @@ export default function StudyPage() {
     setGrading(true);
 
     const question = questions[index];
+
+    // Compute updated counters locally (React state is async)
+    const newForgotCount = forgotCount + (grade === 'forgot' ? 1 : 0);
+    const totalAnswered = index + 1; // after this question
+    const isLast = index === questions.length - 1;
+    const earlyEnd = newForgotCount >= 3 && totalAnswered >= 10;
+
     try {
       const res = await fetch('/api/questions/grade', {
         method: 'POST',
@@ -123,13 +146,16 @@ export default function StudyPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Grading failed');
 
-      const isLast = index === questions.length - 1;
+      // Update tracked state
+      setForgotCount(newForgotCount);
+      setGradeHistory((prev) => [...prev, { question, grade }]);
 
-      // Brief fade transition
+      // Fade transition
       setFading(true);
       await new Promise((r) => setTimeout(r, 200));
 
-      if (isLast) {
+      if (isLast || earlyEnd) {
+        if (earlyEnd && !isLast) setEndedEarly(true);
         await completeSession();
       } else {
         setIndex((i) => i + 1);
@@ -220,12 +246,20 @@ export default function StudyPage() {
     const reinforced = summary.incorrectCount;
     const skipped = summary.skippedCount;
     return (
-      <div className="min-h-dvh flex items-center justify-center px-4">
-        <div className="w-full max-w-sm text-center">
-          <div className="text-4xl mb-4">🎉</div>
-          <h1 className="text-2xl font-semibold mb-6">Session Complete</h1>
+      <div className="min-h-dvh py-8 px-4">
+        <div className="w-full max-w-sm mx-auto">
+          <div className="text-center mb-6">
+            <div className="text-4xl mb-3">{endedEarly ? '🧠' : '🎉'}</div>
+            <h1 className="text-2xl font-semibold mb-2">Session Complete</h1>
+            {endedEarly ? (
+              <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
+                Session ended early — take a break, you'll see these again tomorrow.
+              </p>
+            ) : null}
+          </div>
 
-          <div className="rounded-2xl p-6 mb-6 text-left space-y-3"
+          {/* Stats */}
+          <div className="rounded-2xl p-5 mb-5 space-y-3"
             style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
             <div className="flex justify-between">
               <span style={{ color: 'var(--color-muted)' }}>Questions reviewed</span>
@@ -250,6 +284,33 @@ export default function StudyPage() {
               <span className="font-medium">{formatDuration(summary.durationSeconds)}</span>
             </div>
           </div>
+
+          {/* Question summary table */}
+          {gradeHistory.length > 0 && (
+            <div className="rounded-2xl mb-5 overflow-hidden"
+              style={{ border: '1px solid var(--color-border)' }}>
+              {gradeHistory.map(({ question, grade }, i) => {
+                const gs = GRADE_STYLE[grade] || GRADE_STYLE.skipped;
+                return (
+                  <div
+                    key={question.id}
+                    className="flex items-center justify-between px-4 py-3 gap-3"
+                    style={{
+                      background: i % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-hover)',
+                      borderTop: i > 0 ? '1px solid var(--color-border)' : 'none',
+                    }}
+                  >
+                    <span className="text-sm leading-snug flex-1 min-w-0" style={{ color: 'var(--color-foreground)' }}>
+                      {truncate(question.question_text)}
+                    </span>
+                    <span className="text-xs font-medium shrink-0" style={{ color: gs.color }}>
+                      {gs.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <a
             href="/upload"
