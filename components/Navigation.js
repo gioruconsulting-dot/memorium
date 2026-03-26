@@ -1,0 +1,74 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+const LINKS = [
+  { href: '/study',    emoji: '📖', label: 'Study' },
+  { href: '/upload',   emoji: '➕', label: 'Upload' },
+  { href: '/progress', emoji: '📊', label: 'Progress' },
+  { href: '/library',  emoji: '📚', label: 'Library' },
+];
+
+export default function Navigation() {
+  const pathname = usePathname();
+
+  // Hide during study sessions — avoid accidental navigation mid-session
+  if (pathname === '/study') return null;
+
+  return (
+    <>
+      {/* Mobile: sticky bottom bar */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex"
+        style={{
+          background: 'var(--color-surface)',
+          borderTop: '1px solid var(--color-border)',
+        }}
+      >
+        {LINKS.map(({ href, emoji, label }) => {
+          const active = pathname === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              className="flex-1 flex flex-col items-center justify-center gap-0.5"
+              style={{
+                minHeight: '56px',
+                color: active ? 'var(--color-accent)' : 'var(--color-muted)',
+              }}
+            >
+              <span className="text-xl leading-none">{emoji}</span>
+              <span className="text-xs font-medium">{label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Desktop: fixed top bar */}
+      <nav
+        className="hidden md:flex fixed top-0 left-0 right-0 z-50 items-center gap-6 px-6 h-14"
+        style={{
+          background: 'var(--color-surface)',
+          borderBottom: '1px solid var(--color-border)',
+        }}
+      >
+        <span className="font-semibold mr-2">Memorium</span>
+        {LINKS.map(({ href, emoji, label }) => {
+          const active = pathname === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              className="flex items-center gap-1.5 text-sm font-medium"
+              style={{ color: active ? 'var(--color-accent)' : 'var(--color-muted)' }}
+            >
+              <span>{emoji}</span>
+              <span>{label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </>
+  );
+}
