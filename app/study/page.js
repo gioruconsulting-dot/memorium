@@ -31,7 +31,7 @@ const GRADE_STYLE = {
 function ProgressBar({ current, total }) {
   const pct = total > 0 ? Math.round((current / total) * 100) : 0;
   return (
-    <div className="mb-6">
+    <div className="mb-3 sm:mb-6">
       <div className="flex justify-between text-sm mb-1.5" style={{ color: 'var(--color-muted)' }}>
         <span>Question {current + 1} of {total}</span>
         <span style={{ color: '#4ADE80' }}>{pct}%</span>
@@ -51,11 +51,11 @@ function GradeButton({ label, sublabel, onClick, bgClass, disabled }) {
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`flex-1 flex flex-col items-center justify-center py-5 px-2 rounded-xl font-medium text-white transition-all active:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed ${bgClass}`}
-      style={{ minHeight: '64px' }}
+      className={`flex-1 flex flex-col items-center justify-center py-3 sm:py-5 px-2 rounded-xl font-medium text-white transition-all active:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed ${bgClass}`}
+      style={{ minHeight: '48px' }}
     >
-      <span className="text-lg leading-tight">{label}</span>
-      {sublabel && <span className="text-xs mt-0.5 opacity-70">{sublabel}</span>}
+      <span className="text-base sm:text-lg leading-tight">{label}</span>
+      {sublabel && <span className="text-xs mt-0.5 opacity-70 hidden sm:block">{sublabel}</span>}
     </button>
   );
 }
@@ -368,10 +368,10 @@ export default function StudyPage() {
 
   return (
     <div
-      className="min-h-dvh py-6 px-4 transition-opacity duration-200"
+      className="min-h-dvh py-3 sm:py-6 px-4 transition-opacity duration-200"
       style={{ opacity: fading ? 0 : 1 }}
     >
-      <div className="max-w-xl mx-auto space-y-5">
+      <div className="max-w-xl mx-auto space-y-3 sm:space-y-5">
         <ProgressBar current={index} total={questions.length} />
 
         {index === 0 && (
@@ -382,13 +382,13 @@ export default function StudyPage() {
 
         {/* Question card — keeps subtle border as primary element */}
         <div
-          className="rounded-2xl p-5"
+          className="rounded-2xl p-3 sm:p-5"
           style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
         >
           <div className="text-xs uppercase tracking-wider text-gray-500 mb-3">
             {question.question_type}
           </div>
-          <p className="text-xl font-semibold leading-snug">{question.question_text}</p>
+          <p className="text-lg sm:text-xl font-semibold leading-snug">{question.question_text}</p>
 
           {revealed && (
             <div className="flex justify-end mt-4">
@@ -454,7 +454,7 @@ export default function StudyPage() {
             </button>
           </div>
         ) : (
-          <div className="space-y-5">
+          <div className="space-y-3 sm:space-y-5">
 
             {/* Your answer — compact and secondary */}
             {userAttempt.trim() && (
@@ -467,7 +467,7 @@ export default function StudyPage() {
             {/* Model answer — always visible, no border */}
             <div>
               <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">Answer</div>
-              <p className="text-lg font-medium leading-snug">{question.answer_text}</p>
+              <p className="text-base sm:text-lg font-medium leading-snug">{question.answer_text}</p>
             </div>
 
             {/* Collapsible explanation & source */}
@@ -504,7 +504,7 @@ export default function StudyPage() {
             </div>
 
             {/* Grade buttons */}
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-3 mt-3 sm:mt-6">
               <GradeButton
                 label="Easy"
                 sublabel="Knew it"
@@ -531,7 +531,7 @@ export default function StudyPage() {
             <button
               onClick={() => handleGrade('skipped')}
               disabled={grading}
-              className="w-full py-3 rounded-xl text-sm font-medium transition-opacity disabled:opacity-40"
+              className="w-full py-2 sm:py-3 rounded-xl text-sm font-medium transition-opacity disabled:opacity-40"
               style={{ color: 'var(--color-muted)', border: '1px solid var(--color-border)' }}
             >
               Skip
