@@ -6,7 +6,7 @@ import { UserButton } from '@clerk/nextjs';
 
 const LINKS = [
   { href: '/study',    emoji: '📖', label: 'Study' },
-  { href: '/upload',   emoji: '➕', label: 'Upload' },
+  { href: '/upload',   emoji: '+',  label: 'Upload' },
   { href: '/browse',   emoji: '🌐', label: 'Browse' },
   { href: '/progress', emoji: '📊', label: 'Progress' },
   { href: '/library',  emoji: '📚', label: 'Library' },
@@ -40,7 +40,7 @@ export default function Navigation() {
                 color: active ? 'var(--color-accent)' : 'var(--color-muted)',
               }}
             >
-              <span className="text-xl leading-none">{emoji}</span>
+              <span className="text-xl leading-none font-medium" style={href === '/upload' ? { color: '#ef4444' } : undefined}>{emoji}</span>
               <span className="text-xs font-medium">{label}</span>
             </Link>
           );

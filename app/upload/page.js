@@ -191,9 +191,9 @@ export default function UploadPage() {
 
   // --- Form State (idle, loading, error) ---
   return (
-    <div className="py-6">
+    <div className="py-3 sm:py-6">
       {/* Header */}
-      <div className="mb-6 text-center">
+      <div className="mb-3 sm:mb-6 text-center">
         <h1 className="text-2xl font-semibold text-[#EEFF99] mb-1">
           Upload Document
         </h1>
@@ -203,7 +203,7 @@ export default function UploadPage() {
       </div>
 
       {/* Form card */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-5">
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-6 space-y-3 sm:space-y-5">
 
         {/* File upload button — top, full width */}
         <div>
@@ -212,7 +212,7 @@ export default function UploadPage() {
             onClick={() => fileInputRef.current?.click()}
             disabled={status === 'loading'}
             className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700
-                       text-white font-medium rounded-xl py-3 px-6 transition-colors
+                       text-white font-medium rounded-xl py-2 sm:py-3 px-6 transition-colors
                        disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -231,7 +231,7 @@ export default function UploadPage() {
 
         {/* Title */}
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-1">
             Title <span className="text-red-400">*</span>
           </label>
           <input
@@ -244,13 +244,13 @@ export default function UploadPage() {
             className="w-full px-4 py-3 rounded-xl border border-gray-700 bg-gray-800
                        text-gray-100 placeholder-gray-500
                        focus:border-violet-500 focus:ring-1 focus:ring-violet-500 focus:outline-none
-                       disabled:opacity-50 disabled:cursor-not-allowed text-base"
+                       disabled:opacity-50 disabled:cursor-not-allowed text-base py-2 sm:py-3"
           />
         </div>
 
         {/* Themes */}
         <div>
-          <label htmlFor="themes" className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label htmlFor="themes" className="block text-sm font-medium text-gray-300 mb-1">
             Themes <span className="text-gray-500 font-normal">(optional)</span>
           </label>
           <input
@@ -263,13 +263,13 @@ export default function UploadPage() {
             className="w-full px-4 py-3 rounded-xl border border-gray-700 bg-gray-800
                        text-gray-100 placeholder-gray-500
                        focus:border-violet-500 focus:ring-1 focus:ring-violet-500 focus:outline-none
-                       disabled:opacity-50 disabled:cursor-not-allowed text-base"
+                       disabled:opacity-50 disabled:cursor-not-allowed text-base py-2 sm:py-3"
           />
         </div>
 
         {/* Content textarea with drag-and-drop */}
         <div>
-          <label htmlFor="content" className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label htmlFor="content" className="block text-sm font-medium text-gray-300 mb-1">
             Content <span className="text-red-400">*</span>
           </label>
           <div
@@ -311,7 +311,7 @@ Or drag and drop a .txt / .md file here."
                          text-gray-100 placeholder-gray-500
                          focus:border-violet-500 focus:ring-1 focus:ring-violet-500 focus:outline-none
                          disabled:opacity-50 disabled:cursor-not-allowed
-                         resize-y text-base leading-relaxed min-h-[150px]"
+                         resize-y text-base leading-relaxed min-h-[80px] sm:min-h-[150px]"
             />
           </div>
 
@@ -359,7 +359,7 @@ Or drag and drop a .txt / .md file here."
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="w-full py-3 px-6 rounded-xl font-medium text-base transition-colors
+          className="w-full py-2 sm:py-3 px-6 rounded-xl font-medium text-base transition-colors
                      disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed
                      bg-violet-600 text-white hover:bg-violet-700"
         >
