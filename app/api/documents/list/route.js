@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { getAllDocuments } from "@/lib/db/queries";
+import { getAllDocuments, getAdoptedDocuments } from "@/lib/db/queries";
 
 export async function GET() {
   const { userId } = await auth();
@@ -9,7 +9,16 @@ export async function GET() {
   }
 
   try {
-    const documents = await getAllDocuments(userId);
+    const [uploaded, adopted] = await Promise.all([
+      getAllDocuments(userId),
+      getAdoptedDocuments(userId),
+    ]);
+
+    const documents = [
+      ...uploaded.map((d) => ({ ...d, adopted: false })),
+      ...adopted.map((d) => ({ ...d, adopted: true })),
+    ].sort((a, b) => Number(b.created_at) - Number(a.created_at));
+
     return NextResponse.json({ documents });
   } catch (error) {
     console.error("[API] documents/list failed:", error);

@@ -31,14 +31,16 @@ export default function LibraryPage() {
   useEffect(() => { fetchDocuments(); }, []);
 
   async function handleDelete(doc) {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${doc.title}"? This will also delete all its questions.`
-    );
-    if (!confirmed) return;
+    const confirmMessage = doc.adopted
+      ? `Remove "${doc.title}" from your library? This will delete your study progress for this document.`
+      : `Are you sure you want to delete "${doc.title}"? This will also delete all its questions.`;
+
+    if (!window.confirm(confirmMessage)) return;
 
     setDeleting(doc.id);
     try {
-      const res = await fetch('/api/documents/delete', {
+      const endpoint = doc.adopted ? '/api/documents/unadopt' : '/api/documents/delete';
+      const res = await fetch(endpoint, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ documentId: doc.id }),
@@ -114,11 +116,32 @@ export default function LibraryPage() {
         {documents.map((doc) => (
           <div
             key={doc.id}
-            className="rounded-2xl p-5"
-            style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+            className={`rounded-2xl p-5 ${doc.adopted ? 'border-l-4' : ''}`}
+            style={
+              doc.adopted
+                ? {
+                    background: 'color-mix(in srgb, #7c3aed 8%, var(--color-surface))',
+                    border: '1px solid var(--color-border)',
+                    borderLeftColor: '#7c3aed',
+                    borderLeftWidth: '4px',
+                  }
+                : { background: 'var(--color-surface)', border: '1px solid var(--color-border)' }
+            }
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
+                {/* Badge */}
+                <span
+                  className="inline-block text-xs font-medium px-2 py-0.5 rounded-md mb-1.5"
+                  style={
+                    doc.adopted
+                      ? { background: 'rgba(124,58,237,0.2)', color: '#a78bfa' }
+                      : { background: 'var(--color-surface-hover)', color: 'var(--color-muted)' }
+                  }
+                >
+                  {doc.adopted ? 'Adopted' : 'Uploaded'}
+                </span>
+
                 <p className="font-semibold text-base leading-snug mb-1">{doc.title}</p>
                 {doc.themes && (
                   <p className="text-sm mb-1" style={{ color: 'var(--color-muted)' }}>
@@ -137,7 +160,7 @@ export default function LibraryPage() {
                 className="shrink-0 text-sm font-medium px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-40"
                 style={{ color: 'var(--color-forgot)' }}
               >
-                {deleting === doc.id ? 'Deleting…' : 'Delete'}
+                {deleting === doc.id ? 'Removing…' : doc.adopted ? 'Remove' : 'Delete'}
               </button>
             </div>
           </div>
