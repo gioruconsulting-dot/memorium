@@ -25,6 +25,13 @@ export async function POST(request) {
       );
     }
 
+    if (title.trim().length > 500) {
+      return NextResponse.json(
+        { error: "Title too long — maximum 500 characters" },
+        { status: 400 }
+      );
+    }
+
     if (!content || typeof content !== "string") {
       return NextResponse.json(
         { error: "Content is required" },

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import {
   getQuestionById,
+  getStudySession,
   updateQuestionAfterGrade,
   updateSessionCounts,
   insertSessionAnswer,
@@ -85,6 +86,12 @@ export async function POST(request) {
       );
     }
 
+    // Verify the session belongs to this user
+    const session = await getStudySession(sessionId, userId);
+    if (!session) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const question = await getQuestionById(questionId);
     if (!question) {
       return NextResponse.json({ error: "Question not found" }, { status: 404 });
@@ -109,7 +116,7 @@ export async function POST(request) {
       userId,
       sessionId,
       questionId,
-      userAttempt: userAttempt || null,
+      userAttempt: userAttempt ? String(userAttempt).slice(0, 2000) : null,
       grade,
     });
 

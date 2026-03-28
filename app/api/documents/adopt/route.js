@@ -63,7 +63,7 @@ export async function POST(request) {
       });
     }
 
-    console.log("[API] Document adopted", { documentId, userId, questionCount: sourceQuestions.length });
+    console.log("[API] Document adopted", { documentId, questionCount: sourceQuestions.length });
 
     return NextResponse.json({ success: true, questionCount: sourceQuestions.length });
   } catch (error) {
