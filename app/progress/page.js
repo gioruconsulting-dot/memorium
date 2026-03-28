@@ -101,14 +101,14 @@ export default function ProgressPage() {
         Progress
       </h1>
       <div className="grid grid-cols-2 gap-4">
-        <StatCard value={stats.totalQuestions} label="Total questions" />
-        <StatCard value={stats.documentCount}   label="Texts"           alt />
-        <StatCard value={stats.themeCount}      label="Themes"          />
-        <StatCard value={stats.dueNow}          label="Due now"         alt />
-        <StatCard value={stats.masteredCount}   label="Mastered"        />
-        <StatCard value={`${stats.accuracyPercent}%`} label="Accuracy"  alt />
-        <StatCard value={stats.totalAnswered}   label="Answers given"   />
-        <StatCard value={stats.studyStreak}     label="Days this month" alt />
+        <StatCard value={stats.totalQuestions}       label="Total questions" />
+        <StatCard value={stats.documentCount}        label="Texts"           alt />
+        <StatCard value={stats.themeCount}           label="Themes"          alt />
+        <StatCard value={stats.dueNow}               label="Due now"         />
+        <StatCard value={stats.masteredCount}        label="Mastered"        />
+        <StatCard value={`${stats.accuracyPercent}%`} label="Accuracy"       alt />
+        <StatCard value={stats.totalAnswered}        label="Answers given"   alt />
+        <StatCard value={stats.studyStreak}          label="Days this month" />
       </div>
     </div>
   );
