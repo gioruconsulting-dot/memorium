@@ -119,13 +119,13 @@ export default function LibraryPage() {
             className={`rounded-2xl p-5 ${doc.adopted ? 'border-l-4' : ''}`}
             style={
               doc.adopted
-                ? {
+                ? { background: 'var(--color-surface)', border: '1px solid var(--color-border)' }
+                : {
                     background: 'color-mix(in srgb, #7c3aed 8%, var(--color-surface))',
                     border: '1px solid var(--color-border)',
                     borderLeftColor: '#7c3aed',
                     borderLeftWidth: '4px',
                   }
-                : { background: 'var(--color-surface)', border: '1px solid var(--color-border)' }
             }
           >
             <div className="flex items-start justify-between gap-3">
