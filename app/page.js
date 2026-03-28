@@ -53,7 +53,7 @@ export default async function Home() {
           <h1 className="text-2xl font-semibold text-[#EEFF99] mb-2">
             Welcome! Let your epic learning journey begin.
           </h1>
-          <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
+          <p className="text-lg font-medium text-white">
             Upload what you want to remember, or browse what others are learning.
           </p>
         </div>
@@ -85,7 +85,7 @@ export default async function Home() {
         <h1 className="text-2xl font-semibold text-[#EEFF99] mb-1">
           {firstName ? `Welcome back, ${firstName}.` : 'Welcome back!'}
         </h1>
-        <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
+        <p className="text-lg font-medium text-white">
           What shall we do today?
         </p>
       </div>
@@ -100,7 +100,7 @@ export default async function Home() {
               ? `${dueCount} question${dueCount !== 1 ? 's' : ''} due — come on!`
               : "You're all caught up!"
           }
-          description="Review your flashcards with spaced repetition"
+          description="Keep memorising what you want"
         />
         <Card
           href="/upload"
