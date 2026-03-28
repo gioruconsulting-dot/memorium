@@ -311,7 +311,7 @@ Or drag and drop a .txt / .md file here."
                          text-gray-100 placeholder-gray-500
                          focus:border-violet-500 focus:ring-1 focus:ring-violet-500 focus:outline-none
                          disabled:opacity-50 disabled:cursor-not-allowed
-                         resize-y text-base leading-relaxed min-h-[80px] sm:min-h-[150px]"
+                         resize-y text-base leading-relaxed min-h-[180px] sm:min-h-[150px]"
             />
           </div>
 
