@@ -374,7 +374,7 @@ export default function StudyPage() {
       <div className="max-w-xl mx-auto space-y-3 sm:space-y-5">
         <ProgressBar current={index} total={questions.length} />
 
-        {index === 0 && (
+        {index === 0 && !revealed && (
           <p className="text-xl text-center text-green-400">
             🔒 {questions.length} questions. No other choice. Complete.
           </p>
