@@ -389,6 +389,44 @@ export default function StudyPage() {
             {question.question_type}
           </div>
           <p className="text-xl font-semibold leading-snug">{question.question_text}</p>
+
+          {revealed && (
+            <div className="flex justify-end mt-4">
+              {!retireConfirm ? (
+                <button
+                  onClick={() => setRetireConfirm(true)}
+                  disabled={grading || retiring}
+                  className="flex items-center gap-1.5 text-sm transition-colors hover:text-red-400 disabled:opacity-40"
+                  style={{ color: 'var(--color-muted)' }}
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+                  </svg>
+                  <span>Bad question</span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <span className="text-xs" style={{ color: 'var(--color-muted)' }}>Remove this question?</span>
+                  <button
+                    onClick={handleRetire}
+                    disabled={retiring}
+                    className="text-xs px-3 py-1 rounded-lg transition-opacity disabled:opacity-40"
+                    style={{ color: '#EF4444', border: '1px solid #EF4444' }}
+                  >
+                    {retiring ? 'Removing…' : 'Remove'}
+                  </button>
+                  <button
+                    onClick={() => setRetireConfirm(false)}
+                    disabled={retiring}
+                    className="text-xs transition-colors hover:text-gray-300"
+                    style={{ color: 'var(--color-muted)' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Answer area */}
@@ -498,43 +536,6 @@ export default function StudyPage() {
             >
               Skip
             </button>
-
-            {/* Thumbs-down — subtle, right-aligned, away from grade buttons */}
-            <div className="flex justify-end pt-1">
-              {!retireConfirm ? (
-                <button
-                  onClick={() => setRetireConfirm(true)}
-                  disabled={grading || retiring}
-                  className="flex items-center gap-1.5 text-xs transition-colors hover:text-red-400 disabled:opacity-40"
-                  style={{ color: 'var(--color-muted)' }}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
-                  </svg>
-                  <span>Bad question</span>
-                </button>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <span className="text-xs" style={{ color: 'var(--color-muted)' }}>Remove this question?</span>
-                  <button
-                    onClick={handleRetire}
-                    disabled={retiring}
-                    className="text-xs px-3 py-1 rounded-lg transition-opacity disabled:opacity-40"
-                    style={{ color: '#EF4444', border: '1px solid #EF4444' }}
-                  >
-                    {retiring ? 'Removing…' : 'Remove'}
-                  </button>
-                  <button
-                    onClick={() => setRetireConfirm(false)}
-                    disabled={retiring}
-                    className="text-xs transition-colors hover:text-gray-300"
-                    style={{ color: 'var(--color-muted)' }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
-            </div>
 
           </div>
         )}
