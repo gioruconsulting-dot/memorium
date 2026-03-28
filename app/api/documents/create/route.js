@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { generateQuestions } from "@/lib/ai/generate-questions";
-import { generateId, insertDocument, insertQuestion } from "@/lib/db/queries";
+import { generateId, insertDocument, insertQuestion, ensureUser } from "@/lib/db/queries";
 
 export async function POST(request) {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  await ensureUser(userId);
 
   try {
     // Parse request body

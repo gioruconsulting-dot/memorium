@@ -5,6 +5,7 @@ import {
   completeAbandonedSessions,
   createStudySession,
   generateId,
+  ensureUser,
 } from "@/lib/db/queries";
 
 function riskScore(q) {
@@ -21,6 +22,8 @@ export async function POST() {
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  await ensureUser(userId);
 
   try {
     await completeAbandonedSessions(userId);

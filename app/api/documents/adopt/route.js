@@ -6,6 +6,7 @@ import {
   getQuestionsByDocumentAndUser,
   insertQuestion,
   generateId,
+  ensureUser,
 } from "@/lib/db/queries";
 
 export async function POST(request) {
@@ -13,6 +14,8 @@ export async function POST(request) {
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  await ensureUser(userId);
 
   try {
     const body = await request.json();
