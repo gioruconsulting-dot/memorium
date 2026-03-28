@@ -7,6 +7,7 @@ import { UserButton } from '@clerk/nextjs';
 const LINKS = [
   { href: '/study',    emoji: '📖', label: 'Study' },
   { href: '/upload',   emoji: '➕', label: 'Upload' },
+  { href: '/browse',   emoji: '🌐', label: 'Browse' },
   { href: '/progress', emoji: '📊', label: 'Progress' },
   { href: '/library',  emoji: '📚', label: 'Library' },
 ];
