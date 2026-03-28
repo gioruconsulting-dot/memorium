@@ -40,7 +40,7 @@ export default function Navigation() {
                 color: active ? 'var(--color-accent)' : 'var(--color-muted)',
               }}
             >
-              <span className="text-xl leading-none font-medium" style={href === '/upload' ? { color: '#ef4444' } : undefined}>{emoji}</span>
+              <span className="text-xl leading-none font-medium" style={href === '/upload' ? { color: '#EEFF99', fontSize: '1.375rem' } : undefined}>{emoji}</span>
               <span className="text-xs font-medium">{label}</span>
             </Link>
           );
