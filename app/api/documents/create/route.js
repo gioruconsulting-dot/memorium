@@ -9,11 +9,13 @@ export async function POST(request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  await ensureUser(userId);
+  // ensureUser and body parsing are independent — run in parallel
+  const [, body] = await Promise.all([
+    ensureUser(userId),
+    request.json(),
+  ]);
 
   try {
-    // Parse request body
-    const body = await request.json();
     const { content, title, themes } = body;
 
     // --- Input Validation ---
@@ -71,7 +73,7 @@ export async function POST(request) {
       );
     }
 
-    // --- Insert document ---
+    // --- Insert document (must complete before questions due to FK) ---
     const documentId = generateId("doc");
 
     await insertDocument({
@@ -83,19 +85,21 @@ export async function POST(request) {
       questionCount: questions.length,
     });
 
-    // --- Insert questions ---
-    for (const q of questions) {
-      await insertQuestion({
-        id: generateId("q"),
-        userId,
-        documentId,
-        questionText: q.question,
-        questionType: q.type,
-        answerText: q.correctAnswer,
-        explanation: q.explanation,
-        sourceReference: q.sourceReference,
-      });
-    }
+    // --- Insert all questions in parallel ---
+    await Promise.all(
+      questions.map((q) =>
+        insertQuestion({
+          id: generateId("q"),
+          userId,
+          documentId,
+          questionText: q.question,
+          questionType: q.type,
+          answerText: q.correctAnswer,
+          explanation: q.explanation,
+          sourceReference: q.sourceReference,
+        })
+      )
+    );
 
     // --- Log success ---
     console.log("[API] Document created", {
