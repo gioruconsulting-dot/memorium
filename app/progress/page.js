@@ -5,13 +5,13 @@ import { useState, useEffect } from 'react';
 function StatCard({ value, label }) {
   return (
     <div
-      className="rounded-2xl p-3 flex flex-col items-center justify-center text-center"
+      className="rounded-2xl p-4 flex flex-col items-center justify-center text-center"
       style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
     >
-      <span className="text-3xl font-semibold tracking-tight leading-none mb-1.5">
+      <span className="text-4xl font-semibold tracking-tight leading-none mb-2">
         {value}
       </span>
-      <span className="text-xs leading-snug" style={{ color: 'var(--color-muted)' }}>
+      <span className="text-sm leading-snug" style={{ color: 'var(--color-muted)' }}>
         {label}
       </span>
     </div>
@@ -46,9 +46,9 @@ export default function ProgressPage() {
         <h1 className="text-2xl font-semibold text-center text-[#EEFF99] mb-4">
           Progress
         </h1>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <div key={i} className="rounded-2xl p-3 h-20 animate-pulse"
+            <div key={i} className="rounded-2xl p-4 h-24 animate-pulse"
               style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }} />
           ))}
         </div>
@@ -95,7 +95,7 @@ export default function ProgressPage() {
       <h1 className="text-2xl font-semibold text-center text-[#EEFF99] mb-4">
         Progress
       </h1>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         <StatCard value={stats.totalQuestions} label="Total questions" />
         <StatCard value={stats.documentCount} label="Texts" />
         <StatCard value={stats.themeCount} label="Themes" />
