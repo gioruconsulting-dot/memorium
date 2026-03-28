@@ -2,11 +2,16 @@
 
 import { useState, useEffect } from 'react';
 
-function StatCard({ value, label }) {
+const BG_ALT = 'color-mix(in srgb, #7c3aed 8%, var(--color-surface))';
+
+function StatCard({ value, label, alt }) {
   return (
     <div
-      className="rounded-2xl p-4 flex flex-col items-center justify-center text-center"
-      style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+      className="rounded-2xl p-5 flex flex-col items-center justify-center text-center"
+      style={{
+        background: alt ? BG_ALT : 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+      }}
     >
       <span className="text-4xl font-semibold tracking-tight leading-none mb-2">
         {value}
@@ -48,7 +53,7 @@ export default function ProgressPage() {
         </h1>
         <div className="grid grid-cols-2 gap-4">
           {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <div key={i} className="rounded-2xl p-4 h-24 animate-pulse"
+            <div key={i} className="rounded-2xl p-5 h-28 animate-pulse"
               style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }} />
           ))}
         </div>
@@ -97,13 +102,13 @@ export default function ProgressPage() {
       </h1>
       <div className="grid grid-cols-2 gap-4">
         <StatCard value={stats.totalQuestions} label="Total questions" />
-        <StatCard value={stats.documentCount} label="Texts" />
-        <StatCard value={stats.themeCount} label="Themes" />
-        <StatCard value={stats.dueNow} label="Due now" />
-        <StatCard value={stats.masteredCount} label="Mastered" />
-        <StatCard value={`${stats.accuracyPercent}%`} label="Accuracy" />
-        <StatCard value={stats.totalAnswered} label="Answers given" />
-        <StatCard value={stats.studyStreak} label="Days this month" />
+        <StatCard value={stats.documentCount}   label="Texts"           alt />
+        <StatCard value={stats.themeCount}      label="Themes"          />
+        <StatCard value={stats.dueNow}          label="Due now"         alt />
+        <StatCard value={stats.masteredCount}   label="Mastered"        />
+        <StatCard value={`${stats.accuracyPercent}%`} label="Accuracy"  alt />
+        <StatCard value={stats.totalAnswered}   label="Answers given"   />
+        <StatCard value={stats.studyStreak}     label="Days this month" alt />
       </div>
     </div>
   );
