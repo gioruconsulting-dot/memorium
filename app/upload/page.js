@@ -194,12 +194,9 @@ export default function UploadPage() {
     <div className="py-3 sm:py-6">
       {/* Header */}
       <div className="mb-3 sm:mb-6 text-center">
-        <h1 className="text-2xl font-semibold text-[#EEFF99] mb-1">
+        <h1 className="text-2xl font-semibold text-[#EEFF99]">
           Upload Document
         </h1>
-        <p className="text-gray-500">
-          Paste text or upload a file — Memorium generates study questions automatically.
-        </p>
       </div>
 
       {/* Form card */}
@@ -311,7 +308,7 @@ Or drag and drop a .txt / .md file here."
                          text-gray-100 placeholder-gray-500
                          focus:border-violet-500 focus:ring-1 focus:ring-violet-500 focus:outline-none
                          disabled:opacity-50 disabled:cursor-not-allowed
-                         resize-y text-base leading-relaxed min-h-[180px] sm:min-h-[150px]"
+                         resize-y text-base leading-relaxed min-h-[260px] sm:min-h-[150px]"
             />
           </div>
 
