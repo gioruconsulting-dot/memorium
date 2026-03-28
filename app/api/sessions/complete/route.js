@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { completeStudySession, getStudySession } from "@/lib/db/queries";
 
 export async function POST(request) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { sessionId } = body;
@@ -10,9 +16,9 @@ export async function POST(request) {
       return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
     }
 
-    await completeStudySession(sessionId);
+    await completeStudySession(sessionId, userId);
 
-    const session = await getStudySession(sessionId);
+    const session = await getStudySession(sessionId, userId);
     if (!session) {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }

@@ -90,15 +90,20 @@ export async function POST(request) {
       return NextResponse.json({ error: "Question not found" }, { status: 404 });
     }
 
+    // Verify the question belongs to this user
+    if (question.user_id !== userId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     let nextReviewAt = null;
 
     if (grade !== "skipped") {
       const newState = calcNewState(question, grade);
       nextReviewAt = newState.nextReviewAt;
-      await updateQuestionAfterGrade(questionId, newState);
+      await updateQuestionAfterGrade(questionId, userId, newState);
     }
 
-    await updateSessionCounts(sessionId, grade);
+    await updateSessionCounts(sessionId, userId, grade);
     await insertSessionAnswer({
       id: generateId("ans"),
       userId,
