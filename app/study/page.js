@@ -14,6 +14,14 @@ function formatDuration(seconds) {
   return `${m} minute${m !== 1 ? 's' : ''}`;
 }
 
+function truncateAnswer(text) {
+  if (!text) return text;
+  const sentences = text.match(/[^.!?]*[.!?]+/g);
+  const capped = sentences ? sentences.slice(0, 2).join('').trim() : text;
+  const words = capped.split(/\s+/);
+  return words.length <= 30 ? capped : words.slice(0, 30).join(' ') + '…';
+}
+
 function truncate(text, max = 80) {
   if (!text || text.length <= max) return text;
   return text.slice(0, max).trimEnd() + '…';
@@ -382,13 +390,13 @@ export default function StudyPage() {
 
         {/* Question card — keeps subtle border as primary element */}
         <div
-          className="rounded-2xl p-3 sm:p-5"
+          className={`rounded-2xl ${revealed ? 'p-2.5 sm:p-5' : 'p-3 sm:p-5'}`}
           style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
         >
-          <div className="text-xs uppercase tracking-wider text-gray-500 mb-3">
+          <div className={`text-xs uppercase tracking-wider text-gray-500 ${revealed ? 'mb-2' : 'mb-3'}`}>
             {question.question_type}
           </div>
-          <p className="text-lg sm:text-xl font-semibold leading-snug">{question.question_text}</p>
+          <p className={`${revealed ? 'text-sm sm:text-xl' : 'text-lg sm:text-xl'} font-semibold leading-snug`}>{question.question_text}</p>
 
           {revealed && (
             <div className="flex justify-end mt-4">
@@ -467,7 +475,7 @@ export default function StudyPage() {
             {/* Model answer — always visible, no border */}
             <div>
               <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">Answer</div>
-              <p className="text-base sm:text-lg font-medium leading-snug">{question.answer_text}</p>
+              <p className="text-base sm:text-lg font-medium leading-snug">{truncateAnswer(question.answer_text)}</p>
             </div>
 
             {/* Collapsible explanation & source */}
