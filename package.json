@@ -13,6 +13,7 @@
     "db:test": "node --env-file=.env.local scripts/test-db.js"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.0.7",
     "@libsql/client": "^0.17.2",
     "dotenv": "^17.3.1",
     "next": "16.2.1",

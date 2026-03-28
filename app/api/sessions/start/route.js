@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import {
   getAllDueQuestions,
   completeAbandonedSessions,
@@ -16,10 +17,15 @@ function riskScore(q) {
 }
 
 export async function POST() {
-  try {
-    await completeAbandonedSessions();
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-    const allDue = await getAllDueQuestions();
+  try {
+    await completeAbandonedSessions(userId);
+
+    const allDue = await getAllDueQuestions(userId);
 
     if (allDue.length === 0) {
       return NextResponse.json({ sessionId: null, questions: [] });
@@ -37,7 +43,7 @@ export async function POST() {
     const selected = sorted.slice(0, 15);
 
     const sessionId = generateId("sess");
-    await createStudySession({ id: sessionId, questionsShown: selected.length });
+    await createStudySession({ id: sessionId, userId, questionsShown: selected.length });
 
     const questions = selected.map((q) => ({
       id: q.id,

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { UserButton } from '@clerk/nextjs';
 
 const LINKS = [
   { href: '/study',    emoji: '📖', label: 'Study' },
@@ -43,6 +44,10 @@ export default function Navigation() {
             </Link>
           );
         })}
+        {/* User avatar — far right on mobile bottom bar */}
+        <div className="flex items-center justify-center" style={{ minHeight: '56px', paddingInline: '12px' }}>
+          <UserButton afterSignOutUrl="/sign-in" />
+        </div>
       </nav>
 
       {/* Desktop: fixed top bar */}
@@ -68,6 +73,10 @@ export default function Navigation() {
             </Link>
           );
         })}
+        {/* User avatar — pushed to far right */}
+        <div className="ml-auto">
+          <UserButton afterSignOutUrl="/sign-in" />
+        </div>
       </nav>
     </>
   );

@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { generateQuestions } from "@/lib/ai/generate-questions";
 import { generateId, insertDocument, insertQuestion } from "@/lib/db/queries";
 
 export async function POST(request) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     // Parse request body
     const body = await request.json();
@@ -61,6 +67,7 @@ export async function POST(request) {
 
     await insertDocument({
       id: documentId,
+      userId,
       title: title.trim(),
       content: trimmedContent,
       themes: cleanThemes,
@@ -71,6 +78,7 @@ export async function POST(request) {
     for (const q of questions) {
       await insertQuestion({
         id: generateId("q"),
+        userId,
         documentId,
         questionText: q.question,
         questionType: q.type,
@@ -103,4 +111,3 @@ export async function POST(request) {
     );
   }
 }
-

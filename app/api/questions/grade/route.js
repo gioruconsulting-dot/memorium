@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import {
   getQuestionById,
   updateQuestionAfterGrade,
@@ -61,6 +62,11 @@ function calcNewState(q, grade) {
 }
 
 export async function POST(request) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { questionId, grade, userAttempt, sessionId } = body;
@@ -95,6 +101,7 @@ export async function POST(request) {
     await updateSessionCounts(sessionId, grade);
     await insertSessionAnswer({
       id: generateId("ans"),
+      userId,
       sessionId,
       questionId,
       userAttempt: userAttempt || null,

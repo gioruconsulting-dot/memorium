@@ -1,4 +1,5 @@
 import { DM_Sans, DM_Serif_Display } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 
@@ -30,16 +31,18 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${dmSerifDisplay.variable}`}>
-      <body
-        className="min-h-dvh"
-        style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}
-      >
-        <Navigation />
-        <main className="max-w-2xl mx-auto px-4 pb-24 md:pt-20">
-          {children}
-        </main>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" className={`${dmSans.variable} ${dmSerifDisplay.variable}`}>
+        <body
+          className="min-h-dvh"
+          style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}
+        >
+          <Navigation />
+          <main className="max-w-2xl mx-auto px-4 pb-24 md:pt-20">
+            {children}
+          </main>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
