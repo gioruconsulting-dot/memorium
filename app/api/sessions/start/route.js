@@ -8,6 +8,23 @@ import {
   ensureUser,
 } from "@/lib/db/queries";
 
+// Round-robin interleave so consecutive questions come from different documents
+function interleaveByDocument(questions) {
+  const groups = new Map();
+  for (const q of questions) {
+    if (!groups.has(q.document_id)) groups.set(q.document_id, []);
+    groups.get(q.document_id).push(q);
+  }
+  const buckets = [...groups.values()];
+  const result = [];
+  while (result.length < questions.length) {
+    for (const bucket of buckets) {
+      if (bucket.length > 0) result.push(bucket.shift());
+    }
+  }
+  return result;
+}
+
 function riskScore(q) {
   return (
     Number(q.incorrect_count) * 3 +
@@ -43,7 +60,7 @@ export async function POST() {
       return Number(a.created_at) - Number(b.created_at);
     });
 
-    const selected = sorted.slice(0, 15);
+    const selected = interleaveByDocument(sorted.slice(0, 15));
 
     const sessionId = generateId("sess");
     await createStudySession({ id: sessionId, userId, questionsShown: selected.length });
