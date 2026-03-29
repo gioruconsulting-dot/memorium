@@ -14,13 +14,6 @@ function formatDuration(seconds) {
   return `${m} minute${m !== 1 ? 's' : ''}`;
 }
 
-function truncateAnswer(text) {
-  if (!text) return text;
-  const sentences = text.match(/[^.!?]*[.!?]+/g);
-  const capped = sentences ? sentences.slice(0, 2).join('').trim() : text;
-  const words = capped.split(/\s+/);
-  return words.length <= 30 ? capped : words.slice(0, 30).join(' ') + '…';
-}
 
 function truncate(text, max = 80) {
   if (!text || text.length <= max) return text;
@@ -475,7 +468,7 @@ export default function StudyPage() {
             {/* Model answer — always visible, no border */}
             <div>
               <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">Answer</div>
-              <p className="text-base sm:text-lg font-medium leading-snug">{truncateAnswer(question.answer_text)}</p>
+              <p className="text-base sm:text-lg font-medium leading-snug">{question.answer_text}</p>
             </div>
 
             {/* Collapsible explanation & source */}
