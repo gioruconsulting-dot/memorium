@@ -15,7 +15,7 @@ const dmSerifDisplay = DM_Serif_Display({
 });
 
 export const metadata = {
-  title: "Memorium",
+  title: "Repetita",
   description: "Remember what you read.",
   manifest: "/manifest.json",
   appleWebApp: {

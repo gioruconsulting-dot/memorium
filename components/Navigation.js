@@ -59,7 +59,7 @@ export default function Navigation() {
           borderBottom: '1px solid var(--color-border)',
         }}
       >
-        <span className="font-semibold mr-2">Memorium</span>
+        <span className="font-semibold mr-2">Repetita</span>
         {LINKS.map(({ href, emoji, label }) => {
           const active = pathname === href;
           return (
