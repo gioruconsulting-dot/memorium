@@ -73,9 +73,19 @@ function generateStars() {
   });
 }
 
+const MOBILE_LOGO_SIZE = 120;
+
+// Mobile ring offsets scaled proportionally to MOBILE_LOGO_SIZE
+// Preserves the same visual ratio as desktop (rings sit at same relative depth inside logo)
+const MOBILE_RINGS = RINGS.map(ring => ({
+  ...ring,
+  offset: Math.round(((LOGO_SIZE + ring.offset * 2) / LOGO_SIZE * MOBILE_LOGO_SIZE - MOBILE_LOGO_SIZE) / 2),
+}));
+
 export default function SignInPage() {
   const [stars, setStars] = useState([]);
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [totalCount, setTotalCount] = useState(null);
   const [displayCount, setDisplayCount] = useState(0);
   const rafRef = useRef(null);
@@ -83,6 +93,10 @@ export default function SignInPage() {
   useEffect(() => {
     setStars(generateStars());
     setMounted(true);
+    const check = () => setIsMobile(window.innerWidth <= 640);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
   }, []);
 
   useEffect(() => {
@@ -142,6 +156,11 @@ export default function SignInPage() {
         }
         [class*="cl-header"], [class*="cl-footer"], .cl-footer {
           display: none !important;
+        }
+
+        /* Mobile: reduce tagline spacing */
+        @media (max-width: 640px) {
+          .tagline { padding-top: 12px !important; }
         }
 
         /* Step 1: centre every wrapper in the Clerk tree */
@@ -209,6 +228,7 @@ export default function SignInPage() {
         inset: 0,
         background: '#000000',
         overflowY: 'auto',
+        overflowX: 'hidden',
         zIndex: 10,
         display: 'flex',
         flexDirection: 'column',
@@ -249,31 +269,36 @@ export default function SignInPage() {
           paddingBottom: '48px',
         }}>
 
-          {/* Hero: logo + rings. Height = full ring system diameter so text starts below outermost ring */}
+          {/* Hero: logo + rings */}
+          {(() => {
+            const logoSize = isMobile ? MOBILE_LOGO_SIZE : LOGO_SIZE;
+            const activeRings = isMobile ? MOBILE_RINGS : RINGS;
+            const heroHeight = logoSize + activeRings[4].offset * 2;
+            return (
           <div style={{
             position: 'relative',
             width: '100%',
-            height: `${HERO_HEIGHT}px`,
+            height: `${heroHeight}px`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
             overflow: 'visible',
+            marginBottom: isMobile ? '8px' : '0',
           }}>
-            {/* Logo — mix-blend-mode blends against the #121210 wrapper background */}
             <img
               src="/logo-repetita.png"
               alt="Repetita"
               style={{
-                height: `${LOGO_SIZE}px`,
+                height: `${logoSize}px`,
                 width: 'auto',
                 display: 'block',
               }}
             />
 
             {/* Rings */}
-            {RINGS.map((ring, i) => {
-              const size = LOGO_SIZE + ring.offset * 2;
+            {activeRings.map((ring, i) => {
+              const size = logoSize + ring.offset * 2;
               return (
                 <div key={i} style={{
                   position: 'absolute',
@@ -290,9 +315,11 @@ export default function SignInPage() {
               );
             })}
           </div>
+            );
+          })()}
 
           {/* Tagline — starts just below the outermost ring */}
-          <p style={{
+          <p className="tagline" style={{
             fontFamily: 'var(--font-dm-sans), sans-serif',
             fontWeight: 600,
             fontSize: 'clamp(17px, 4.68vw, 22px)',
