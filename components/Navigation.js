@@ -15,8 +15,8 @@ const LINKS = [
 export default function Navigation() {
   const pathname = usePathname();
 
-  // Hide during study sessions — avoid accidental navigation mid-session
-  if (pathname === '/study') return null;
+  // Hide during study sessions and on auth pages
+  if (pathname === '/study' || pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up')) return null;
 
   return (
     <>
