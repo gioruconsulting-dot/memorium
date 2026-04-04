@@ -73,7 +73,7 @@ function generateStars() {
   });
 }
 
-const MOBILE_LOGO_SIZE = 240;
+const MOBILE_LOGO_SIZE = 360;
 
 // Mobile ring offsets scaled proportionally to MOBILE_LOGO_SIZE
 // Preserves the same visual ratio as desktop (rings sit at same relative depth inside logo)
