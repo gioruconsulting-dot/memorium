@@ -32,7 +32,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
-      <html lang="en" className={`${dmSans.variable} ${dmSerifDisplay.variable}`}>
+      <html lang="en" className={`${dmSans.variable} ${dmSerifDisplay.variable} dark`}>
         <body
           className="min-h-dvh"
           style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}

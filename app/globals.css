@@ -1,39 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --color-background: #f8f8f6;
-  --color-foreground: #1a1a18;
-  --color-surface: #ffffff;
-  --color-surface-hover: #f0f0ee;
-  --color-border: #e2e0dc;
+  color-scheme: dark;
+  --color-background: #121210;
+  --color-foreground: #e8e6e1;
+  --color-surface: #1e1e1c;
+  --color-surface-hover: #2a2a28;
+  --color-border: #333330;
   --color-muted: #8a8880;
-  --color-accent: #2d5a27;
-  --color-accent-hover: #3d7a34;
-  --color-easy: #2d5a27;
-  --color-hard: #b5860f;
-  --color-forgot: #b33a2e;
-  --color-easy-bg: #eaf5e8;
-  --color-hard-bg: #fdf4e0;
-  --color-forgot-bg: #fce8e6;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: #121210;
-    --color-foreground: #e8e6e1;
-    --color-surface: #1e1e1c;
-    --color-surface-hover: #2a2a28;
-    --color-border: #333330;
-    --color-muted: #8a8880;
-    --color-accent: #5db152;
-    --color-accent-hover: #72c867;
-    --color-easy: #5db152;
-    --color-hard: #d4a832;
-    --color-forgot: #d4564a;
-    --color-easy-bg: #1a2e18;
-    --color-hard-bg: #2e2510;
-    --color-forgot-bg: #2e1714;
-  }
+  --color-accent: #5db152;
+  --color-accent-hover: #72c867;
+  --color-easy: #5db152;
+  --color-hard: #d4a832;
+  --color-forgot: #d4564a;
+  --color-easy-bg: #1a2e18;
+  --color-hard-bg: #2e2510;
+  --color-forgot-bg: #2e1714;
 }
 
 @layer base {
