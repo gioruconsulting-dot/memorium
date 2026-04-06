@@ -4,6 +4,11 @@ import { useState, useEffect, useRef } from 'react';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
+function timeEstimate(count) {
+  const mins = Math.max(1, Math.round(count * 40 / 60));
+  return `~${mins} min`;
+}
+
 function wordCount(text) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
@@ -64,7 +69,8 @@ function GradeButton({ label, sublabel, onClick, bgClass, disabled }) {
 // ── main component ────────────────────────────────────────────────────────────
 
 export default function StudyPage() {
-  const [phase, setPhase] = useState('loading'); // loading | empty | studying | complete | error
+  const [phase, setPhase] = useState('loading'); // loading | picker | empty | studying | complete | error
+  const [dueCount, setDueCount] = useState(0);
   const [sessionId, setSessionId] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [index, setIndex] = useState(0);
@@ -83,8 +89,9 @@ export default function StudyPage() {
   const textareaRef = useRef(null);
   const cardRef = useRef(null);
 
+  // On mount: fetch due count only, then show picker
   useEffect(() => {
-    startSession();
+    fetchDueCount();
   }, []);
 
   useEffect(() => {
@@ -101,7 +108,22 @@ export default function StudyPage() {
     }
   }, [revealed]);
 
-  async function startSession() {
+  async function fetchDueCount() {
+    setPhase('loading');
+    setErrorMsg('');
+    try {
+      const res = await fetch('/api/questions/session');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to load');
+      setDueCount(data.dueCount);
+      setPhase(data.dueCount === 0 ? 'empty' : 'picker');
+    } catch (err) {
+      setErrorMsg(err.message);
+      setPhase('error');
+    }
+  }
+
+  async function startSession(limit) {
     setPhase('loading');
     setErrorMsg('');
     setForgotCount(0);
@@ -109,7 +131,11 @@ export default function StudyPage() {
     setEndedEarly(false);
     setShowDetail(false);
     try {
-      const res = await fetch('/api/sessions/start', { method: 'POST' });
+      const res = await fetch('/api/sessions/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ limit: limit ?? null }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to start session');
 
@@ -366,6 +392,75 @@ export default function StudyPage() {
           >
             Upload More Content
           </a>
+        </div>
+      </div>
+    );
+  }
+
+  // ── picker phase ────────────────────────────────────────────────────────────
+
+  if (phase === 'picker') {
+    const totalTime = timeEstimate(dueCount);
+    return (
+      <div className="min-h-dvh flex flex-col items-center justify-center px-4 py-10">
+        <div className="w-full max-w-sm">
+
+          {/* Header */}
+          <div className="text-center mb-8">
+            <p className="text-4xl font-bold text-[#EEFF99] mb-1">{dueCount}</p>
+            <p className="text-base" style={{ color: 'var(--color-muted)' }}>
+              question{dueCount !== 1 ? 's' : ''} due · {totalTime} total
+            </p>
+          </div>
+
+          {/* Buttons */}
+          <div className="space-y-3">
+            {dueCount <= 5 ? (
+              /* 1–5: single "Review all" button */
+              <button
+                onClick={() => startSession(dueCount)}
+                className="w-full py-4 rounded-xl font-semibold text-base text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+              >
+                Review all {dueCount} question{dueCount !== 1 ? 's' : ''} · {totalTime}
+              </button>
+            ) : (
+              <>
+                {/* Quick session — always shown for 6+ */}
+                <button
+                  onClick={() => startSession(5)}
+                  className="w-full py-4 rounded-xl font-semibold text-base transition-colors"
+                  style={{
+                    border: '1px solid var(--color-border)',
+                    color: 'var(--color-foreground)',
+                    background: 'transparent',
+                  }}
+                >
+                  Quick Session · 5 questions · {timeEstimate(5)}
+                </button>
+
+                {/* Normal session — always shown for 6+ */}
+                <button
+                  onClick={() => startSession(15)}
+                  className="w-full py-4 rounded-xl font-semibold text-base text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+                >
+                  Normal Session · 15 questions · {timeEstimate(15)}
+                </button>
+
+                {/* Heroic — only shown for 15+ */}
+                {dueCount >= 15 && (
+                  <button
+                    onClick={() => startSession(null)}
+                    className="w-full py-4 rounded-xl font-semibold text-base text-white transition-colors"
+                    style={{ background: '#ea580c' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#c2410c'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#ea580c'}
+                  >
+                    🔥 Heroic Session · all {dueCount} questions
+                  </button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     );

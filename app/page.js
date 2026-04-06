@@ -1,7 +1,23 @@
 import { redirect } from "next/navigation";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
-import { getUserContentCounts, getAllDueQuestions } from "@/lib/db/queries";
+import { getUserContentCounts, getAllDueQuestions, getUserStreak } from "@/lib/db/queries";
+
+const LEVELS = [
+  { min: 0,   max: 0,        emoji: '🐣', label: 'Baby'        },
+  { min: 1,   max: 3,        emoji: '🕹️', label: 'Apprentice'  },
+  { min: 4,   max: 7,        emoji: '⚔️', label: 'Warrior'     },
+  { min: 8,   max: 14,       emoji: '🛡️', label: 'Veteran'     },
+  { min: 15,  max: 29,       emoji: '🔥', label: 'Elite'       },
+  { min: 30,  max: 59,       emoji: '💎', label: 'Master'      },
+  { min: 60,  max: 89,       emoji: '👑', label: 'Grandmaster' },
+  { min: 90,  max: 179,      emoji: '🌟', label: 'Legend'      },
+  { min: 180, max: Infinity, emoji: '☄️', label: 'Immortal'    },
+];
+
+function getLevel(streak) {
+  return LEVELS.findLast(l => streak >= l.min) || LEVELS[0];
+}
 
 function Card({ href, emoji, title, description, highlight }) {
   return (
@@ -38,9 +54,10 @@ export default async function Home() {
     redirect("/sign-in");
   }
 
-  const [user, { documentCount, questionCount }] = await Promise.all([
+  const [user, { documentCount, questionCount }, streak] = await Promise.all([
     currentUser(),
     getUserContentCounts(userId),
+    getUserStreak(userId),
   ]);
 
   const isNewUser = documentCount === 0 && questionCount === 0;
@@ -78,6 +95,7 @@ export default async function Home() {
 
   const dueQuestions = await getAllDueQuestions(userId);
   const dueCount = dueQuestions.length;
+  const level = getLevel(streak);
 
   return (
     <div className="py-10">
@@ -85,9 +103,18 @@ export default async function Home() {
         <h1 className="text-2xl font-semibold text-[#EEFF99] mb-1">
           {firstName ? `Welcome back, ${firstName}.` : 'Welcome back!'}
         </h1>
-        <p className="text-lg font-medium text-white">
-          What shall we do today?
-        </p>
+
+        {/* Streak + level */}
+        <div className="mt-4 mb-1">
+          <div className="text-5xl font-bold leading-none" style={{ color: '#EEFF99' }}>
+            {level.emoji} {streak > 0 ? streak : ''}
+          </div>
+          <p className="mt-2 text-base font-semibold" style={{ color: '#e8e6e1' }}>
+            {streak > 0
+              ? `${level.label} · ${streak} day streak`
+              : `${level.label} · Start your streak today`}
+          </p>
+        </div>
       </div>
 
       <div className="space-y-3">

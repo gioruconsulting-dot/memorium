@@ -34,13 +34,21 @@ function riskScore(q) {
   );
 }
 
-export async function POST() {
+export async function POST(request) {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   await ensureUser(userId);
+
+  // limit: number = cap questions; null = no cap (heroic)
+  let limit = 15;
+  try {
+    const body = await request.json().catch(() => ({}));
+    if (body.limit === null) limit = Infinity;
+    else if (typeof body.limit === 'number' && body.limit > 0) limit = body.limit;
+  } catch {}
 
   try {
     await completeAbandonedSessions(userId);
@@ -60,7 +68,9 @@ export async function POST() {
       return Number(a.created_at) - Number(b.created_at);
     });
 
-    const selected = interleaveByDocument(sorted.slice(0, 15));
+    const selected = interleaveByDocument(
+      limit === Infinity ? sorted : sorted.slice(0, limit)
+    );
 
     const sessionId = generateId("sess");
     await createStudySession({ id: sessionId, userId, questionsShown: selected.length });
