@@ -81,6 +81,7 @@ export default function StudyPage() {
   const [retireConfirm, setRetireConfirm] = useState(false);
   const [retiring, setRetiring] = useState(false);
   const textareaRef = useRef(null);
+  const cardRef = useRef(null);
 
   useEffect(() => {
     startSession();
@@ -91,6 +92,14 @@ export default function StudyPage() {
       textareaRef.current?.focus();
     }
   }, [phase, index, revealed]);
+
+  // When answer is revealed, scroll the question card to the top of the viewport
+  // so the user sees: question → their answer → model answer → grade buttons
+  useEffect(() => {
+    if (revealed && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [revealed]);
 
   async function startSession() {
     setPhase('loading');
@@ -383,6 +392,7 @@ export default function StudyPage() {
 
         {/* Question card — keeps subtle border as primary element */}
         <div
+          ref={cardRef}
           className={`rounded-2xl ${revealed ? 'p-2.5 sm:p-5' : 'p-3 sm:p-5'}`}
           style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
         >
@@ -455,13 +465,13 @@ export default function StudyPage() {
             </button>
           </div>
         ) : (
-          <div className="space-y-3 sm:space-y-5">
+          <div className="space-y-2 sm:space-y-5">
 
             {/* Your answer — compact and secondary */}
             {userAttempt.trim() && (
-              <div className="rounded-xl px-3 py-2 bg-gray-800/40">
-                <div className="text-xs uppercase tracking-wider text-gray-500 mb-1">Your answer</div>
-                <p className="text-sm text-gray-400 leading-relaxed">{userAttempt}</p>
+              <div className="rounded-xl px-3 py-1.5 bg-gray-800/40">
+                <div className="text-xs uppercase tracking-wider text-gray-500 mb-0.5">Your answer</div>
+                <p className="text-sm text-gray-400 leading-snug">{userAttempt}</p>
               </div>
             )}
 
