@@ -93,11 +93,11 @@ export default function StudyPage() {
     }
   }, [phase, index, revealed]);
 
-  // When answer is revealed, scroll the question card to the top of the viewport
-  // so the user sees: question → their answer → model answer → grade buttons
+  // When answer is revealed, scroll to the top of the page
+  // so the progress bar is visible and the full flow reads top-down
   useEffect(() => {
-    if (revealed && cardRef.current) {
-      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (revealed) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [revealed]);
 
