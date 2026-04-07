@@ -2,6 +2,45 @@
 
 import { useState, useEffect, useRef } from 'react';
 
+// ── motivational messages ─────────────────────────────────────────────────────
+
+const MOTIVATIONAL_MESSAGES = [
+  "The struggle is real. Your learning too.",
+  "Feel those neural pathways being built right now.",
+  "Rome wasn't memorized in a day.",
+  "What doesn't kill you makes your memory stronger.",
+  "Your hippocampus just sent a thank-you note.",
+  "Forgetting is just your brain asking for a second date.",
+  "Neurons that fire together, wire together. You're wiring and firing.",
+  "Somewhere, Ebbinghaus is smiling.",
+  "Plot twist: the hard ones teach you the most.",
+  "Your future self will remember this. Literally.",
+  "Spaced repetition: old science, spectacular results.",
+  "Every rep is a deposit in your memory bank.",
+  "Knowledge compounds. Warren Buffett said that. Probably.",
+  "You're not studying. You're stress-testing your future memory.",
+  "Spaced repetition doesn't care if you believe in it. It just cooks.",
+  "One does not simply remember without repetition.",
+  "Your brain is doing push-ups right now.",
+  "Recall is a muscle. This is the gym.",
+  "The algorithm remembers so you don't have to. Wait—",
+  "Fun fact: struggling with recall is literally how memory works.",
+  "Repetitio est mater studiorum. That's why we're here.",
+  "Know that you know nothing. But less nothing than yesterday. — Socrates…ish",
+  "Fall seven times, recall eight. — Japanese proverb…ish",
+  "If you're going through hard questions, keep going. — Churchill…ish",
+  "Do not dwell on what you forgot. Focus on what you'll remember next. — Buddha…ish",
+];
+
+function pickMessage(shownSet) {
+  const available = MOTIVATIONAL_MESSAGES.map((_, i) => i).filter(i => !shownSet.has(i));
+  const pool = available.length > 0 ? available : MOTIVATIONAL_MESSAGES.map((_, i) => i);
+  if (available.length === 0) shownSet.clear();
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  shownSet.add(pick);
+  return MOTIVATIONAL_MESSAGES[pick];
+}
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 function timeEstimate(count) {
@@ -87,8 +126,13 @@ export default function StudyPage() {
   const [retireConfirm, setRetireConfirm] = useState(false);
   const [retiring, setRetiring] = useState(false);
   const [isHeroic, setIsHeroic] = useState(false);
+  const [motivationalMsg, setMotivationalMsg] = useState(null);
   const textareaRef = useRef(null);
   const cardRef = useRef(null);
+  const shownMsgsRef = useRef(new Set());
+  const recentGradesRef = useRef([]);
+  const pendingAdvanceRef = useRef(null);
+  const msgTimerRef = useRef(null);
 
   // On mount: fetch due count only, then show picker
   useEffect(() => {
@@ -125,6 +169,11 @@ export default function StudyPage() {
     setEndedEarly(false);
     setShowDetail(false);
     setIsHeroic(limit === null);
+    setMotivationalMsg(null);
+    shownMsgsRef.current.clear();
+    recentGradesRef.current = [];
+    clearTimeout(msgTimerRef.current);
+    pendingAdvanceRef.current = null;
     try {
       const res = await fetch('/api/sessions/start', {
         method: 'POST',
@@ -157,11 +206,14 @@ export default function StudyPage() {
 
     const question = questions[index];
 
-    // Compute updated counters locally (React state is async)
     const newForgotCount = forgotCount + (grade === 'forgot' ? 1 : 0);
-    const totalAnswered = index + 1; // after this question
+    const totalAnswered = index + 1;
     const isLast = index === questions.length - 1;
     const earlyEnd = newForgotCount >= 3 && totalAnswered >= 10;
+
+    // Update rolling window of last 4 grades
+    const newRecentGrades = [...recentGradesRef.current, grade].slice(-4);
+    recentGradesRef.current = newRecentGrades;
 
     try {
       const res = await fetch('/api/questions/grade', {
@@ -177,17 +229,46 @@ export default function StudyPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Grading failed');
 
-      // Update tracked state
       setForgotCount(newForgotCount);
       setGradeHistory((prev) => [...prev, { question, grade }]);
 
-      // Fade transition
+      // Decide whether to show a motivational message
+      const forgotInWindow = newRecentGrades.filter(g => g === 'forgot').length;
+      const isStruggling = forgotInWindow >= 2;
+      const showMsg = (grade === 'hard' || grade === 'forgot')
+        && totalAnswered >= 5
+        && !isLast
+        && !earlyEnd
+        && Math.random() < (isStruggling ? 0.5 : 0.25);
+
+      // Fade out current screen
       setFading(true);
       await new Promise((r) => setTimeout(r, 200));
 
       if (isLast || earlyEnd) {
         if (earlyEnd && !isLast) setEndedEarly(true);
         await completeSession();
+      } else if (showMsg) {
+        // Show message, then advance after 2s or tap
+        const msg = pickMessage(shownMsgsRef.current);
+        const doAdvance = async () => {
+          setFading(true);
+          await new Promise((r) => setTimeout(r, 200));
+          setMotivationalMsg(null);
+          setIndex((i) => i + 1);
+          setRevealed(false);
+          setShowDetail(false);
+          setUserAttempt('');
+          setRetireConfirm(false);
+          setFading(false);
+        };
+        pendingAdvanceRef.current = doAdvance;
+        setMotivationalMsg(msg);
+        setFading(false);
+        msgTimerRef.current = setTimeout(() => {
+          pendingAdvanceRef.current?.();
+          pendingAdvanceRef.current = null;
+        }, 2000);
       } else {
         setIndex((i) => i + 1);
         setRevealed(false);
@@ -202,6 +283,12 @@ export default function StudyPage() {
     } finally {
       setGrading(false);
     }
+  }
+
+  function handleMsgTap() {
+    clearTimeout(msgTimerRef.current);
+    pendingAdvanceRef.current?.();
+    pendingAdvanceRef.current = null;
   }
 
   async function completeSession() {
@@ -477,6 +564,42 @@ export default function StudyPage() {
 
   const question = questions[index];
   const canReveal = wordCount(userAttempt) >= 3;
+
+  // ── MOTIVATIONAL MESSAGE ────────────────────────────────────────────────────
+  if (motivationalMsg) {
+    return (
+      <div
+        className="h-dvh flex flex-col items-center justify-center px-6 transition-opacity duration-200"
+        style={{ opacity: fading ? 0 : 1 }}
+        onClick={handleMsgTap}
+      >
+        <div className="w-full max-w-sm text-center relative">
+          {/* Outer glow ring */}
+          <div style={{
+            position: 'absolute', inset: '-3px', borderRadius: '1.75rem',
+            background: 'linear-gradient(135deg, #EEFF99, #7c3aed, #60A5FA, #EEFF99)',
+            padding: '2px',
+            zIndex: 0,
+          }} />
+          {/* Card */}
+          <div className="relative z-10 rounded-[1.625rem] px-6 py-8" style={{
+            background: 'var(--color-background)',
+            boxShadow: '0 0 40px rgba(238,255,153,0.15), 0 0 80px rgba(124,58,237,0.15)',
+          }}>
+            <p className="font-bold leading-snug" style={{
+              fontSize: 'clamp(1.2rem, 5vw, 1.6rem)',
+              color: '#EEFF99',
+              textShadow: '0 0 24px rgba(238,255,153,0.5)',
+              letterSpacing: '-0.01em',
+            }}>
+              {motivationalMsg}
+            </p>
+          </div>
+        </div>
+        <p className="mt-8 text-sm" style={{ color: 'var(--color-muted)' }}>tap to continue</p>
+      </div>
+    );
+  }
 
   // ── PRE-REVEAL: everything fits in one screen, no scrolling needed ──────────
   if (!revealed) {
