@@ -478,6 +478,72 @@ export default function StudyPage() {
   const question = questions[index];
   const canReveal = wordCount(userAttempt) >= 3;
 
+  // ── PRE-REVEAL: everything fits in one screen, no scrolling needed ──────────
+  if (!revealed) {
+    return (
+      <div
+        className="h-dvh flex flex-col px-4 transition-opacity duration-200"
+        style={{ opacity: fading ? 0 : 1 }}
+      >
+        <div className="w-full max-w-xl mx-auto flex flex-col flex-1 min-h-0">
+
+          {/* Top: progress bar + question */}
+          <div className="shrink-0 pt-3 space-y-3">
+            <ProgressBar current={index} total={questions.length} />
+
+            {index === 0 && (
+              <p className="text-base text-center text-green-400">
+                {isHeroic ? 'Ready. Set. Go. Be Heroic' : `🔒 ${questions.length} questions. No other choice. Complete.`}
+              </p>
+            )}
+
+            <div
+              ref={cardRef}
+              className="rounded-2xl p-3 sm:p-5"
+              style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+            >
+              <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">
+                {question.question_type}
+              </div>
+              <p className="text-base sm:text-xl font-semibold leading-snug">
+                {question.question_text}
+              </p>
+            </div>
+          </div>
+
+          {/* Spacer — pushes textarea to bottom, collapses when keyboard opens */}
+          <div className="flex-1" />
+
+          {/* Bottom: textarea + reveal button */}
+          <div className="shrink-0 pb-6 space-y-3">
+            <textarea
+              ref={textareaRef}
+              value={userAttempt}
+              onChange={(e) => setUserAttempt(e.target.value)}
+              placeholder="Type your answer… (3+ words to unlock Reveal)"
+              rows={4}
+              className="w-full rounded-xl px-4 py-3 text-base leading-relaxed resize-none focus:outline-none"
+              style={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-foreground)',
+              }}
+            />
+            <button
+              onClick={() => setRevealed(true)}
+              disabled={!canReveal}
+              className="w-full py-4 rounded-xl font-medium text-base transition-opacity disabled:opacity-40 disabled:cursor-not-allowed bg-violet-600 text-white hover:bg-violet-700"
+            >
+              Reveal Answer
+            </button>
+          </div>
+
+        </div>
+      </div>
+    );
+  }
+
+  // ── POST-REVEAL: sticky header, answer content scrolls below ────────────────
   return (
     <div
       className="min-h-dvh px-4 transition-opacity duration-200"
@@ -485,20 +551,13 @@ export default function StudyPage() {
     >
       <div className="w-full max-w-xl mx-auto">
 
-        {/* Progress bar + question card — sticky so both stay visible while scrolling */}
+        {/* Sticky: progress bar + question card */}
         <div
           className="sticky top-0 z-10 pt-3 pb-2 space-y-3"
           style={{ background: 'var(--color-background)' }}
         >
           <ProgressBar current={index} total={questions.length} />
 
-          {index === 0 && !revealed && (
-            <p className="text-base text-center text-green-400">
-              {isHeroic ? 'Ready. Set. Go. Be Heroic' : `🔒 ${questions.length} questions. No other choice. Complete.`}
-            </p>
-          )}
-
-          {/* Question card */}
           <div
             ref={cardRef}
             className="rounded-2xl p-3 sm:p-5"
@@ -507,175 +566,138 @@ export default function StudyPage() {
             <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">
               {question.question_type}
             </div>
-            <p className={`${revealed ? 'text-sm sm:text-lg' : 'text-base sm:text-xl'} font-semibold leading-snug`}>
+            <p className="text-sm sm:text-lg font-semibold leading-snug">
               {question.question_text}
             </p>
-
-            {revealed && (
-              <div className="flex justify-end mt-3">
-                {!retireConfirm ? (
+            <div className="flex justify-end mt-3">
+              {!retireConfirm ? (
+                <button
+                  onClick={() => setRetireConfirm(true)}
+                  disabled={grading || retiring}
+                  className="flex items-center gap-1.5 text-sm transition-colors hover:text-red-400 disabled:opacity-40"
+                  style={{ color: 'var(--color-muted)' }}
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+                  </svg>
+                  <span>Bad question</span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <span className="text-xs" style={{ color: 'var(--color-muted)' }}>Remove this question?</span>
                   <button
-                    onClick={() => setRetireConfirm(true)}
-                    disabled={grading || retiring}
-                    className="flex items-center gap-1.5 text-sm transition-colors hover:text-red-400 disabled:opacity-40"
+                    onClick={handleRetire}
+                    disabled={retiring}
+                    className="text-xs px-3 py-1 rounded-lg transition-opacity disabled:opacity-40"
+                    style={{ color: '#EF4444', border: '1px solid #EF4444' }}
+                  >
+                    {retiring ? 'Removing…' : 'Remove'}
+                  </button>
+                  <button
+                    onClick={() => setRetireConfirm(false)}
+                    disabled={retiring}
+                    className="text-xs transition-colors hover:text-gray-300"
                     style={{ color: 'var(--color-muted)' }}
                   >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
-                    </svg>
-                    <span>Bad question</span>
+                    Cancel
                   </button>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs" style={{ color: 'var(--color-muted)' }}>Remove this question?</span>
-                    <button
-                      onClick={handleRetire}
-                      disabled={retiring}
-                      className="text-xs px-3 py-1 rounded-lg transition-opacity disabled:opacity-40"
-                      style={{ color: '#EF4444', border: '1px solid #EF4444' }}
-                    >
-                      {retiring ? 'Removing…' : 'Remove'}
-                    </button>
-                    <button
-                      onClick={() => setRetireConfirm(false)}
-                      disabled={retiring}
-                      className="text-xs transition-colors hover:text-gray-300"
-                      style={{ color: 'var(--color-muted)' }}
-                    >
-                      Cancel
-                    </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Scrollable: answer content */}
+        <div className="space-y-3 pt-3 pb-8">
+
+          {userAttempt.trim() && (
+            <div className="rounded-xl px-3 py-1.5 bg-gray-800/40">
+              <div className="text-xs uppercase tracking-wider text-gray-500 mb-0.5">Your answer</div>
+              <p className="text-sm text-gray-400 leading-snug">{userAttempt}</p>
+            </div>
+          )}
+
+          <div>
+            <div className="text-xs uppercase tracking-wider text-gray-500 mb-1">Answer</div>
+            <p className="text-base font-medium leading-snug">{question.answer_text}</p>
+          </div>
+
+          <div>
+            <button
+              onClick={() => setShowDetail((v) => !v)}
+              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-300 transition-colors"
+            >
+              <span>{showDetail ? 'Hide' : 'Show'} explanation & source</span>
+              <svg
+                className={`w-4 h-4 transition-transform duration-200 ${showDetail ? 'rotate-180' : ''}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {showDetail && (
+              <div className="mt-3 space-y-3">
+                <div>
+                  <div className="text-xs uppercase tracking-wider text-gray-500 mb-1.5">Explanation</div>
+                  <p className="text-sm text-gray-400 leading-relaxed">{question.explanation}</p>
+                </div>
+                {question.source_reference && (
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-gray-500 mb-1.5">Source</div>
+                    <blockquote className="text-sm text-gray-400 leading-relaxed pl-3 italic border-l-2 border-gray-700">
+                      {question.source_reference}
+                    </blockquote>
                   </div>
                 )}
               </div>
             )}
           </div>
-        </div>
 
-        {/* Scrollable answer area */}
-        <div className="space-y-3 pb-8 pt-3">
+          <div className="flex gap-3">
+            <GradeButton
+              label="Easy"
+              sublabel="Knew it"
+              onClick={() => handleGrade('easy')}
+              bgClass="bg-green-400 hover:bg-green-300"
+              disabled={grading}
+            />
+            <GradeButton
+              label="Hard"
+              sublabel="Struggled"
+              onClick={() => handleGrade('hard')}
+              bgClass="bg-amber-600 hover:bg-amber-700"
+              disabled={grading}
+            />
+            <GradeButton
+              label="Forgot"
+              sublabel="Missed it"
+              onClick={() => handleGrade('forgot')}
+              bgClass="bg-red-600 hover:bg-red-700"
+              disabled={grading}
+            />
+          </div>
 
-          {/* Answer area */}
-          {!revealed ? (
-            <div className="space-y-3">
-              <textarea
-                ref={textareaRef}
-                value={userAttempt}
-                onChange={(e) => setUserAttempt(e.target.value)}
-                placeholder="Type your answer… (3+ words to unlock Reveal)"
-                rows={4}
-                className="w-full rounded-xl px-4 py-3 text-base leading-relaxed resize-none focus:outline-none"
-                style={{
-                  background: 'var(--color-surface)',
-                  border: '1px solid var(--color-border)',
-                  color: 'var(--color-foreground)',
-                }}
-              />
-              <button
-                onClick={() => setRevealed(true)}
-                disabled={!canReveal}
-                className="w-full py-4 rounded-xl font-medium text-base transition-opacity disabled:opacity-40 disabled:cursor-not-allowed bg-violet-600 text-white hover:bg-violet-700"
-              >
-                Reveal Answer
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-3">
+          <button
+            onClick={() => handleGrade('skipped')}
+            disabled={grading}
+            className="w-full py-2 rounded-xl text-sm font-medium transition-opacity disabled:opacity-40"
+            style={{ color: 'var(--color-muted)', border: '1px solid var(--color-border)' }}
+          >
+            Skip
+          </button>
 
-              {/* Your answer — compact */}
-              {userAttempt.trim() && (
-                <div className="rounded-xl px-3 py-1.5 bg-gray-800/40">
-                  <div className="text-xs uppercase tracking-wider text-gray-500 mb-0.5">Your answer</div>
-                  <p className="text-sm text-gray-400 leading-snug">{userAttempt}</p>
-                </div>
-              )}
-
-              {/* Model answer */}
-              <div>
-                <div className="text-xs uppercase tracking-wider text-gray-500 mb-1">Answer</div>
-                <p className="text-base font-medium leading-snug">{question.answer_text}</p>
-              </div>
-
-              {/* Collapsible explanation & source */}
-              <div>
-                <button
-                  onClick={() => setShowDetail((v) => !v)}
-                  className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-300 transition-colors"
-                >
-                  <span>{showDetail ? 'Hide' : 'Show'} explanation & source</span>
-                  <svg
-                    className={`w-4 h-4 transition-transform duration-200 ${showDetail ? 'rotate-180' : ''}`}
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                {showDetail && (
-                  <div className="mt-3 space-y-3">
-                    <div>
-                      <div className="text-xs uppercase tracking-wider text-gray-500 mb-1.5">Explanation</div>
-                      <p className="text-sm text-gray-400 leading-relaxed">{question.explanation}</p>
-                    </div>
-                    {question.source_reference && (
-                      <div>
-                        <div className="text-xs uppercase tracking-wider text-gray-500 mb-1.5">Source</div>
-                        <blockquote className="text-sm text-gray-400 leading-relaxed pl-3 italic border-l-2 border-gray-700">
-                          {question.source_reference}
-                        </blockquote>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Grade buttons — right below the answer content */}
-              <div className="flex gap-3">
-                <GradeButton
-                  label="Easy"
-                  sublabel="Knew it"
-                  onClick={() => handleGrade('easy')}
-                  bgClass="bg-green-400 hover:bg-green-300"
-                  disabled={grading}
-                />
-                <GradeButton
-                  label="Hard"
-                  sublabel="Struggled"
-                  onClick={() => handleGrade('hard')}
-                  bgClass="bg-amber-600 hover:bg-amber-700"
-                  disabled={grading}
-                />
-                <GradeButton
-                  label="Forgot"
-                  sublabel="Missed it"
-                  onClick={() => handleGrade('forgot')}
-                  bgClass="bg-red-600 hover:bg-red-700"
-                  disabled={grading}
-                />
-              </div>
-
-              {/* Skip + Stop — OK to scroll to reach */}
-              <button
-                onClick={() => handleGrade('skipped')}
-                disabled={grading}
-                className="w-full py-2 rounded-xl text-sm font-medium transition-opacity disabled:opacity-40"
-                style={{ color: 'var(--color-muted)', border: '1px solid var(--color-border)' }}
-              >
-                Skip
-              </button>
-
-              {isHeroic && index > 0 && (
-                <button
-                  onClick={completeSession}
-                  disabled={grading}
-                  className="w-full py-2 rounded-xl text-sm font-medium transition-opacity disabled:opacity-40"
-                  style={{ color: '#EF4444', border: '1px solid #EF4444' }}
-                >
-                  Stop the session
-                </button>
-              )}
-
-            </div>
+          {isHeroic && index > 0 && (
+            <button
+              onClick={completeSession}
+              disabled={grading}
+              className="w-full py-2 rounded-xl text-sm font-medium transition-opacity disabled:opacity-40"
+              style={{ color: '#EF4444', border: '1px solid #EF4444' }}
+            >
+              Stop the session
+            </button>
           )}
+
         </div>
       </div>
     </div>
