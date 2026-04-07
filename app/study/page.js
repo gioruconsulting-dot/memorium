@@ -407,9 +407,8 @@ export default function StudyPage() {
 
           {/* Header */}
           <div className="text-center mb-8">
-            <p className="text-4xl font-bold text-[#EEFF99] mb-1">{dueCount}</p>
-            <p className="text-base" style={{ color: 'var(--color-muted)' }}>
-              question{dueCount !== 1 ? 's' : ''} due · {totalTime} total
+            <p className="text-[2.25rem] font-bold text-[#EEFF99] leading-tight">
+              {dueCount} question{dueCount !== 1 ? 's' : ''} due · {totalTime} total
             </p>
           </div>
 
