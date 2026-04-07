@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 
 function timeEstimate(count) {
   const mins = Math.max(1, Math.round(count * 40 / 60));
-  return `~${mins} min`;
+  return `${mins} minute${mins !== 1 ? 's' : ''}`;
 }
 
 function wordCount(text) {
@@ -407,9 +407,10 @@ export default function StudyPage() {
 
           {/* Header */}
           <div className="text-center mb-8">
-            <p className="text-[1.6rem] font-bold text-[#EEFF99] leading-tight">
-              {dueCount} question{dueCount !== 1 ? 's' : ''} due · {totalTime} total
-            </p>
+            <div className="text-[1.6rem] font-bold text-[#EEFF99] leading-tight">
+              <p>{dueCount} question{dueCount !== 1 ? 's' : ''} due</p>
+              <p className="mt-2">{totalTime} total</p>
+            </div>
           </div>
 
           {/* Buttons */}
@@ -420,7 +421,7 @@ export default function StudyPage() {
                 onClick={() => startSession(dueCount)}
                 className="w-full py-4 rounded-xl font-semibold text-base text-white bg-violet-600 hover:bg-violet-700 transition-colors"
               >
-                Review all {dueCount} question{dueCount !== 1 ? 's' : ''} · {totalTime}
+                Review all {dueCount} question{dueCount !== 1 ? 's' : ''} | {totalTime}
               </button>
             ) : (
               <>
@@ -434,7 +435,7 @@ export default function StudyPage() {
                     background: 'transparent',
                   }}
                 >
-                  Quick Session · 5 questions · {timeEstimate(5)}
+                  Quick Session | 5 questions | {timeEstimate(5)}
                 </button>
 
                 {/* Normal session — always shown for 6+ */}
@@ -442,7 +443,7 @@ export default function StudyPage() {
                   onClick={() => startSession(15)}
                   className="w-full py-4 rounded-xl font-semibold text-base text-white bg-violet-600 hover:bg-violet-700 transition-colors"
                 >
-                  Normal Session · 15 questions · {timeEstimate(15)}
+                  Normal Session | 15 questions | {timeEstimate(15)}
                 </button>
 
                 {/* Heroic — only shown for 15+ */}
@@ -454,7 +455,7 @@ export default function StudyPage() {
                     onMouseEnter={e => e.currentTarget.style.background = '#c2410c'}
                     onMouseLeave={e => e.currentTarget.style.background = '#ea580c'}
                   >
-                    🔥 Heroic Session · all {dueCount} questions
+                    🔥 Heroic Session | all {dueCount} questions | {timeEstimate(dueCount)}
                   </button>
                 )}
               </>
