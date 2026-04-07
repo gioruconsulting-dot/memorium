@@ -485,16 +485,12 @@ export default function StudyPage() {
     >
       <div className="w-full max-w-xl mx-auto">
 
-        {/* Progress bar — sticky so it stays visible while scrolling */}
+        {/* Progress bar + question card — sticky so both stay visible while scrolling */}
         <div
-          className="sticky top-0 z-10 pt-3 pb-2"
+          className="sticky top-0 z-10 pt-3 pb-2 space-y-3"
           style={{ background: 'var(--color-background)' }}
         >
           <ProgressBar current={index} total={questions.length} />
-        </div>
-
-        {/* Content flows naturally */}
-        <div className="space-y-3 pb-8">
 
           {index === 0 && !revealed && (
             <p className="text-base text-center text-green-400">
@@ -553,6 +549,10 @@ export default function StudyPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Scrollable answer area */}
+        <div className="space-y-3 pb-8 pt-3">
 
           {/* Answer area */}
           {!revealed ? (
