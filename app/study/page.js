@@ -86,6 +86,7 @@ export default function StudyPage() {
   const [fading, setFading] = useState(false);
   const [retireConfirm, setRetireConfirm] = useState(false);
   const [retiring, setRetiring] = useState(false);
+  const [isHeroic, setIsHeroic] = useState(false);
   const textareaRef = useRef(null);
   const cardRef = useRef(null);
 
@@ -130,6 +131,7 @@ export default function StudyPage() {
     setGradeHistory([]);
     setEndedEarly(false);
     setShowDetail(false);
+    setIsHeroic(limit === null);
     try {
       const res = await fetch('/api/sessions/start', {
         method: 'POST',
@@ -419,17 +421,17 @@ export default function StudyPage() {
               /* 1–5: single "Review all" button */
               <button
                 onClick={() => startSession(dueCount)}
-                className="w-full py-4 px-6 rounded-xl font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+                className="w-full py-4 px-6 rounded-xl font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors flex flex-col items-center gap-0.5"
               >
                 <span className="text-[1.1rem] font-bold">Review all</span>
-                <span className="text-[0.95rem]"> | {dueCount} question{dueCount !== 1 ? 's' : ''} | {totalTime}</span>
+                <span className="text-[0.95rem] font-normal">{dueCount} question{dueCount !== 1 ? 's' : ''} | {totalTime}</span>
               </button>
             ) : (
               <>
                 {/* Quick session — always shown for 6+ */}
                 <button
                   onClick={() => startSession(5)}
-                  className="w-full py-4 px-6 rounded-xl font-semibold transition-colors"
+                  className="w-full py-4 px-6 rounded-xl font-semibold transition-colors flex flex-col items-center gap-0.5"
                   style={{
                     border: '1px solid var(--color-border)',
                     color: 'var(--color-foreground)',
@@ -437,29 +439,29 @@ export default function StudyPage() {
                   }}
                 >
                   <span className="text-[1.1rem] font-bold">Quick Session</span>
-                  <span className="text-[0.95rem]"> | 5 questions | {timeEstimate(5)}</span>
+                  <span className="text-[0.95rem] font-normal">5 questions | {timeEstimate(5)}</span>
                 </button>
 
                 {/* Normal session — always shown for 6+ */}
                 <button
                   onClick={() => startSession(15)}
-                  className="w-full py-4 px-6 rounded-xl font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+                  className="w-full py-4 px-6 rounded-xl font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors flex flex-col items-center gap-0.5"
                 >
                   <span className="text-[1.1rem] font-bold">Normal Session</span>
-                  <span className="text-[0.95rem]"> | 15 questions | {timeEstimate(15)}</span>
+                  <span className="text-[0.95rem] font-normal">15 questions | {timeEstimate(15)}</span>
                 </button>
 
                 {/* Heroic — only shown for 15+ */}
                 {dueCount >= 15 && (
                   <button
                     onClick={() => startSession(null)}
-                    className="w-full py-4 px-6 rounded-xl font-semibold text-white transition-colors"
+                    className="w-full py-4 px-6 rounded-xl font-semibold text-white transition-colors flex flex-col items-center gap-0.5"
                     style={{ background: '#ea580c' }}
                     onMouseEnter={e => e.currentTarget.style.background = '#c2410c'}
                     onMouseLeave={e => e.currentTarget.style.background = '#ea580c'}
                   >
                     <span className="text-[1.1rem] font-bold">🔥 Heroic Session</span>
-                    <span className="text-[0.95rem]"> | all {dueCount} questions | {timeEstimate(dueCount)}</span>
+                    <span className="text-[0.95rem] font-normal">as many as you can handle</span>
                   </button>
                 )}
               </>
@@ -485,7 +487,7 @@ export default function StudyPage() {
 
         {index === 0 && !revealed && (
           <p className="text-xl text-center text-green-400">
-            🔒 {questions.length} questions. No other choice. Complete.
+            {isHeroic ? 'Ready. Set. Go. Be Heroic' : `🔒 ${questions.length} questions. No other choice. Complete.`}
           </p>
         )}
 
@@ -646,6 +648,17 @@ export default function StudyPage() {
             >
               Skip
             </button>
+
+            {isHeroic && index > 0 && (
+              <button
+                onClick={completeSession}
+                disabled={grading}
+                className="w-full py-2 sm:py-3 rounded-xl text-sm font-medium transition-opacity disabled:opacity-40"
+                style={{ color: '#EF4444', border: '1px solid #EF4444' }}
+              >
+                Stop the session
+              </button>
+            )}
 
           </div>
         )}
