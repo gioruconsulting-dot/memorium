@@ -511,10 +511,7 @@ export default function StudyPage() {
             </div>
           </div>
 
-          {/* Spacer — pushes textarea to bottom, collapses when keyboard opens */}
-          <div className="flex-1" />
-
-          {/* Bottom: textarea + reveal button */}
+          {/* Textarea + reveal button */}
           <div className="shrink-0 pb-6 space-y-3">
             <textarea
               ref={textareaRef}
