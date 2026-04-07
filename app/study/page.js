@@ -480,23 +480,27 @@ export default function StudyPage() {
 
   return (
     <div
-      className="h-dvh flex flex-col px-4 py-3 overflow-hidden transition-opacity duration-200"
+      className="min-h-dvh px-4 transition-opacity duration-200"
       style={{ opacity: fading ? 0 : 1 }}
     >
-      <div className="w-full max-w-xl mx-auto flex flex-col flex-1 min-h-0">
+      <div className="w-full max-w-xl mx-auto">
 
-        {/* ── TOP: always visible ── */}
-        <div className="shrink-0 mb-3">
+        {/* Progress bar — sticky so it stays visible while scrolling */}
+        <div
+          className="sticky top-0 z-10 pt-3 pb-2"
+          style={{ background: 'var(--color-background)' }}
+        >
           <ProgressBar current={index} total={questions.length} />
+        </div>
+
+        {/* Content flows naturally */}
+        <div className="space-y-3 pb-8">
+
           {index === 0 && !revealed && (
-            <p className="text-base text-center text-green-400 mt-1">
+            <p className="text-base text-center text-green-400">
               {isHeroic ? 'Ready. Set. Go. Be Heroic' : `🔒 ${questions.length} questions. No other choice. Complete.`}
             </p>
           )}
-        </div>
-
-        {/* ── MIDDLE: scrollable content ── */}
-        <div className="flex-1 overflow-y-auto min-h-0 space-y-3">
 
           {/* Question card */}
           <div
@@ -552,21 +556,30 @@ export default function StudyPage() {
 
           {/* Answer area */}
           {!revealed ? (
-            <textarea
-              ref={textareaRef}
-              value={userAttempt}
-              onChange={(e) => setUserAttempt(e.target.value)}
-              placeholder="Type your answer… (3+ words to unlock Reveal)"
-              rows={3}
-              className="w-full rounded-xl px-4 py-3 text-base leading-relaxed resize-none focus:outline-none"
-              style={{
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-foreground)',
-              }}
-            />
+            <div className="space-y-3">
+              <textarea
+                ref={textareaRef}
+                value={userAttempt}
+                onChange={(e) => setUserAttempt(e.target.value)}
+                placeholder="Type your answer… (3+ words to unlock Reveal)"
+                rows={4}
+                className="w-full rounded-xl px-4 py-3 text-base leading-relaxed resize-none focus:outline-none"
+                style={{
+                  background: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-foreground)',
+                }}
+              />
+              <button
+                onClick={() => setRevealed(true)}
+                disabled={!canReveal}
+                className="w-full py-4 rounded-xl font-medium text-base transition-opacity disabled:opacity-40 disabled:cursor-not-allowed bg-violet-600 text-white hover:bg-violet-700"
+              >
+                Reveal Answer
+              </button>
+            </div>
           ) : (
-            <div className="space-y-2 pb-3">
+            <div className="space-y-3">
 
               {/* Your answer — compact */}
               {userAttempt.trim() && (
@@ -615,69 +628,55 @@ export default function StudyPage() {
                 )}
               </div>
 
-              {/* Skip + Stop — OK to scroll to reach */}
-              <div className="space-y-2 pt-1">
-                <button
-                  onClick={() => handleGrade('skipped')}
+              {/* Grade buttons — right below the answer content */}
+              <div className="flex gap-3">
+                <GradeButton
+                  label="Easy"
+                  sublabel="Knew it"
+                  onClick={() => handleGrade('easy')}
+                  bgClass="bg-green-400 hover:bg-green-300"
                   disabled={grading}
-                  className="w-full py-2 rounded-xl text-sm font-medium transition-opacity disabled:opacity-40"
-                  style={{ color: 'var(--color-muted)', border: '1px solid var(--color-border)' }}
-                >
-                  Skip
-                </button>
-                {isHeroic && index > 0 && (
-                  <button
-                    onClick={completeSession}
-                    disabled={grading}
-                    className="w-full py-2 rounded-xl text-sm font-medium transition-opacity disabled:opacity-40"
-                    style={{ color: '#EF4444', border: '1px solid #EF4444' }}
-                  >
-                    Stop the session
-                  </button>
-                )}
+                />
+                <GradeButton
+                  label="Hard"
+                  sublabel="Struggled"
+                  onClick={() => handleGrade('hard')}
+                  bgClass="bg-amber-600 hover:bg-amber-700"
+                  disabled={grading}
+                />
+                <GradeButton
+                  label="Forgot"
+                  sublabel="Missed it"
+                  onClick={() => handleGrade('forgot')}
+                  bgClass="bg-red-600 hover:bg-red-700"
+                  disabled={grading}
+                />
               </div>
 
+              {/* Skip + Stop — OK to scroll to reach */}
+              <button
+                onClick={() => handleGrade('skipped')}
+                disabled={grading}
+                className="w-full py-2 rounded-xl text-sm font-medium transition-opacity disabled:opacity-40"
+                style={{ color: 'var(--color-muted)', border: '1px solid var(--color-border)' }}
+              >
+                Skip
+              </button>
+
+              {isHeroic && index > 0 && (
+                <button
+                  onClick={completeSession}
+                  disabled={grading}
+                  className="w-full py-2 rounded-xl text-sm font-medium transition-opacity disabled:opacity-40"
+                  style={{ color: '#EF4444', border: '1px solid #EF4444' }}
+                >
+                  Stop the session
+                </button>
+              )}
+
             </div>
           )}
         </div>
-
-        {/* ── BOTTOM: pinned action — always visible ── */}
-        <div className="shrink-0 pt-3">
-          {!revealed ? (
-            <button
-              onClick={() => setRevealed(true)}
-              disabled={!canReveal}
-              className="w-full py-4 rounded-xl font-medium text-base transition-opacity disabled:opacity-40 disabled:cursor-not-allowed bg-violet-600 text-white hover:bg-violet-700"
-            >
-              Reveal Answer
-            </button>
-          ) : (
-            <div className="flex gap-3">
-              <GradeButton
-                label="Easy"
-                sublabel="Knew it"
-                onClick={() => handleGrade('easy')}
-                bgClass="bg-green-400 hover:bg-green-300"
-                disabled={grading}
-              />
-              <GradeButton
-                label="Hard"
-                sublabel="Struggled"
-                onClick={() => handleGrade('hard')}
-                bgClass="bg-amber-600 hover:bg-amber-700"
-                disabled={grading}
-              />
-              <GradeButton
-                label="Forgot"
-                sublabel="Missed it"
-                onClick={() => handleGrade('forgot')}
-                bgClass="bg-red-600 hover:bg-red-700"
-                disabled={grading}
-              />
-            </div>
-          )}
-        </div>
-
       </div>
     </div>
   );
