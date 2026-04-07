@@ -19,7 +19,7 @@ function getLevel(streak) {
   return LEVELS.findLast(l => streak >= l.min) || LEVELS[0];
 }
 
-function Card({ href, emoji, title, description, highlight }) {
+function Card({ href, emoji, title, description, highlight, emojiColor }) {
   return (
     <Link
       href={href}
@@ -29,7 +29,7 @@ function Card({ href, emoji, title, description, highlight }) {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xl leading-none">{emoji}</span>
+            <span className="text-xl leading-none" style={emojiColor ? { color: emojiColor } : undefined}>{emoji}</span>
             <span className="font-semibold text-base">{title}</span>
           </div>
           {highlight && (
@@ -79,6 +79,7 @@ export default async function Home() {
           <Card
             href="/upload"
             emoji="➕"
+            emojiColor="#EEFF99"
             title="Upload"
             description="Paste text and generate study questions automatically"
           />
