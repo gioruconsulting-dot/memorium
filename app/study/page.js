@@ -407,7 +407,7 @@ export default function StudyPage() {
 
           {/* Header */}
           <div className="text-center mb-8">
-            <p className="text-[2rem] font-bold text-[#EEFF99] leading-tight">
+            <p className="text-[1.6rem] font-bold text-[#EEFF99] leading-tight">
               {dueCount} question{dueCount !== 1 ? 's' : ''} due · {totalTime} total
             </p>
           </div>
