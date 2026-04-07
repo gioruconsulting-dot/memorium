@@ -409,7 +409,7 @@ export default function StudyPage() {
           <div className="text-center mb-8">
             <div className="text-[1.6rem] font-bold text-[#EEFF99] leading-tight">
               <p>{dueCount} question{dueCount !== 1 ? 's' : ''} due</p>
-              <p className="mt-2">{totalTime} total</p>
+              <p className="mt-0.5">{totalTime} total</p>
             </div>
           </div>
 
@@ -419,43 +419,47 @@ export default function StudyPage() {
               /* 1–5: single "Review all" button */
               <button
                 onClick={() => startSession(dueCount)}
-                className="w-full py-4 rounded-xl font-semibold text-base text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+                className="w-full py-4 px-6 rounded-xl font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
               >
-                Review all {dueCount} question{dueCount !== 1 ? 's' : ''} | {totalTime}
+                <span className="text-[1.05rem]">Review all</span>
+                <span className="text-[0.95rem]"> | {dueCount} question{dueCount !== 1 ? 's' : ''} | {totalTime}</span>
               </button>
             ) : (
               <>
                 {/* Quick session — always shown for 6+ */}
                 <button
                   onClick={() => startSession(5)}
-                  className="w-full py-4 rounded-xl font-semibold text-base transition-colors"
+                  className="w-full py-4 px-6 rounded-xl font-semibold transition-colors"
                   style={{
                     border: '1px solid var(--color-border)',
                     color: 'var(--color-foreground)',
                     background: 'transparent',
                   }}
                 >
-                  Quick Session | 5 questions | {timeEstimate(5)}
+                  <span className="text-[1.05rem]">Quick Session</span>
+                  <span className="text-[0.95rem]"> | 5 questions | {timeEstimate(5)}</span>
                 </button>
 
                 {/* Normal session — always shown for 6+ */}
                 <button
                   onClick={() => startSession(15)}
-                  className="w-full py-4 rounded-xl font-semibold text-base text-white bg-violet-600 hover:bg-violet-700 transition-colors"
+                  className="w-full py-4 px-6 rounded-xl font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
                 >
-                  Normal Session | 15 questions | {timeEstimate(15)}
+                  <span className="text-[1.05rem]">Normal Session</span>
+                  <span className="text-[0.95rem]"> | 15 questions | {timeEstimate(15)}</span>
                 </button>
 
                 {/* Heroic — only shown for 15+ */}
                 {dueCount >= 15 && (
                   <button
                     onClick={() => startSession(null)}
-                    className="w-full py-4 rounded-xl font-semibold text-base text-white transition-colors"
+                    className="w-full py-4 px-6 rounded-xl font-semibold text-white transition-colors"
                     style={{ background: '#ea580c' }}
                     onMouseEnter={e => e.currentTarget.style.background = '#c2410c'}
                     onMouseLeave={e => e.currentTarget.style.background = '#ea580c'}
                   >
-                    🔥 Heroic Session | all {dueCount} questions | {timeEstimate(dueCount)}
+                    <span className="text-[1.05rem]">🔥 Heroic Session</span>
+                    <span className="text-[0.95rem]"> | all {dueCount} questions | {timeEstimate(dueCount)}</span>
                   </button>
                 )}
               </>
