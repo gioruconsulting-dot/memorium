@@ -4,15 +4,15 @@ import Link from "next/link";
 import { getUserContentCounts, getAllDueQuestions, getUserStreak } from "@/lib/db/queries";
 
 const LEVELS = [
-  { min: 0,   max: 0,        emoji: '🐣', label: 'Baby'        },
-  { min: 1,   max: 3,        emoji: '🕹️', label: 'Apprentice'  },
-  { min: 4,   max: 7,        emoji: '⚔️', label: 'Warrior'     },
-  { min: 8,   max: 14,       emoji: '🛡️', label: 'Veteran'     },
-  { min: 15,  max: 29,       emoji: '🔥', label: 'Elite'       },
-  { min: 30,  max: 59,       emoji: '💎', label: 'Master'      },
-  { min: 60,  max: 89,       emoji: '👑', label: 'Grandmaster' },
-  { min: 90,  max: 179,      emoji: '🌟', label: 'Legend'      },
-  { min: 180, max: Infinity, emoji: '☄️', label: 'Immortal'    },
+  { number: 1, min: 0,   max: 0,        emoji: '🐣', label: 'Baby'        },
+  { number: 2, min: 1,   max: 3,        emoji: '🕹️', label: 'Apprentice'  },
+  { number: 3, min: 4,   max: 7,        emoji: '⚔️', label: 'Warrior'     },
+  { number: 4, min: 8,   max: 14,       emoji: '🛡️', label: 'Veteran'     },
+  { number: 5, min: 15,  max: 29,       emoji: '🔥', label: 'Elite'       },
+  { number: 6, min: 30,  max: 59,       emoji: '💎', label: 'Master'      },
+  { number: 7, min: 60,  max: 89,       emoji: '👑', label: 'Grandmaster' },
+  { number: 8, min: 90,  max: 179,      emoji: '🌟', label: 'Legend'      },
+  { number: 9, min: 180, max: Infinity, emoji: '☄️', label: 'Immortal'    },
 ];
 
 function getLevel(streak) {
@@ -54,7 +54,7 @@ export default async function Home() {
     redirect("/sign-in");
   }
 
-  const [user, { documentCount, questionCount }, streak] = await Promise.all([
+  const [user, { documentCount, questionCount }, { currentStreak, maxStreak }] = await Promise.all([
     currentUser(),
     getUserContentCounts(userId),
     getUserStreak(userId),
@@ -95,7 +95,8 @@ export default async function Home() {
 
   const dueQuestions = await getAllDueQuestions(userId);
   const dueCount = dueQuestions.length;
-  const level = getLevel(streak);
+  const level = getLevel(currentStreak);
+  const recordLevel = getLevel(maxStreak);
 
   return (
     <div className="py-10">
@@ -107,13 +108,18 @@ export default async function Home() {
         {/* Streak + level */}
         <div className="mt-4 mb-1">
           <div className="text-5xl font-bold leading-none" style={{ color: '#EEFF99' }}>
-            {level.emoji} {streak > 0 ? streak : ''}
+            {level.emoji} {currentStreak > 0 ? `Level ${level.number}` : ''}
           </div>
           <p className="mt-2 text-base font-semibold" style={{ color: '#e8e6e1' }}>
-            {streak > 0
-              ? `${level.label} · ${streak} day streak`
+            {currentStreak > 0
+              ? `${level.label} · ${currentStreak} day streak`
               : `${level.label} · Start your streak today`}
           </p>
+          {maxStreak > 0 && (
+            <p className="mt-1 text-sm" style={{ color: '#4ADE80' }}>
+              record streak: {maxStreak} day{maxStreak !== 1 ? 's' : ''} · {recordLevel.label}
+            </p>
+          )}
         </div>
       </div>
 
