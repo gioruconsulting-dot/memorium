@@ -421,7 +421,7 @@ export default function StudyPage() {
                 onClick={() => startSession(dueCount)}
                 className="w-full py-4 px-6 rounded-xl font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
               >
-                <span className="text-[1.05rem]">Review all</span>
+                <span className="text-[1.1rem] font-bold">Review all</span>
                 <span className="text-[0.95rem]"> | {dueCount} question{dueCount !== 1 ? 's' : ''} | {totalTime}</span>
               </button>
             ) : (
@@ -436,7 +436,7 @@ export default function StudyPage() {
                     background: 'transparent',
                   }}
                 >
-                  <span className="text-[1.05rem]">Quick Session</span>
+                  <span className="text-[1.1rem] font-bold">Quick Session</span>
                   <span className="text-[0.95rem]"> | 5 questions | {timeEstimate(5)}</span>
                 </button>
 
@@ -445,7 +445,7 @@ export default function StudyPage() {
                   onClick={() => startSession(15)}
                   className="w-full py-4 px-6 rounded-xl font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors"
                 >
-                  <span className="text-[1.05rem]">Normal Session</span>
+                  <span className="text-[1.1rem] font-bold">Normal Session</span>
                   <span className="text-[0.95rem]"> | 15 questions | {timeEstimate(15)}</span>
                 </button>
 
@@ -458,7 +458,7 @@ export default function StudyPage() {
                     onMouseEnter={e => e.currentTarget.style.background = '#c2410c'}
                     onMouseLeave={e => e.currentTarget.style.background = '#ea580c'}
                   >
-                    <span className="text-[1.05rem]">🔥 Heroic Session</span>
+                    <span className="text-[1.1rem] font-bold">🔥 Heroic Session</span>
                     <span className="text-[0.95rem]"> | all {dueCount} questions | {timeEstimate(dueCount)}</span>
                   </button>
                 )}
