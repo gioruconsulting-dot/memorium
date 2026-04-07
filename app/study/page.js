@@ -512,7 +512,7 @@ export default function StudyPage() {
           </div>
 
           {/* Textarea + reveal button */}
-          <div className="shrink-0 pb-6 space-y-3">
+          <div className="shrink-0 pb-6 space-y-3 mt-2">
             <textarea
               ref={textareaRef}
               value={userAttempt}
