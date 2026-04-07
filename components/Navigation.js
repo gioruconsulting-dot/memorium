@@ -70,7 +70,7 @@ export default function Navigation() {
               className="flex items-center gap-1.5 text-sm font-medium"
               style={{ color: active ? 'var(--color-accent)' : 'var(--color-muted)' }}
             >
-              <span>{emoji}</span>
+              <span style={href === '/upload' ? { color: '#EEFF99' } : undefined}>{emoji}</span>
               <span>{label}</span>
             </Link>
           );
