@@ -388,11 +388,18 @@ export default function StudyPage() {
           )}
 
           <a
-            href="/upload"
+            href="/"
             className="block w-full py-3.5 rounded-xl font-medium text-center"
             style={{ background: 'var(--color-foreground)', color: 'var(--color-background)' }}
           >
-            Upload More Content
+            🏆 Great Job!
+          </a>
+          <a
+            href="/study"
+            className="block w-full py-3 rounded-xl font-medium text-center text-sm"
+            style={{ color: 'var(--color-muted)', border: '1px solid var(--color-border)' }}
+          >
+            Start another session
           </a>
         </div>
       </div>

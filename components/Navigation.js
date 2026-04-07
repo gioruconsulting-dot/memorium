@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
 
 const LINKS = [
+  { href: '/',         emoji: '🏠', label: 'Home' },
   { href: '/study',    emoji: '📖', label: 'Study' },
   { href: '/upload',   emoji: '+',  label: 'Upload' },
   { href: '/browse',   emoji: '🌐', label: 'Browse' },
