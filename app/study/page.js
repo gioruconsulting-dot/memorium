@@ -325,7 +325,8 @@ export default function StudyPage() {
       <div className="min-h-dvh py-8 px-4">
         <div className="w-full max-w-sm mx-auto">
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-semibold text-[#EEFF99] mb-2">Session Complete</h1>
+            <div className="text-4xl mb-2">🏆</div>
+            <h1 className="text-2xl font-semibold text-[#EEFF99] mb-2">Great Job!</h1>
             {endedEarly ? (
               <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
                 Session ended early — take a break, you'll see these again tomorrow.
@@ -392,7 +393,7 @@ export default function StudyPage() {
             className="block w-full py-3.5 rounded-xl font-medium text-center"
             style={{ background: 'var(--color-foreground)', color: 'var(--color-background)' }}
           >
-            🏆 Great Job!
+            Home
           </a>
           <a
             href="/study"
