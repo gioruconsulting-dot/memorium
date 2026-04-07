@@ -107,16 +107,16 @@ export default async function Home() {
 
         {/* Streak + level */}
         <div className="mt-4 mb-1">
-          <div className="text-[2.75rem] font-bold leading-none" style={{ color: '#EEFF99' }}>
+          <div className="text-[2.5rem] font-bold leading-none" style={{ color: '#EEFF99' }}>
             {level.emoji} {currentStreak > 0 ? `Level ${level.number}` : ''}
           </div>
-          <p className="mt-2 text-base font-semibold" style={{ color: '#e8e6e1' }}>
+          <p className="mt-[6px] text-base font-semibold" style={{ color: '#e8e6e1' }}>
             {currentStreak > 0
               ? `${level.label} · ${currentStreak} day streak`
               : `${level.label} · Start your streak today`}
           </p>
           {maxStreak > 0 && (
-            <p className="mt-1 text-sm" style={{ color: '#4ADE80' }}>
+            <p className="mt-[3px] text-sm" style={{ color: '#4ADE80' }}>
               Record Streak: {maxStreak} day{maxStreak !== 1 ? 's' : ''} · {recordLevel.label}
             </p>
           )}
