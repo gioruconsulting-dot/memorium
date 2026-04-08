@@ -141,6 +141,7 @@ export default function StudyPage() {
 
   useEffect(() => {
     if (phase === 'studying' && !revealed) {
+      window.scrollTo(0, 0);
       textareaRef.current?.focus();
     }
   }, [phase, index, revealed]);
