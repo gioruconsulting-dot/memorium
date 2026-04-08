@@ -235,11 +235,15 @@ export default function StudyPage() {
       // Decide whether to show a motivational message
       const forgotInWindow = newRecentGrades.filter(g => g === 'forgot').length;
       const isStruggling = forgotInWindow >= 2;
-      const showMsg = (grade === 'hard' || grade === 'forgot')
-        && totalAnswered >= 5
-        && !isLast
-        && !earlyEnd
-        && Math.random() < (isStruggling ? 0.5 : 0.25);
+      const noMsgYet = shownMsgsRef.current.size === 0;
+      const showMsg = !isLast && !earlyEnd && grade !== 'skipped' && (
+        // Guarantee: at least one message after Q10 if none shown yet
+        (noMsgYet && totalAnswered >= 10) ||
+        // Normal chance: Hard/Forgot after Q5
+        ((grade === 'hard' || grade === 'forgot')
+          && totalAnswered >= 5
+          && Math.random() < (isStruggling ? 0.5 : 0.25))
+      );
 
       // Fade out current screen
       setFading(true);
