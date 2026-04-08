@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const MAX_CHARS = 50000;
 const MIN_CHARS = 100;
@@ -13,8 +13,23 @@ export default function UploadPage() {
   const [result, setResult] = useState(null); // { title, questionCount } on success
   const [errorMessage, setErrorMessage] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [progress, setProgress] = useState(0);
   const fileInputRef = useRef(null);
   const dragCounterRef = useRef(0); // Track nested drag events
+
+  // Simulated progress: animates to ~85% while loading, jumps to 100 on success
+  useEffect(() => {
+    if (status === 'success') { setProgress(100); return; }
+    if (status !== 'loading') { setProgress(0); return; }
+    setProgress(0);
+    let current = 0;
+    const interval = setInterval(() => {
+      const increment = Math.max(0.3, (85 - current) * 0.04);
+      current = Math.min(current + increment, 85);
+      setProgress(Math.round(current));
+    }, 250);
+    return () => clearInterval(interval);
+  }, [status]);
 
   const charCount = content.length;
   const canSubmit =
@@ -374,9 +389,18 @@ Or drag and drop a .txt / .md file here."
         </button>
 
         {status === 'loading' && (
-          <p className="text-center text-gray-500 text-sm">
-            This usually takes 5–15 seconds.
-          </p>
+          <div>
+            <div className="flex justify-between text-sm mb-1.5" style={{ color: 'var(--color-muted)' }}>
+              <span>Generating questions…</span>
+              <span style={{ color: '#4ADE80' }}>{progress}%</span>
+            </div>
+            <div className="h-1.5 rounded-full" style={{ background: 'var(--color-border)' }}>
+              <div
+                className="h-1.5 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%`, background: '#4ADE80' }}
+              />
+            </div>
+          </div>
         )}
 
       </div>
