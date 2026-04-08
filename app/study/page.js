@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import PixelDancer from '@/components/PixelDancer';
 
 // ── motivational messages ─────────────────────────────────────────────────────
 
@@ -52,24 +53,81 @@ function wordCount(text) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
-function formatDuration(seconds) {
-  if (!seconds || seconds < 60) return `${Math.max(0, Math.round(seconds))} seconds`;
-  const m = Math.floor(seconds / 60);
-  return `${m} minute${m !== 1 ? 's' : ''}`;
+
+// ── completion headline ───────────────────────────────────────────────────────
+
+function pickHeadline(streak, correctCount, incorrectCount) {
+  const s = streak ?? 0;
+
+  // Post-30 message pool (takes streak for interpolation)
+  function post30Pool(n) {
+    const w = Math.floor(n / 7);
+    return [
+      `Week ${w}. The compound effect is real.`,
+      `${n} days. This is no longer a streak — it's just who you are.`,
+      `${n} days of showing up. Discipline looks good on you.`,
+      `${n} days. Your brain thanks you, even if it doesn't say it.`,
+      `Week ${w}. Most apps get abandoned by now. Not this one.`,
+      `${n} days and counting. You're built different.`,
+    ];
+  }
+  function randFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  // Priority 1: Anticipation (day before milestone)
+  if (s === 6)  return "One more day and it's a full week. Don't break the chain.";
+  if (s === 13) return "Tomorrow makes two weeks. You know what to do.";
+  if (s === 20) return "One day from 21. The magic number. See you tomorrow.";
+  if (s === 29) return "29 days. Tomorrow you hit 30. Don't you dare skip.";
+  if (s > 30 && (s + 1) % 7 === 0) return `One more day to week ${Math.floor((s + 1) / 7)}. You got this.`;
+
+  // Priority 2: Milestone (exact day)
+  if (s === 1)  return "Day 1 is always the most important day. Well done, now let's get going.";
+  if (s === 2)  return "Day 2: coming back is as important as starting. Can you make it to 3?";
+  if (s === 3)  return "3 days in a row! Now we are talking. A habit is forming.";
+  if (s === 7)  return "One week streak! Consistency is the key.";
+  if (s === 14) return "Two weeks straight! Most people quit by now, but not you. Keep going!";
+  if (s === 21) return "21 days. They say that's when habits lock in... Just saying.";
+  if (s === 30) return "30-day streak! You're elite now!";
+  if (s > 30 && s % 7 === 0) return randFrom(post30Pool(s));
+
+  // Priority 3: Post-30, 60% chance
+  if (s > 30 && Math.random() < 0.6) return randFrom(post30Pool(s));
+
+  // Priority 4: Performance-based
+  const total = correctCount + incorrectCount;
+  const accuracy = total > 0 ? correctCount / total : 1;
+
+  if (incorrectCount === 0) {
+    return randFrom([
+      "Flawless. A true master.",
+      "Zero forgotten. Your memory is a vault today.",
+      "Clean sweep. Every single one recalled.",
+      "Nothing lost. That's the compound effect of showing up.",
+    ]);
+  }
+  if (accuracy > 0.8) {
+    return randFrom([
+      "The reps are paying off.",
+      "Strong session. Your future self just got smarter.",
+      "An inch away from perfection. Keep it up.",
+      "Very solid. Give yourself a round of applause.",
+    ]);
+  }
+  if (accuracy >= 0.6) {
+    return randFrom([
+      "Every struggle builds strength.",
+      "This is what this app is for. Showing you what to repeat.",
+      "The ones you missed? Something you'll remember and learn.",
+      "These sessions are where the growth happens.",
+    ]);
+  }
+  return randFrom([
+    "Hard day. But you showed up, and that's what matters.",
+    "Rough round — every forgotten answer is a future remembered one.",
+    "The struggle is the process. You just did the hardest part.",
+    "Tough day. Come back and you'll see progress.",
+  ]);
 }
-
-
-function truncate(text, max = 80) {
-  if (!text || text.length <= max) return text;
-  return text.slice(0, max).trimEnd() + '…';
-}
-
-const GRADE_STYLE = {
-  easy:    { label: 'Easy',    color: '#4ADE80' },
-  hard:    { label: 'Hard',    color: 'var(--color-hard)' },
-  forgot:  { label: 'Forgot',  color: 'var(--color-forgot)' },
-  skipped: { label: 'Skipped', color: 'var(--color-muted)' },
-};
 
 // ── sub-components ────────────────────────────────────────────────────────────
 
@@ -127,6 +185,7 @@ export default function StudyPage() {
   const [retiring, setRetiring] = useState(false);
   const [isHeroic, setIsHeroic] = useState(false);
   const [motivationalMsg, setMotivationalMsg] = useState(null);
+  const [reviewExpanded, setReviewExpanded] = useState(false);
   const textareaRef = useRef(null);
   const cardRef = useRef(null);
   const shownMsgsRef = useRef(new Set());
@@ -145,6 +204,12 @@ export default function StudyPage() {
       textareaRef.current?.focus();
     }
   }, [phase, index, revealed]);
+
+  useEffect(() => {
+    if (phase !== 'farewell') return;
+    const timer = setTimeout(() => { window.location.href = '/'; }, 2000);
+    return () => clearTimeout(timer);
+  }, [phase]);
 
 
   async function fetchDueCount() {
@@ -273,7 +338,7 @@ export default function StudyPage() {
         msgTimerRef.current = setTimeout(() => {
           pendingAdvanceRef.current?.();
           pendingAdvanceRef.current = null;
-        }, 2000);
+        }, 10000);
       } else {
         setIndex((i) => i + 1);
         setRevealed(false);
@@ -404,91 +469,152 @@ export default function StudyPage() {
 
   if (phase === 'complete' && summary) {
     const remembered = summary.correctCount;
-    const reinforced = summary.incorrectCount;
-    const skipped = summary.skippedCount;
+    const headline = pickHeadline(summary.currentStreak, remembered, summary.incorrectCount);
+    const toRevisit = gradeHistory.filter(({ grade }) => grade === 'hard' || grade === 'forgot');
+    const hasMore = summary.remainingDueCount > 0;
     return (
-      <div className="min-h-dvh py-8 px-4">
-        <div className="w-full max-w-sm mx-auto">
-          <div className="text-center mb-6">
-            <div className="text-4xl mb-2">🏆</div>
-            <h1 className="text-2xl font-semibold text-[#EEFF99] mb-2">Great Job!</h1>
-            {endedEarly ? (
-              <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
-                Session ended early — take a break, you'll see these again tomorrow.
-              </p>
-            ) : null}
-          </div>
+      <>
+        <style suppressHydrationWarning>{`
+          @keyframes completeReveal { from { opacity: 0; } to { opacity: 1; } }
+        `}</style>
+        <div className="min-h-dvh py-8 px-4">
+          <div className="w-full max-w-sm mx-auto">
 
-          {/* Stats */}
-          <div className="rounded-2xl p-5 mb-5 space-y-3"
-            style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-            <div className="flex justify-between">
-              <span>Questions reviewed</span>
-              <span className="font-medium">{summary.questionsAnswered}</span>
-            </div>
-            <div className="flex justify-between">
-              <span style={{ color: '#4ADE80' }}>Remembered (Easy + Hard)</span>
-              <span className="font-medium" style={{ color: '#4ADE80' }}>{remembered}</span>
-            </div>
-            <div className="flex justify-between">
-              <span style={{ color: 'var(--color-forgot)' }}>Reinforced (Forgot)</span>
-              <span className="font-medium" style={{ color: 'var(--color-forgot)' }}>{reinforced}</span>
-            </div>
-            {skipped > 0 && (
-              <div className="flex justify-between">
-                <span style={{ color: 'var(--color-muted)' }}>Skipped</span>
-                <span className="font-medium">{skipped}</span>
+            {/* Progress bar at 100% — visible immediately during the 0.3s pause */}
+            <div className="mb-2">
+              <div className="flex justify-between text-sm mb-1.5" style={{ color: 'var(--color-muted)' }}>
+                <span>Session complete</span>
+                <span style={{ color: '#4ADE80' }}>100%</span>
               </div>
-            )}
-            <div className="flex justify-between pt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
-              <span>Duration</span>
-              <span className="font-medium">{formatDuration(summary.durationSeconds)}</span>
+              <div className="h-1.5 rounded-full" style={{ background: 'var(--color-border)' }}>
+                <div className="h-1.5 rounded-full" style={{ width: '100%', background: '#4ADE80' }} />
+              </div>
+            </div>
+
+            {/* Dancer — fades in at 0.3s */}
+            <div style={{ animation: 'completeReveal 0.3s ease 0.3s both' }}>
+              <PixelDancer />
+            </div>
+
+            {/* Headline — fades in at 0.5s */}
+            <div className="text-center mb-6 px-2" style={{ animation: 'completeReveal 0.3s ease 0.5s both' }}>
+              <p className="font-semibold leading-snug" style={{
+                color: '#EEFF99',
+                fontSize: 'clamp(1.15rem, 5vw, 1.4rem)',
+              }}>
+                {headline}
+              </p>
+              {endedEarly && (
+                <p className="mt-2 text-sm" style={{ color: 'var(--color-muted)' }}>
+                  Session ended early — take a break, you'll see these again tomorrow.
+                </p>
+              )}
+            </div>
+
+            {/* Stats row — fades in at 0.6s */}
+            <p className="text-center text-sm mb-6" style={{
+              color: 'var(--color-muted)',
+              animation: 'completeReveal 0.2s ease 0.6s both',
+            }}>
+              {summary.questionsAnswered} reviewed · {remembered} recalled · {Math.max(1, Math.round(summary.durationSeconds / 60))} min
+            </p>
+
+            {/* Review section + CTAs — fade in together at 0.7s */}
+            <div style={{ animation: 'completeReveal 0.3s ease 0.7s both' }}>
+
+              {/* Review before you go */}
+              {toRevisit.length > 0 && (
+                <div className="mb-5 rounded-2xl overflow-hidden" style={{ border: '1px solid var(--color-border)' }}>
+                  <button
+                    onClick={() => setReviewExpanded(v => !v)}
+                    className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium"
+                    style={{ background: 'var(--color-surface)', color: 'var(--color-foreground)' }}
+                  >
+                    <span>{toRevisit.length} question{toRevisit.length !== 1 ? 's' : ''} to revisit</span>
+                    <span style={{ color: 'var(--color-muted)' }}>{reviewExpanded ? '▲' : '▼'}</span>
+                  </button>
+                  {reviewExpanded && (
+                    <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
+                      {toRevisit.map(({ question }) => (
+                        <div
+                          key={question.id}
+                          className="px-4 py-3"
+                          style={{ borderTop: '1px solid var(--color-border)', background: 'var(--color-surface)' }}
+                        >
+                          <p className="text-xs leading-snug mb-1" style={{ color: 'var(--color-foreground)' }}>
+                            {question.question_text}
+                          </p>
+                          <p className="text-xs leading-snug" style={{ color: 'var(--color-muted)' }}>
+                            {question.answer_text}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* CTAs */}
+              <div className="space-y-3 pb-8">
+                <a
+                  href={hasMore ? '/study' : '/progress'}
+                  className="block w-full py-3.5 rounded-xl font-medium text-center text-white"
+                  style={{ background: '#7c3aed' }}
+                >
+                  {hasMore ? 'Keep going' : 'See your progress'}
+                </a>
+                <a
+                  href={hasMore ? '/progress' : '/upload'}
+                  className="block w-full py-3.5 rounded-xl font-medium text-center text-white"
+                  style={{ background: 'var(--color-accent)' }}
+                >
+                  {hasMore ? 'See your progress' : 'Upload new material'}
+                </a>
+                <button
+                  onClick={() => setPhase('farewell')}
+                  className="w-full py-3.5 rounded-xl font-medium text-center"
+                  style={{ background: 'transparent', border: '1px solid #4b5563', color: 'var(--color-foreground)' }}
+                >
+                  Done for today
+                </button>
+              </div>
+
             </div>
           </div>
-
-          {/* Question summary table */}
-          {gradeHistory.length > 0 && (
-            <div className="rounded-2xl mb-5 overflow-hidden"
-              style={{ border: '1px solid var(--color-border)' }}>
-              {gradeHistory.map(({ question, grade }, i) => {
-                const gs = GRADE_STYLE[grade] || GRADE_STYLE.skipped;
-                return (
-                  <div
-                    key={question.id}
-                    className="flex items-center justify-between px-4 py-3 gap-3"
-                    style={{
-                      background: i % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-hover)',
-                      borderTop: i > 0 ? '1px solid var(--color-border)' : 'none',
-                    }}
-                  >
-                    <span className="text-sm leading-snug flex-1 min-w-0" style={{ color: 'var(--color-foreground)' }}>
-                      {truncate(question.question_text)}
-                    </span>
-                    <span className="text-xs font-medium shrink-0" style={{ color: gs.color }}>
-                      {gs.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <a
-            href="/"
-            className="block w-full py-3.5 rounded-xl font-medium text-center"
-            style={{ background: 'var(--color-foreground)', color: 'var(--color-background)' }}
-          >
-            Home
-          </a>
-          <a
-            href="/study"
-            className="block w-full py-3 rounded-xl font-medium text-center text-sm"
-            style={{ color: 'var(--color-muted)', border: '1px solid var(--color-border)' }}
-          >
-            Start another session
-          </a>
         </div>
-      </div>
+      </>
+    );
+  }
+
+  // ── farewell screen ─────────────────────────────────────────────────────────
+
+  if (phase === 'farewell') {
+    return (
+      <>
+        <style suppressHydrationWarning>{`
+          @keyframes farewellFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        `}</style>
+        <div
+          onClick={() => { window.location.href = '/'; }}
+          style={{
+            position: 'fixed', inset: 0,
+            background: '#000',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            animation: 'farewellFadeIn 2s ease forwards',
+            cursor: 'pointer',
+            zIndex: 50,
+          }}
+        >
+          <div className="text-7xl mb-5">🐊</div>
+          <p className="font-semibold text-center px-8" style={{
+            color: '#EEFF99',
+            fontSize: 'clamp(1.3rem, 6vw, 1.7rem)',
+            lineHeight: 1.3,
+          }}>
+            See you lateeeer, alligator
+          </p>
+        </div>
+      </>
     );
   }
 
