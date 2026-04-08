@@ -78,7 +78,7 @@ export default async function Home() {
         <div className="space-y-3">
           <Card
             href="/upload"
-            emoji="➕"
+            emoji="+"
             emojiColor="#EEFF99"
             title="Upload"
             description="Paste text and generate study questions automatically"
