@@ -1,6 +1,6 @@
 'use client';
 
-const P = 4;   // px per grid cell
+const P = 6;   // px per grid cell
 const C = '#e8e6e1';
 
 function px(coords) {

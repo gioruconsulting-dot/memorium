@@ -107,7 +107,7 @@ export default function CelebrationScene() {
       <div style={{
         position: 'relative',
         width:    '100%',
-        height:   'clamp(280px, 35vw, 350px)',
+        height:   'clamp(300px, 38vw, 380px)',
         background: '#121210',
         overflow: 'hidden',
       }}>
@@ -167,13 +167,14 @@ export default function CelebrationScene() {
 
         {/* ── Layer 3: Pixel dancer ── */}
         {/*
-          PixelDancer's visual center ≈ col 9.5 = 38px from the container's left edge.
-          Offset by -38px so the body axis aligns with the scene's horizontal center.
+          P=6 → visual center ≈ col 9.5 × 6 = 57px from the container's left edge.
+          translate(-57px, -50%) centers the character both horizontally and vertically.
         */}
         <div style={{
           position:  'absolute',
-          bottom:    '10px',
-          left:      'calc(50% - 38px)',
+          top:       '50%',
+          left:      '50%',
+          transform: 'translate(-57px, -50%)',
           zIndex:    2,
         }}>
           <PixelDancer />
