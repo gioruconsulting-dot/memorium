@@ -15,40 +15,40 @@ const BEAMS = [
     clip:        'polygon(47% 0%, 53% 0%, 32% 100%, 2% 100%)',
     pulseDur:    '3.2s',
     pulseDelay:  '0s',
-    baseOpacity: 0.10,
-    peakOpacity: 0.40,
+    baseOpacity: 0.25,
+    peakOpacity: 0.75,
   },
   {
     color:       '#3B82F6',  // vivid blue
     clip:        'polygon(48% 0%, 54% 0%, 97% 100%, 65% 100%)',
     pulseDur:    '4.4s',
     pulseDelay:  '1.1s',
-    baseOpacity: 0.10,
-    peakOpacity: 0.38,
+    baseOpacity: 0.22,
+    peakOpacity: 0.70,
   },
   {
     color:       '#8B5CF6',  // vivid violet
     clip:        'polygon(45% 0%, 51% 0%, 18% 100%, -12% 100%)',
     pulseDur:    '3.8s',
     pulseDelay:  '0.7s',
-    baseOpacity: 0.10,
-    peakOpacity: 0.36,
+    baseOpacity: 0.22,
+    peakOpacity: 0.68,
   },
   {
     color:       '#22C55E',  // vivid green
     clip:        'polygon(49% 0%, 55% 0%, 112% 100%, 80% 100%)',
     pulseDur:    '5.1s',
     pulseDelay:  '2.0s',
-    baseOpacity: 0.08,
-    peakOpacity: 0.28,
+    baseOpacity: 0.18,
+    peakOpacity: 0.60,
   },
   {
     color:       '#EEF200',  // vivid yellow
     clip:        'polygon(46% 0%, 54% 0%, 63% 100%, 37% 100%)',
     pulseDur:    '2.9s',
     pulseDelay:  '0.4s',
-    baseOpacity: 0.08,
-    peakOpacity: 0.26,
+    baseOpacity: 0.18,
+    peakOpacity: 0.58,
   },
 ];
 
@@ -62,18 +62,20 @@ const beamKeyframes = BEAMS.map((b, i) => `
 
 // ── star generation ──────────────────────────────────────────────────────────
 const STAR_PALETTE = [
-  '#EC4899', '#60A5FA', '#7c3aed', '#4ADE80',
-  '#EEFF99', '#FB923C', '#e8e6e1', '#e8e6e1',
+  '#FF1F8E', '#FF6EB4', '#3B82F6', '#60C8FF',
+  '#8B5CF6', '#C084FC', '#22C55E', '#4ADE80',
+  '#EEF200', '#FFE066', '#FF6B35', '#FF9A5C',
+  '#00E5FF', '#ffffff', '#ffffff', '#ffffff',
 ];
 
 function generateStars() {
-  return Array.from({ length: 28 }, (_, id) => ({
+  return Array.from({ length: 56 }, (_, id) => ({
     id,
     x:        Math.random() * 100,
     y:        Math.random() * 100,
-    size:     Math.random() < 0.25 ? 2 : 1,
+    size:     Math.random() < 0.2 ? 3 : Math.random() < 0.45 ? 2 : 1,
     color:    STAR_PALETTE[Math.floor(Math.random() * STAR_PALETTE.length)],
-    duration: 2 + Math.random() * 3,
+    duration: 1.5 + Math.random() * 3,
     delay:    Math.random() * 5,
   }));
 }
@@ -164,16 +166,15 @@ export default function CelebrationScene() {
           zIndex:     3,
         }} />
 
-        {/* ── Layer 3: Pixel dancer ── */}
+        {/* ── Layer 3: Pixel dancer — bottom-center ── */}
         {/*
           P=6 → visual center ≈ col 9.5 × 6 = 57px from the container's left edge.
-          translate(-57px, -50%) centers the character both horizontally and vertically.
+          Offset left by 57px to horizontally center the character's body axis.
         */}
         <div style={{
           position:  'absolute',
-          top:       '50%',
-          left:      '50%',
-          transform: 'translate(-57px, -50%)',
+          bottom:    '12px',
+          left:      'calc(50% - 57px)',
           zIndex:    2,
         }}>
           <PixelDancer />

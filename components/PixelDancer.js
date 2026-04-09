@@ -99,22 +99,12 @@ export default function PixelDancer() {
     <>
       <style suppressHydrationWarning>{`
         @keyframes pixelDance { ${danceKf} }
-        @keyframes dancerGlow {
-          0%   { filter: drop-shadow(0 0 8px #EC4899); }
-          20%  { filter: drop-shadow(0 0 8px #3B82F6); }
-          40%  { filter: drop-shadow(0 0 8px #A855F7); }
-          60%  { filter: drop-shadow(0 0 8px #4ADE80); }
-          80%  { filter: drop-shadow(0 0 8px #EEFF99); }
-          100% { filter: drop-shadow(0 0 8px #EC4899); }
-        }
       `}</style>
 
-      {/* Outer div: apply the color glow filter so it affects child box-shadows */}
       <div style={{
         position: 'relative',
         width:  `${17 * P}px`,
         height: `${17 * P}px`,
-        animation: 'dancerGlow 4s linear infinite',
       }}>
         {/* Inner pixel element: box-shadow encodes each animation frame */}
         <div style={{
