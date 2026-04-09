@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import PixelDancer from '@/components/PixelDancer';
+import CelebrationScene from '@/components/CelebrationScene';
 
 // ── motivational messages ─────────────────────────────────────────────────────
 
@@ -491,9 +491,9 @@ export default function StudyPage() {
               </div>
             </div>
 
-            {/* Dancer — fades in at 0.3s */}
+            {/* Celebration scene — fades in at 0.3s */}
             <div style={{ animation: 'completeReveal 0.3s ease 0.3s both' }}>
-              <PixelDancer />
+              <CelebrationScene />
             </div>
 
             {/* Headline — fades in at 0.5s */}
