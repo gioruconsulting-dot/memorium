@@ -11,44 +11,44 @@ import PixelDancer from './PixelDancer';
 //
 const BEAMS = [
   {
-    color:      '#EC4899',
-    clip:       'polygon(47% 0%, 53% 0%, 32% 100%, 2% 100%)',
-    pulseDur:   '3.2s',
-    pulseDelay: '0s',
-    baseOpacity: 0.18,
+    color:       '#FF1F8E',  // vivid pink
+    clip:        'polygon(47% 0%, 53% 0%, 32% 100%, 2% 100%)',
+    pulseDur:    '3.2s',
+    pulseDelay:  '0s',
+    baseOpacity: 0.10,
+    peakOpacity: 0.40,
+  },
+  {
+    color:       '#3B82F6',  // vivid blue
+    clip:        'polygon(48% 0%, 54% 0%, 97% 100%, 65% 100%)',
+    pulseDur:    '4.4s',
+    pulseDelay:  '1.1s',
+    baseOpacity: 0.10,
     peakOpacity: 0.38,
   },
   {
-    color:      '#60A5FA',
-    clip:       'polygon(48% 0%, 54% 0%, 97% 100%, 65% 100%)',
-    pulseDur:   '4.4s',
-    pulseDelay: '1.1s',
-    baseOpacity: 0.14,
-    peakOpacity: 0.32,
-  },
-  {
-    color:      '#7c3aed',
-    clip:       'polygon(45% 0%, 51% 0%, 18% 100%, -12% 100%)',
-    pulseDur:   '3.8s',
-    pulseDelay: '0.7s',
-    baseOpacity: 0.16,
+    color:       '#8B5CF6',  // vivid violet
+    clip:        'polygon(45% 0%, 51% 0%, 18% 100%, -12% 100%)',
+    pulseDur:    '3.8s',
+    pulseDelay:  '0.7s',
+    baseOpacity: 0.10,
     peakOpacity: 0.36,
   },
   {
-    color:      '#4ADE80',
-    clip:       'polygon(49% 0%, 55% 0%, 112% 100%, 80% 100%)',
-    pulseDur:   '5.1s',
-    pulseDelay: '2.0s',
-    baseOpacity: 0.12,
+    color:       '#22C55E',  // vivid green
+    clip:        'polygon(49% 0%, 55% 0%, 112% 100%, 80% 100%)',
+    pulseDur:    '5.1s',
+    pulseDelay:  '2.0s',
+    baseOpacity: 0.08,
     peakOpacity: 0.28,
   },
   {
-    color:      '#EEFF99',
-    clip:       'polygon(46% 0%, 54% 0%, 63% 100%, 37% 100%)',
-    pulseDur:   '2.9s',
-    pulseDelay: '0.4s',
-    baseOpacity: 0.20,
-    peakOpacity: 0.42,
+    color:       '#EEF200',  // vivid yellow
+    clip:        'polygon(46% 0%, 54% 0%, 63% 100%, 37% 100%)',
+    pulseDur:    '2.9s',
+    pulseDelay:  '0.4s',
+    baseOpacity: 0.08,
+    peakOpacity: 0.26,
   },
 ];
 
@@ -137,19 +137,18 @@ export default function CelebrationScene() {
           pointerEvents: 'none',
         }} />
 
-        {/* ── Layer 2: Twinkling stars (client-only) ── */}
+        {/* ── Layer 2: Twinkling stars (client-only) — sharp, no glow ── */}
         {mounted && stars.map(s => (
           <div key={s.id} style={{
-            position:    'absolute',
-            left:        `${s.x}%`,
-            top:         `${s.y}%`,
-            width:       `${s.size}px`,
-            height:      `${s.size}px`,
+            position:     'absolute',
+            left:         `${s.x}%`,
+            top:          `${s.y}%`,
+            width:        `${s.size}px`,
+            height:       `${s.size}px`,
             borderRadius: '50%',
-            background:  s.color,
-            boxShadow:   `0 0 ${s.size + 2}px 1px ${s.color}`,
+            background:   s.color,
             pointerEvents: 'none',
-            animation:   `star-twinkle ${s.duration}s ${s.delay}s ease-in-out infinite`,
+            animation:    `star-twinkle ${s.duration}s ${s.delay}s ease-in-out infinite`,
           }} />
         ))}
 
