@@ -153,6 +153,18 @@ export default function CelebrationScene() {
           }} />
         ))}
 
+        {/* Top fade: blends scene into the dark page background above */}
+        <div style={{
+          position:   'absolute',
+          top:        0,
+          left:       0,
+          right:      0,
+          height:     '40%',
+          background: 'linear-gradient(to bottom, #121210 0%, transparent 100%)',
+          pointerEvents: 'none',
+          zIndex:     3,
+        }} />
+
         {/* ── Layer 3: Pixel dancer ── */}
         {/*
           PixelDancer's visual center ≈ col 9.5 = 38px from the container's left edge.

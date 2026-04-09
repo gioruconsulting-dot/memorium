@@ -477,108 +477,115 @@ export default function StudyPage() {
         <style suppressHydrationWarning>{`
           @keyframes completeReveal { from { opacity: 0; } to { opacity: 1; } }
         `}</style>
-        <div className="min-h-dvh py-8 px-4">
-          <div className="w-full max-w-sm mx-auto">
+        {/* Fixed full-screen layout — no page scroll */}
+        <div style={{
+          position:   'fixed',
+          inset:      0,
+          background: '#121210',
+          display:    'flex',
+          flexDirection: 'column',
+          overflow:   'hidden',
+        }}>
 
-            {/* Progress bar at 100% — visible immediately during the 0.3s pause */}
-            <div className="mb-2">
-              <div className="flex justify-between text-sm mb-1.5" style={{ color: 'var(--color-muted)' }}>
-                <span>Session complete</span>
-                <span style={{ color: '#4ADE80' }}>100%</span>
-              </div>
-              <div className="h-1.5 rounded-full" style={{ background: 'var(--color-border)' }}>
-                <div className="h-1.5 rounded-full" style={{ width: '100%', background: '#4ADE80' }} />
-              </div>
-            </div>
+          {/* Celebration scene — flush to top, fades in */}
+          <div style={{ flexShrink: 0, animation: 'completeReveal 0.3s ease 0.3s both' }}>
+            <CelebrationScene />
+          </div>
 
-            {/* Celebration scene — fades in at 0.3s */}
-            <div style={{ animation: 'completeReveal 0.3s ease 0.3s both' }}>
-              <CelebrationScene />
-            </div>
+          {/* Content below the scene — scrollable internally if needed */}
+          <div style={{
+            flex:       1,
+            overflowY:  'auto',
+            padding:    '16px 16px 0',
+            display:    'flex',
+            flexDirection: 'column',
+          }}>
+            <div className="w-full max-w-sm mx-auto" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
 
-            {/* Headline — fades in at 0.5s */}
-            <div className="text-center mb-6 px-2" style={{ animation: 'completeReveal 0.3s ease 0.5s both' }}>
-              <p className="font-semibold leading-snug" style={{
-                color: '#EEFF99',
-                fontSize: 'clamp(1.15rem, 5vw, 1.4rem)',
-              }}>
-                {headline}
-              </p>
-              {endedEarly && (
-                <p className="mt-2 text-sm" style={{ color: 'var(--color-muted)' }}>
-                  Session ended early — take a break, you'll see these again tomorrow.
+              {/* Headline — fades in at 0.5s */}
+              <div className="text-center mb-3 px-2" style={{ animation: 'completeReveal 0.3s ease 0.5s both' }}>
+                <p className="font-semibold leading-snug" style={{
+                  color:    '#EEFF99',
+                  fontSize: 'clamp(1.1rem, 5vw, 1.35rem)',
+                }}>
+                  {headline}
                 </p>
-              )}
-            </div>
-
-            {/* Stats row — fades in at 0.6s */}
-            <p className="text-center text-sm mb-6" style={{
-              color: 'var(--color-muted)',
-              animation: 'completeReveal 0.2s ease 0.6s both',
-            }}>
-              {summary.questionsAnswered} reviewed · {remembered} recalled · {Math.max(1, Math.round(summary.durationSeconds / 60))} min
-            </p>
-
-            {/* Review section + CTAs — fade in together at 0.7s */}
-            <div style={{ animation: 'completeReveal 0.3s ease 0.7s both' }}>
-
-              {/* Review before you go */}
-              {toRevisit.length > 0 && (
-                <div className="mb-5 rounded-2xl overflow-hidden" style={{ border: '1px solid var(--color-border)' }}>
-                  <button
-                    onClick={() => setReviewExpanded(v => !v)}
-                    className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium"
-                    style={{ background: 'var(--color-surface)', color: 'var(--color-foreground)' }}
-                  >
-                    <span>{toRevisit.length} question{toRevisit.length !== 1 ? 's' : ''} to revisit</span>
-                    <span style={{ color: 'var(--color-muted)' }}>{reviewExpanded ? '▲' : '▼'}</span>
-                  </button>
-                  {reviewExpanded && (
-                    <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
-                      {toRevisit.map(({ question }) => (
-                        <div
-                          key={question.id}
-                          className="px-4 py-3"
-                          style={{ borderTop: '1px solid var(--color-border)', background: 'var(--color-surface)' }}
-                        >
-                          <p className="text-xs leading-snug mb-1" style={{ color: 'var(--color-foreground)' }}>
-                            {question.question_text}
-                          </p>
-                          <p className="text-xs leading-snug" style={{ color: 'var(--color-muted)' }}>
-                            {question.answer_text}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* CTAs */}
-              <div className="space-y-3 pb-8">
-                <a
-                  href={hasMore ? '/study' : '/progress'}
-                  className="block w-full py-3.5 rounded-xl font-medium text-center text-white"
-                  style={{ background: '#7c3aed' }}
-                >
-                  {hasMore ? 'Keep going' : 'See your progress'}
-                </a>
-                <a
-                  href={hasMore ? '/progress' : '/upload'}
-                  className="block w-full py-3.5 rounded-xl font-medium text-center text-white"
-                  style={{ background: 'var(--color-accent)' }}
-                >
-                  {hasMore ? 'See your progress' : 'Upload new material'}
-                </a>
-                <button
-                  onClick={() => setPhase('farewell')}
-                  className="w-full py-3.5 rounded-xl font-medium text-center"
-                  style={{ background: 'transparent', border: '1px solid #4b5563', color: 'var(--color-foreground)' }}
-                >
-                  Done for today
-                </button>
+                {endedEarly && (
+                  <p className="mt-2 text-sm" style={{ color: 'var(--color-muted)' }}>
+                    Session ended early — take a break, you'll see these again tomorrow.
+                  </p>
+                )}
               </div>
 
+              {/* Stats row — fades in at 0.6s */}
+              <p className="text-center text-sm mb-4" style={{
+                color:     'var(--color-muted)',
+                animation: 'completeReveal 0.2s ease 0.6s both',
+              }}>
+                {summary.questionsAnswered} reviewed · {remembered} recalled · {Math.max(1, Math.round(summary.durationSeconds / 60))} min
+              </p>
+
+              {/* Review + CTAs — fade in at 0.7s */}
+              <div style={{ animation: 'completeReveal 0.3s ease 0.7s both', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+
+                {/* Review before you go */}
+                {toRevisit.length > 0 && (
+                  <div className="mb-3 rounded-2xl overflow-hidden" style={{ border: '1px solid var(--color-border)' }}>
+                    <button
+                      onClick={() => setReviewExpanded(v => !v)}
+                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium"
+                      style={{ background: 'var(--color-surface)', color: 'var(--color-foreground)' }}
+                    >
+                      <span>{toRevisit.length} question{toRevisit.length !== 1 ? 's' : ''} to revisit</span>
+                      <span style={{ color: 'var(--color-muted)' }}>{reviewExpanded ? '▲' : '▼'}</span>
+                    </button>
+                    {reviewExpanded && (
+                      <div style={{ maxHeight: '140px', overflowY: 'auto' }}>
+                        {toRevisit.map(({ question }) => (
+                          <div
+                            key={question.id}
+                            className="px-4 py-3"
+                            style={{ borderTop: '1px solid var(--color-border)', background: 'var(--color-surface)' }}
+                          >
+                            <p className="text-xs leading-snug mb-1" style={{ color: 'var(--color-foreground)' }}>
+                              {question.question_text}
+                            </p>
+                            <p className="text-xs leading-snug" style={{ color: 'var(--color-muted)' }}>
+                              {question.answer_text}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* CTAs */}
+                <div className="space-y-3 pb-6">
+                  <a
+                    href={hasMore ? '/study' : '/progress'}
+                    className="block w-full py-3.5 rounded-xl font-medium text-center text-white"
+                    style={{ background: '#7c3aed' }}
+                  >
+                    {hasMore ? 'Keep going' : 'See your progress'}
+                  </a>
+                  <a
+                    href={hasMore ? '/progress' : '/upload'}
+                    className="block w-full py-3.5 rounded-xl font-medium text-center text-white"
+                    style={{ background: 'var(--color-accent)' }}
+                  >
+                    {hasMore ? 'See your progress' : 'Upload new material'}
+                  </a>
+                  <button
+                    onClick={() => setPhase('farewell')}
+                    className="w-full py-3.5 rounded-xl font-medium text-center"
+                    style={{ background: 'transparent', border: '1px solid #4b5563', color: 'var(--color-foreground)' }}
+                  >
+                    Done for today
+                  </button>
+                </div>
+
+              </div>
             </div>
           </div>
         </div>
