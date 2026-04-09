@@ -163,6 +163,113 @@ function GradeButton({ label, sublabel, onClick, bgClass, disabled }) {
   );
 }
 
+// ── farewell sub-component ────────────────────────────────────────────────────
+
+const FAREWELL_STAR_PALETTE = [
+  '#FF1F8E', '#FF6EB4', '#3B82F6', '#60C8FF',
+  '#8B5CF6', '#C084FC', '#22C55E', '#4ADE80',
+  '#EEF200', '#FFE066', '#FF6B35', '#ffffff',
+];
+
+function generateFarewellStars() {
+  return Array.from({ length: 45 }, (_, id) => ({
+    id,
+    x:        Math.random() * 100,
+    y:        Math.random() * 100,
+    size:     Math.random() < 0.2 ? 2 : 1,
+    color:    FAREWELL_STAR_PALETTE[Math.floor(Math.random() * FAREWELL_STAR_PALETTE.length)],
+    duration: 2 + Math.random() * 3,
+    delay:    Math.random() * 5,
+  }));
+}
+
+function FarewellScreen() {
+  const [stars, setStars] = useState([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setStars(generateFarewellStars());
+    setMounted(true);
+  }, []);
+
+  return (
+    <>
+      <style suppressHydrationWarning>{`
+        @keyframes farewellFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes farewellGatorIn {
+          from { opacity: 0; transform: scale(0.8); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes farewellTwinkle {
+          0%, 100% { opacity: 0.15; }
+          50%       { opacity: 0.9; }
+        }
+      `}</style>
+      <div
+        onClick={() => { window.location.href = '/'; }}
+        style={{
+          position:   'fixed',
+          inset:      0,
+          background: '#121210',
+          display:    'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor:     'pointer',
+          zIndex:     50,
+          overflow:   'hidden',
+        }}
+      >
+        {/* Stars — behind everything */}
+        {mounted && stars.map(s => (
+          <div key={s.id} style={{
+            position:     'absolute',
+            left:         `${s.x}%`,
+            top:          `${s.y}%`,
+            width:        `${s.size}px`,
+            height:       `${s.size}px`,
+            borderRadius: '50%',
+            background:   s.color,
+            pointerEvents: 'none',
+            zIndex:       0,
+            animation:    `farewellTwinkle ${s.duration}s ${s.delay}s ease-in-out infinite`,
+          }} />
+        ))}
+
+        {/* Alligator image */}
+        <img
+          src="/alligator.png"
+          alt=""
+          style={{
+            width:     'clamp(120px, 33vw, 240px)',
+            height:    'auto',
+            display:   'block',
+            marginBottom: '24px',
+            position:  'relative',
+            zIndex:    1,
+            animation: 'farewellGatorIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both',
+          }}
+        />
+
+        {/* Text */}
+        <p
+          className="font-semibold text-center px-8"
+          style={{
+            color:      '#EEFF99',
+            fontSize:   'clamp(1.3rem, 6vw, 1.7rem)',
+            lineHeight: 1.3,
+            position:   'relative',
+            zIndex:     1,
+            animation:  'farewellFadeIn 0.5s ease 0.2s both',
+          }}
+        >
+          See you lateeeer, alligator
+        </p>
+      </div>
+    </>
+  );
+}
+
 // ── main component ────────────────────────────────────────────────────────────
 
 export default function StudyPage() {
@@ -207,7 +314,7 @@ export default function StudyPage() {
 
   useEffect(() => {
     if (phase !== 'farewell') return;
-    const timer = setTimeout(() => { window.location.href = '/'; }, 2000);
+    const timer = setTimeout(() => { window.location.href = '/'; }, 3000);
     return () => clearTimeout(timer);
   }, [phase]);
 
@@ -596,33 +703,7 @@ export default function StudyPage() {
   // ── farewell screen ─────────────────────────────────────────────────────────
 
   if (phase === 'farewell') {
-    return (
-      <>
-        <style suppressHydrationWarning>{`
-          @keyframes farewellFadeIn { from { opacity: 0; } to { opacity: 1; } }
-        `}</style>
-        <div
-          onClick={() => { window.location.href = '/'; }}
-          style={{
-            position: 'fixed', inset: 0,
-            background: '#000',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            animation: 'farewellFadeIn 2s ease forwards',
-            cursor: 'pointer',
-            zIndex: 50,
-          }}
-        >
-          <div className="text-7xl mb-5">🐊</div>
-          <p className="font-semibold text-center px-8" style={{
-            color: '#EEFF99',
-            fontSize: 'clamp(1.3rem, 6vw, 1.7rem)',
-            lineHeight: 1.3,
-          }}>
-            See you lateeeer, alligator
-          </p>
-        </div>
-      </>
-    );
+    return <FarewellScreen />;
   }
 
   // ── picker phase ────────────────────────────────────────────────────────────
