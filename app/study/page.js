@@ -241,7 +241,7 @@ function FarewellScreen() {
           src="/alligator.png"
           alt=""
           style={{
-            width:     'clamp(120px, 33vw, 240px)',
+            width:     'clamp(240px, 66vw, 480px)',
             height:    'auto',
             display:   'block',
             marginBottom: '24px',
@@ -256,7 +256,7 @@ function FarewellScreen() {
           className="font-semibold text-center px-8"
           style={{
             color:      '#EEFF99',
-            fontSize:   'clamp(1.3rem, 6vw, 1.7rem)',
+            fontSize:   'clamp(1.95rem, 9vw, 2.55rem)',
             lineHeight: 1.3,
             position:   'relative',
             zIndex:     1,
