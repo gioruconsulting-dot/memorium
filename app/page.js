@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
-import { getUserContentCounts, getAllDueQuestions, getUserStreak } from "@/lib/db/queries";
+import { getUserContentCounts, getAllDueQuestions, getUserStreak, getCompletedSessionCount } from "@/lib/db/queries";
+import OnboardingCard from "@/components/OnboardingCard";
 
 const LEVELS = [
   { number: 1, min: 0,   max: 0,        emoji: '🐣', label: 'Baby'        },
@@ -94,13 +95,18 @@ export default async function Home() {
     );
   }
 
-  const dueQuestions = await getAllDueQuestions(userId);
+  const [dueQuestions, completedSessions] = await Promise.all([
+    getAllDueQuestions(userId),
+    getCompletedSessionCount(userId),
+  ]);
   const dueCount = dueQuestions.length;
   const level = getLevel(currentStreak);
   const recordLevel = getLevel(maxStreak);
 
   return (
     <div className="py-10">
+      {completedSessions === 0 && <OnboardingCard completedSessions={completedSessions} />}
+
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-semibold text-[#EEFF99] mb-1">
           {firstName ? `Welcome back, ${firstName}.` : 'Welcome back!'}
@@ -149,6 +155,8 @@ export default async function Home() {
           description="Discover documents shared by other learners"
         />
       </div>
+
+      {completedSessions > 0 && <OnboardingCard completedSessions={completedSessions} />}
     </div>
   );
 }
