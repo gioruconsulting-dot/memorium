@@ -870,33 +870,29 @@ export default function StudyPage() {
           </div>
         </div>
 
-        {/* Fixed footer: textarea + reveal button */}
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 20, background: 'var(--color-background)' }}>
-          <div className="max-w-2xl mx-auto px-4">
-            <div className="px-4">
-              <div className="w-full max-w-xl mx-auto pt-2 pb-6 space-y-3">
-                <textarea
-                  ref={textareaRef}
-                  value={userAttempt}
-                  onChange={(e) => setUserAttempt(e.target.value)}
-                  placeholder="Type your answer… (3+ words to unlock Reveal)"
-                  rows={4}
-                  className="w-full rounded-xl px-4 py-3 text-base leading-relaxed resize-none focus:outline-none"
-                  style={{
-                    background: 'var(--color-surface)',
-                    border: '1px solid var(--color-border)',
-                    color: 'var(--color-foreground)',
-                  }}
-                />
-                <button
-                  onClick={() => setRevealed(true)}
-                  disabled={!canReveal}
-                  className="w-full py-4 rounded-xl font-medium text-base transition-opacity disabled:opacity-40 disabled:cursor-not-allowed bg-violet-600 text-white hover:bg-violet-700"
-                >
-                  Reveal Answer
-                </button>
-              </div>
-            </div>
+        {/* Normal flow: textarea + reveal button, offset below fixed header */}
+        <div className="px-4" style={{ paddingTop: headerHeight }}>
+          <div className="w-full max-w-xl mx-auto pt-2 pb-6 space-y-3">
+            <textarea
+              ref={textareaRef}
+              value={userAttempt}
+              onChange={(e) => setUserAttempt(e.target.value)}
+              placeholder="Type your answer… (3+ words to unlock Reveal)"
+              rows={4}
+              className="w-full rounded-xl px-4 py-3 text-base leading-relaxed resize-none focus:outline-none"
+              style={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-foreground)',
+              }}
+            />
+            <button
+              onClick={() => setRevealed(true)}
+              disabled={!canReveal}
+              className="w-full py-4 rounded-xl font-medium text-base transition-opacity disabled:opacity-40 disabled:cursor-not-allowed bg-violet-600 text-white hover:bg-violet-700"
+            >
+              Reveal Answer
+            </button>
           </div>
         </div>
 
