@@ -24,7 +24,7 @@ function Card({ href, emoji, title, description, highlight, emojiColor }) {
   return (
     <Link
       href={href}
-      className="block p-6 rounded-2xl transition-colors hover:bg-violet-500/10"
+      className="block px-6 py-[1.35rem] rounded-2xl transition-colors hover:bg-violet-500/10"
       style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
     >
       <div className="flex items-start justify-between gap-4">
@@ -131,6 +131,7 @@ export default async function Home() {
       </div>
 
       <div className="space-y-3">
+        {completedSessions > 0 && <OnboardingCard completedSessions={completedSessions} />}
         <Card
           href="/study"
           emoji="📖"
@@ -156,7 +157,6 @@ export default async function Home() {
         />
       </div>
 
-      {completedSessions > 0 && <OnboardingCard completedSessions={completedSessions} />}
     </div>
   );
 }

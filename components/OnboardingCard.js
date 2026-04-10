@@ -226,7 +226,6 @@ function ReturningUserCard() {
         borderRadius: '1rem',
         overflow: 'hidden',
         background: 'var(--color-surface)',
-        marginTop: '0.75rem',
       }}
     >
       {/* Header / toggle */}
