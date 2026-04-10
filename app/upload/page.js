@@ -24,7 +24,7 @@ export default function UploadPage() {
     setProgress(0);
     let current = 0;
     const interval = setInterval(() => {
-      const increment = Math.max(0.3, (85 - current) * 0.04);
+      const increment = Math.max(0.1, (85 - current) * 0.0133);
       current = Math.min(current + increment, 85);
       setProgress(Math.round(current));
     }, 250);
