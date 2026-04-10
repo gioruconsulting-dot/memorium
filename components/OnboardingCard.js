@@ -236,7 +236,7 @@ function ReturningUserCard() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '1rem 1.25rem',
+          padding: '0.75rem 1.25rem',
           background: 'transparent',
           border: 'none',
           cursor: 'pointer',
@@ -275,7 +275,7 @@ function ReturningUserCard() {
           transition: 'max-height 400ms ease-out',
         }}
       >
-        <div style={{ padding: '0 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ padding: '0 1.25rem 0.9375rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* Core explanation */}
           <p
             style={{
