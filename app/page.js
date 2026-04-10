@@ -20,11 +20,11 @@ function getLevel(streak) {
   return LEVELS.findLast(l => streak >= l.min) || LEVELS[0];
 }
 
-function Card({ href, emoji, title, description, highlight, emojiColor }) {
+function Card({ href, emoji, title, description, highlight, emojiColor, compact }) {
   return (
     <Link
       href={href}
-      className="block px-6 py-[1.35rem] rounded-2xl transition-colors hover:bg-violet-500/10"
+      className={`block px-6 rounded-2xl transition-colors hover:bg-violet-500/10 ${compact ? 'py-[1.15rem]' : 'py-[1.35rem]'}`}
       style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
     >
       <div className="flex items-start justify-between gap-4">
@@ -148,12 +148,14 @@ export default async function Home() {
           emoji="➕"
           title="Upload"
           description="Paste text and generate new study questions"
+          compact
         />
         <Card
           href="/browse"
           emoji="🌐"
           title="Browse"
           description="Discover documents shared by other learners"
+          compact
         />
       </div>
 
