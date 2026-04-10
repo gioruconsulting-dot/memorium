@@ -24,7 +24,7 @@ function Card({ href, emoji, title, description, highlight, emojiColor, compact 
   return (
     <Link
       href={href}
-      className={`block px-6 rounded-2xl transition-colors hover:bg-violet-500/10 ${compact ? 'py-[0.88rem]' : 'py-[1.35rem]'}`}
+      className={`block px-6 rounded-2xl transition-colors hover:bg-violet-500/10 ${compact ? 'py-[0.792rem]' : 'py-[1.215rem]'}`}
       style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
     >
       <div className="flex items-start justify-between gap-4">
