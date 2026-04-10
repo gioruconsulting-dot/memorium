@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import CelebrationScene from '@/components/CelebrationScene';
 
 // ── motivational messages ─────────────────────────────────────────────────────
@@ -295,6 +295,8 @@ export default function StudyPage() {
   const [reviewExpanded, setReviewExpanded] = useState(false);
   const textareaRef = useRef(null);
   const cardRef = useRef(null);
+  const headerRef = useRef(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
   const shownMsgsRef = useRef(new Set());
   const recentGradesRef = useRef([]);
   const pendingAdvanceRef = useRef(null);
@@ -311,6 +313,16 @@ export default function StudyPage() {
       textareaRef.current?.focus();
     }
   }, [phase, index, revealed]);
+
+  // Measure fixed header height so scrollable content below is correctly offset
+  useLayoutEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    setHeaderHeight(el.offsetHeight);
+    const ro = new ResizeObserver(() => setHeaderHeight(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [phase, revealed]);
 
   useEffect(() => {
     if (phase !== 'farewell') return;
@@ -823,131 +835,144 @@ export default function StudyPage() {
   // ── PRE-REVEAL: everything fits in one screen, no scrolling needed ──────────
   if (!revealed) {
     return (
-      <div
-        className="h-dvh flex flex-col px-4 transition-opacity duration-200"
-        style={{ opacity: fading ? 0 : 1 }}
-      >
-        <div className="w-full max-w-xl mx-auto flex flex-col flex-1 min-h-0">
+      <div className="transition-opacity duration-200" style={{ opacity: fading ? 0 : 1 }}>
 
-          {/* Top: progress bar + question */}
-          <div className="shrink-0 pt-3 space-y-3">
-            <ProgressBar current={index} total={questions.length} />
+        {/* Fixed header: progress bar + question */}
+        <div
+          ref={headerRef}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 20, background: 'var(--color-background)' }}
+        >
+          <div className="max-w-2xl mx-auto px-4">
+            <div className="px-4">
+              <div className="w-full max-w-xl mx-auto pt-3 pb-2 space-y-3">
+                <ProgressBar current={index} total={questions.length} />
 
-            {index === 0 && (
-              <p className="text-base text-center text-green-400">
-                {isHeroic ? 'Ready. Set. Go. Be Heroic' : `🔒 ${questions.length} questions. No other choice. Complete.`}
-              </p>
-            )}
+                {index === 0 && (
+                  <p className="text-base text-center text-green-400">
+                    {isHeroic ? 'Ready. Set. Go. Be Heroic' : `🔒 ${questions.length} questions. No other choice. Complete.`}
+                  </p>
+                )}
 
-            <div
-              ref={cardRef}
-              className="rounded-2xl p-3 sm:p-5"
-              style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
-            >
-              <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">
-                {question.question_type}
+                <div
+                  ref={cardRef}
+                  className="rounded-2xl p-3 sm:p-5"
+                  style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+                >
+                  <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">
+                    {question.question_type}
+                  </div>
+                  <p className="text-base sm:text-xl font-semibold leading-snug">
+                    {question.question_text}
+                  </p>
+                </div>
               </div>
-              <p className="text-base sm:text-xl font-semibold leading-snug">
-                {question.question_text}
-              </p>
             </div>
           </div>
-
-          {/* Textarea + reveal button */}
-          <div className="shrink-0 pb-6 space-y-3 mt-2">
-            <textarea
-              ref={textareaRef}
-              value={userAttempt}
-              onChange={(e) => setUserAttempt(e.target.value)}
-              placeholder="Type your answer… (3+ words to unlock Reveal)"
-              rows={4}
-              className="w-full rounded-xl px-4 py-3 text-base leading-relaxed resize-none focus:outline-none"
-              style={{
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-foreground)',
-              }}
-            />
-            <button
-              onClick={() => setRevealed(true)}
-              disabled={!canReveal}
-              className="w-full py-4 rounded-xl font-medium text-base transition-opacity disabled:opacity-40 disabled:cursor-not-allowed bg-violet-600 text-white hover:bg-violet-700"
-            >
-              Reveal Answer
-            </button>
-          </div>
-
         </div>
+
+        {/* Fixed footer: textarea + reveal button */}
+        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 20, background: 'var(--color-background)' }}>
+          <div className="max-w-2xl mx-auto px-4">
+            <div className="px-4">
+              <div className="w-full max-w-xl mx-auto pt-2 pb-6 space-y-3">
+                <textarea
+                  ref={textareaRef}
+                  value={userAttempt}
+                  onChange={(e) => setUserAttempt(e.target.value)}
+                  placeholder="Type your answer… (3+ words to unlock Reveal)"
+                  rows={4}
+                  className="w-full rounded-xl px-4 py-3 text-base leading-relaxed resize-none focus:outline-none"
+                  style={{
+                    background: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                    color: 'var(--color-foreground)',
+                  }}
+                />
+                <button
+                  onClick={() => setRevealed(true)}
+                  disabled={!canReveal}
+                  className="w-full py-4 rounded-xl font-medium text-base transition-opacity disabled:opacity-40 disabled:cursor-not-allowed bg-violet-600 text-white hover:bg-violet-700"
+                >
+                  Reveal Answer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     );
   }
 
-  // ── POST-REVEAL: sticky header, answer content scrolls below ────────────────
+  // ── POST-REVEAL: fixed header, answer content scrolls below ────────────────
   return (
-    <div
-      className="min-h-dvh px-4 transition-opacity duration-200"
-      style={{ opacity: fading ? 0 : 1 }}
-    >
-      <div className="w-full max-w-xl mx-auto">
+    <div className="transition-opacity duration-200" style={{ opacity: fading ? 0 : 1 }}>
 
-        {/* Sticky: progress bar + question card */}
-        <div
-          className="sticky top-0 z-10 pt-3 pb-2 space-y-3"
-          style={{ background: 'var(--color-background)' }}
-        >
-          <ProgressBar current={index} total={questions.length} />
+      {/* Fixed header: progress bar + question card */}
+      <div
+        ref={headerRef}
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 20, background: 'var(--color-background)' }}
+      >
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="px-4">
+            <div className="w-full max-w-xl mx-auto pt-3 pb-2 space-y-3">
+              <ProgressBar current={index} total={questions.length} />
 
-          <div
-            ref={cardRef}
-            className="rounded-2xl p-3 sm:p-5"
-            style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
-          >
-            <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">
-              {question.question_type}
-            </div>
-            <p className="text-sm sm:text-lg font-semibold leading-snug">
-              {question.question_text}
-            </p>
-            <div className="flex justify-end mt-3">
-              {!retireConfirm ? (
-                <button
-                  onClick={() => setRetireConfirm(true)}
-                  disabled={grading || retiring}
-                  className="flex items-center gap-1.5 text-sm transition-colors hover:text-red-400 disabled:opacity-40"
-                  style={{ color: 'var(--color-muted)' }}
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
-                  </svg>
-                  <span>Bad question</span>
-                </button>
-              ) : (
-                <div className="flex items-center gap-3">
-                  <span className="text-xs" style={{ color: 'var(--color-muted)' }}>Remove this question?</span>
-                  <button
-                    onClick={handleRetire}
-                    disabled={retiring}
-                    className="text-xs px-3 py-1 rounded-lg transition-opacity disabled:opacity-40"
-                    style={{ color: '#EF4444', border: '1px solid #EF4444' }}
-                  >
-                    {retiring ? 'Removing…' : 'Remove'}
-                  </button>
-                  <button
-                    onClick={() => setRetireConfirm(false)}
-                    disabled={retiring}
-                    className="text-xs transition-colors hover:text-gray-300"
-                    style={{ color: 'var(--color-muted)' }}
-                  >
-                    Cancel
-                  </button>
+              <div
+                ref={cardRef}
+                className="rounded-2xl p-3 sm:p-5"
+                style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+              >
+                <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">
+                  {question.question_type}
                 </div>
-              )}
+                <p className="text-sm sm:text-lg font-semibold leading-snug">
+                  {question.question_text}
+                </p>
+                <div className="flex justify-end mt-3">
+                  {!retireConfirm ? (
+                    <button
+                      onClick={() => setRetireConfirm(true)}
+                      disabled={grading || retiring}
+                      className="flex items-center gap-1.5 text-sm transition-colors hover:text-red-400 disabled:opacity-40"
+                      style={{ color: 'var(--color-muted)' }}
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+                      </svg>
+                      <span>Bad question</span>
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs" style={{ color: 'var(--color-muted)' }}>Remove this question?</span>
+                      <button
+                        onClick={handleRetire}
+                        disabled={retiring}
+                        className="text-xs px-3 py-1 rounded-lg transition-opacity disabled:opacity-40"
+                        style={{ color: '#EF4444', border: '1px solid #EF4444' }}
+                      >
+                        {retiring ? 'Removing…' : 'Remove'}
+                      </button>
+                      <button
+                        onClick={() => setRetireConfirm(false)}
+                        disabled={retiring}
+                        className="text-xs transition-colors hover:text-gray-300"
+                        style={{ color: 'var(--color-muted)' }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Scrollable: answer content */}
-        <div className="space-y-3 pt-3 pb-8">
+      {/* Scrollable content — offset by measured fixed header height */}
+      <div className="min-h-dvh px-4" style={{ paddingTop: headerHeight }}>
+        <div className="w-full max-w-xl mx-auto space-y-3 pt-3 pb-8">
 
           {userAttempt.trim() && (
             <div className="rounded-xl px-3 py-1.5 bg-gray-800/40">
