@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 function formatDate(unixSeconds) {
   const date = new Date(Number(unixSeconds) * 1000);
@@ -61,10 +62,32 @@ export default function LibraryPage() {
     </h1>
   );
 
+  const actionRows = (
+    <div className="rounded-2xl overflow-hidden mb-6" style={{ border: '1px solid var(--color-border)' }}>
+      <Link
+        href="/upload"
+        className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-violet-500/10"
+        style={{ background: 'var(--color-surface)', borderBottom: '1px solid var(--color-border)' }}
+      >
+        <span className="text-sm font-medium">Upload your own</span>
+        <span style={{ color: 'var(--color-muted)' }}>→</span>
+      </Link>
+      <Link
+        href="/browse"
+        className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-violet-500/10"
+        style={{ background: 'var(--color-surface)' }}
+      >
+        <span className="text-sm font-medium">Browse shared content</span>
+        <span style={{ color: 'var(--color-muted)' }}>→</span>
+      </Link>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="py-8">
         {heading}
+        {actionRows}
         <div className="space-y-3">
           {[0, 1, 2].map((i) => (
             <div key={i} className="rounded-2xl p-5 h-24 animate-pulse"
@@ -79,6 +102,7 @@ export default function LibraryPage() {
     return (
       <div className="py-8">
         {heading}
+        {actionRows}
         <p className="mb-4" style={{ color: 'var(--color-forgot)' }}>{error}</p>
         <button
           onClick={fetchDocuments}
@@ -95,16 +119,10 @@ export default function LibraryPage() {
     return (
       <div className="py-8">
         {heading}
-        <p className="mb-5" style={{ color: 'var(--color-muted)' }}>
-          No documents yet. Upload your first document to get started.
+        {actionRows}
+        <p style={{ color: 'var(--color-muted)' }}>
+          No documents yet. Upload your first or browse shared content above.
         </p>
-        <a
-          href="/upload"
-          className="inline-block px-5 py-2.5 rounded-lg font-medium text-sm"
-          style={{ background: 'var(--color-foreground)', color: 'var(--color-background)' }}
-        >
-          Upload a Document
-        </a>
       </div>
     );
   }
@@ -112,6 +130,7 @@ export default function LibraryPage() {
   return (
     <div className="py-8">
       {heading}
+      {actionRows}
       <div className="space-y-3">
         {documents.map((doc) => (
           <div

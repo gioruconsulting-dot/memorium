@@ -20,12 +20,16 @@ function getLevel(streak) {
   return LEVELS.findLast(l => streak >= l.min) || LEVELS[0];
 }
 
-function Card({ href, emoji, title, description, highlight, emojiColor, compact }) {
+function Card({ href, emoji, title, description, highlight, emojiColor, compact, glow }) {
   return (
     <Link
       href={href}
       className={`block px-6 rounded-2xl transition-colors hover:bg-violet-500/10 ${compact ? 'py-[0.792rem]' : 'py-[1.215rem]'}`}
-      style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+      style={{
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        ...(glow && { boxShadow: '0 0 28px 6px rgba(124, 58, 237, 0.35)' }),
+      }}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
@@ -72,24 +76,29 @@ export default async function Home() {
             Welcome! Let your epic learning journey begin.
           </h1>
           <p className="text-lg font-medium text-white">
-            Upload what you want to remember, or browse what others are learning.
+            Head to your Library to browse shared content or upload your own.
           </p>
         </div>
 
         <div className="space-y-3">
-          <Card
-            href="/upload"
-            emoji="+"
-            emojiColor="#EEFF99"
-            title="Upload"
-            description="Paste text and generate study questions automatically"
-          />
-          <Card
-            href="/browse"
-            emoji="🌐"
-            title="Browse"
-            description="Discover documents shared by other learners"
-          />
+          <Link
+            href="/library"
+            className="block px-6 py-[0.792rem] rounded-2xl transition-colors hover:bg-violet-500/10"
+            style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-xl leading-none font-bold" style={{ color: '#EEFF99' }}>+</span>
+                  <span className="font-semibold text-base">Add content</span>
+                </div>
+                <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
+                  add your own content or browse others
+                </p>
+              </div>
+              <span className="shrink-0" style={{ color: 'var(--color-muted)' }}>→</span>
+            </div>
+          </Link>
         </div>
       </div>
     );
@@ -142,21 +151,26 @@ export default async function Home() {
               : "You're all caught up!"
           }
           description="Keep memorising what you want"
+          glow
         />
-        <Card
-          href="/upload"
-          emoji="➕"
-          title="Upload"
-          description="Paste text and generate new study questions"
-          compact
-        />
-        <Card
-          href="/browse"
-          emoji="🌐"
-          title="Browse"
-          description="Discover documents shared by other learners"
-          compact
-        />
+        <Link
+          href="/library"
+          className="block px-6 py-[0.792rem] rounded-2xl transition-colors hover:bg-violet-500/10"
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-xl leading-none font-bold" style={{ color: '#EEFF99' }}>+</span>
+                <span className="font-semibold text-base">Add content</span>
+              </div>
+              <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
+                add your own content or browse others
+              </p>
+            </div>
+            <span className="shrink-0" style={{ color: 'var(--color-muted)' }}>→</span>
+          </div>
+        </Link>
       </div>
 
     </div>

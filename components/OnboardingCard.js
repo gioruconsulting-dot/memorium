@@ -136,7 +136,7 @@ function NewUserCard() {
           }}
         >
           <span>
-            <span style={{ color: '#60A5FA', fontWeight: 600 }}>1)</span> Browse or upload what you want to remember.
+            <span style={{ color: '#60A5FA', fontWeight: 600 }}>1)</span> Add content — browse shared docs or upload your own.
           </span>
           <span>
             <span style={{ color: '#60A5FA', fontWeight: 600 }}>2)</span> Answer high-quality questions about it.
@@ -202,11 +202,9 @@ function NewUserCard() {
             color: 'rgba(232, 230, 225, 0.85)',
           }}
         >
-          Start with{' '}
-          <span style={{ color: '#7c3aed', fontWeight: 600 }}>Browse</span>
-          {' '}to find content, or{' '}
-          <span style={{ color: '#7c3aed', fontWeight: 600 }}>Upload</span>
-          {' '}your own.
+          Head to your{' '}
+          <span style={{ color: '#7c3aed', fontWeight: 600 }}>Library</span>
+          {' '}to browse shared content or upload your own.
         </p>
       </div>
     </div>
