@@ -26,9 +26,9 @@ function Card({ href, emoji, title, description, highlight, emojiColor, compact,
       href={href}
       className={`block px-6 rounded-2xl transition-colors hover:bg-violet-500/10 ${compact ? 'py-[0.792rem]' : 'py-[1.215rem]'}`}
       style={{
-        background: 'var(--color-surface)',
+        background: glow ? 'color-mix(in srgb, #7c3aed 8%, var(--color-surface))' : 'var(--color-surface)',
         border: '1px solid var(--color-border)',
-        ...(glow && { boxShadow: '0 0 28px 6px rgba(124, 58, 237, 0.35)' }),
+        ...(glow && { borderLeftColor: '#7c3aed', borderLeftWidth: '4px' }),
       }}
     >
       <div className="flex items-start justify-between gap-4">
