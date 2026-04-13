@@ -362,7 +362,7 @@ export default function LibraryPage() {
                   {deleting === doc.id ? 'Removing…' : 'Remove'}
                 </button>
               ) : (
-                <div className="shrink-0 flex flex-col items-end gap-1.5">
+                <div className="shrink-0 flex flex-col items-end gap-0.5">
                   <button
                     onClick={() => handleToggleShare(doc)}
                     disabled={togglingShare === doc.id}
@@ -371,7 +371,7 @@ export default function LibraryPage() {
                   >
                     {togglingShare === doc.id
                       ? '…'
-                      : doc.is_public ? "Don't Share" : 'Share'}
+                      : doc.is_public ? 'Stop Sharing' : 'Share'}
                   </button>
                   <button
                     onClick={() => handleDelete(doc)}
