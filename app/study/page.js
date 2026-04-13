@@ -183,13 +183,90 @@ function generateFarewellStars() {
   }));
 }
 
-function FarewellScreen() {
+// ── insight helpers ───────────────────────────────────────────────────────────
+
+function computeMasteryMilestone(masteryGained, documentStats) {
+  for (const [docId, gained] of Object.entries(masteryGained)) {
+    const stats = documentStats[docId];
+    if (!stats || stats.total === 0) continue;
+    const prePct = stats.mastered / stats.total;
+    const postPct = (stats.mastered + gained) / stats.total;
+    for (const threshold of [1.0, 0.75, 0.5, 0.25]) {
+      if (prePct < threshold && postPct >= threshold) {
+        return { docTitle: stats.title, pct: Math.round(postPct * 100) };
+      }
+    }
+  }
+  return null;
+}
+
+function computeInsightMessage(insightData, documentStats) {
+  function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  const tiers = {};
+
+  // Tier 1 — Recovery Story
+  if (insightData.recovered.length > 0) {
+    const title = insightData.recovered[0].docTitle || 'This topic';
+    tiers[1] = rand([
+      `${title} — you'd forgotten this one many times before. Not today.`,
+      `Remember when ${title} kept tripping you up? You just recalled it.`,
+      `${title}: from "not a clue" to "easy". That's what showing up does.`,
+    ]);
+  }
+
+  // Tier 2 — Interval Growth
+  if (insightData.intervalGrowthCount > 0) {
+    const n = insightData.intervalGrowthCount;
+    const title = insightData.intervalGrowthDocTitle || 'Your questions';
+    tiers[2] = rand([
+      `${n} question${n !== 1 ? 's' : ''} just landed on longer intervals. Your brain is holding this info for longer!`,
+      `The algorithm just pushed ${n} question${n !== 1 ? 's' : ''} further out. You're starting to master these things.`,
+      `${title}: ${n} question${n !== 1 ? 's' : ''} are now on 2-week+ intervals. That's what remembering looks like.`,
+    ]);
+  }
+
+  // Tier 3 — Mastery Milestone
+  const milestone = computeMasteryMilestone(insightData.masteryGained, documentStats);
+  if (milestone) {
+    const { docTitle, pct } = milestone;
+    if (pct === 100) {
+      tiers[3] = `${docTitle}: fully mastered. Every single question. 🏆`;
+    } else if (pct >= 50 && pct < 75) {
+      tiers[3] = `Half of ${docTitle} is now in your long-term memory. Halfway there.`;
+    } else {
+      tiers[3] = `${docTitle}: ${pct}% mastered. That knowledge is sticking around.`;
+    }
+  }
+
+  // Tier 4 — Fallback (always available)
+  const n = insightData.totalAnswered;
+  tiers[4] = rand([
+    `${n} question${n !== 1 ? 's' : ''} reinforced. Every rep counts, even the quiet sessions.`,
+    `Another session banked. Consistency beats intensity — always.`,
+    `${n} answer${n !== 1 ? 's' : ''} today. Your future self will thank you for this one.`,
+  ]);
+
+  // Rotation: walk 1→4, pick first available that isn't lastTier
+  const available = [1, 2, 3, 4].filter(t => tiers[t] !== undefined);
+  const lastTier = parseInt(localStorage.getItem('lastInsightTier') || '0');
+  let selected = available.find(t => t !== lastTier) ?? available[0];
+  localStorage.setItem('lastInsightTier', String(selected));
+
+  return tiers[selected];
+}
+
+// ── farewell screen ───────────────────────────────────────────────────────────
+
+function FarewellScreen({ insightData, documentStats }) {
   const [stars, setStars] = useState([]);
   const [mounted, setMounted] = useState(false);
+  const [insightMsg, setInsightMsg] = useState('');
 
   useEffect(() => {
     setStars(generateFarewellStars());
     setMounted(true);
+    setInsightMsg(computeInsightMessage(insightData, documentStats));
   }, []);
 
   return (
@@ -208,50 +285,70 @@ function FarewellScreen() {
       <div
         onClick={() => { window.location.href = '/'; }}
         style={{
-          position:   'fixed',
-          inset:      0,
-          background: '#121210',
-          display:    'flex',
+          position:      'fixed',
+          inset:         0,
+          background:    '#121210',
+          display:       'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor:     'pointer',
-          zIndex:     50,
-          overflow:   'hidden',
+          alignItems:    'center',
+          justifyContent:'center',
+          cursor:        'pointer',
+          zIndex:        50,
+          overflow:      'hidden',
         }}
       >
         {/* Stars — behind everything */}
         {mounted && stars.map(s => (
           <div key={s.id} style={{
-            position:     'absolute',
-            left:         `${s.x}%`,
-            top:          `${s.y}%`,
-            width:        `${s.size}px`,
-            height:       `${s.size}px`,
-            borderRadius: '50%',
-            background:   s.color,
+            position:      'absolute',
+            left:          `${s.x}%`,
+            top:           `${s.y}%`,
+            width:         `${s.size}px`,
+            height:        `${s.size}px`,
+            borderRadius:  '50%',
+            background:    s.color,
             pointerEvents: 'none',
-            zIndex:       0,
-            animation:    `farewellTwinkle ${s.duration}s ${s.delay}s ease-in-out infinite`,
+            zIndex:        0,
+            animation:     `farewellTwinkle ${s.duration}s ${s.delay}s ease-in-out infinite`,
           }} />
         ))}
 
-        {/* Alligator image */}
+        {/* Alligator image — 25% smaller than before */}
         <img
           src="/alligator.png"
           alt=""
           style={{
-            width:     'clamp(240px, 66vw, 480px)',
-            height:    'auto',
-            display:   'block',
-            marginBottom: '24px',
-            position:  'relative',
-            zIndex:    1,
-            animation: 'farewellGatorIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both',
+            width:        'clamp(180px, 49.5vw, 360px)',
+            height:       'auto',
+            display:      'block',
+            marginBottom: '20px',
+            position:     'relative',
+            zIndex:       1,
+            animation:    'farewellGatorIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both',
           }}
         />
 
-        {/* Text */}
+        {/* Insight message */}
+        {insightMsg && (
+          <p
+            style={{
+              color:        'var(--color-foreground)',
+              fontSize:     '15px',
+              fontWeight:   500,
+              textAlign:    'center',
+              lineHeight:   1.5,
+              maxWidth:     '300px',
+              marginBottom: '20px',
+              position:     'relative',
+              zIndex:       1,
+              animation:    'farewellFadeIn 0.5s ease 0.15s both',
+            }}
+          >
+            {insightMsg}
+          </p>
+        )}
+
+        {/* See you lateeeer */}
         <p
           className="font-semibold text-center px-8"
           style={{
@@ -260,10 +357,24 @@ function FarewellScreen() {
             lineHeight: 1.3,
             position:   'relative',
             zIndex:     1,
-            animation:  'farewellFadeIn 0.5s ease 0.2s both',
+            animation:  'farewellFadeIn 0.5s ease 0.3s both',
           }}
         >
           See you lateeeer, alligator
+        </p>
+
+        {/* Tap to close hint */}
+        <p
+          style={{
+            position:  'absolute',
+            bottom:    '28px',
+            fontSize:  '12px',
+            opacity:   0.5,
+            color:     'var(--color-muted)',
+            zIndex:    1,
+          }}
+        >
+          tap anywhere to close
         </p>
       </div>
     </>
@@ -301,6 +412,8 @@ export default function StudyPage() {
   const recentGradesRef = useRef([]);
   const pendingAdvanceRef = useRef(null);
   const msgTimerRef = useRef(null);
+  const insightDataRef = useRef({ recovered: [], intervalGrowthCount: 0, intervalGrowthDocTitle: null, masteryGained: {}, totalAnswered: 0 });
+  const documentStatsRef = useRef({});
 
   // On mount: fetch due count only, then show picker
   useEffect(() => {
@@ -323,13 +436,6 @@ export default function StudyPage() {
     ro.observe(el);
     return () => ro.disconnect();
   }, [phase, revealed]);
-
-  useEffect(() => {
-    if (phase !== 'farewell') return;
-    const timer = setTimeout(() => { window.location.href = '/'; }, 3000);
-    return () => clearTimeout(timer);
-  }, [phase]);
-
 
   async function fetchDueCount() {
     setPhase('loading');
@@ -378,6 +484,8 @@ export default function StudyPage() {
       setIndex(0);
       setRevealed(false);
       setUserAttempt('');
+      insightDataRef.current = { recovered: [], intervalGrowthCount: 0, intervalGrowthDocTitle: null, masteryGained: {}, totalAnswered: 0 };
+      documentStatsRef.current = data.documentStats || {};
       setPhase('studying');
     } catch (err) {
       setErrorMsg(err.message);
@@ -416,6 +524,25 @@ export default function StudyPage() {
 
       setForgotCount(newForgotCount);
       setGradeHistory((prev) => [...prev, { question, grade }]);
+
+      // Accumulate insight data for farewell screen
+      if (grade !== 'skipped') {
+        const d = insightDataRef.current;
+        const prevInterval = question.current_interval_days || 0;
+        const newInterval = data.newIntervalDays || 0;
+        d.totalAnswered++;
+        if (grade === 'easy' && (question.incorrect_count || 0) > 0) {
+          d.recovered.push({ docTitle: question.document_title, docId: question.document_id });
+        }
+        if (newInterval > prevInterval) {
+          d.intervalGrowthCount++;
+          if (!d.intervalGrowthDocTitle) d.intervalGrowthDocTitle = question.document_title;
+        }
+        if (prevInterval < 14 && newInterval >= 14) {
+          const docId = question.document_id;
+          d.masteryGained[docId] = (d.masteryGained[docId] || 0) + 1;
+        }
+      }
 
       // Decide whether to show a motivational message
       const forgotInWindow = newRecentGrades.filter(g => g === 'forgot').length;
@@ -715,7 +842,7 @@ export default function StudyPage() {
   // ── farewell screen ─────────────────────────────────────────────────────────
 
   if (phase === 'farewell') {
-    return <FarewellScreen />;
+    return <FarewellScreen insightData={insightDataRef.current} documentStats={documentStatsRef.current} />;
   }
 
   // ── picker phase ────────────────────────────────────────────────────────────

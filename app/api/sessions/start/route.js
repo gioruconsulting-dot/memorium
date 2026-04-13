@@ -6,6 +6,7 @@ import {
   createStudySession,
   generateId,
   ensureUser,
+  getDocumentStatsForSession,
 } from "@/lib/db/queries";
 
 // Round-robin interleave so consecutive questions come from different documents
@@ -75,6 +76,13 @@ export async function POST(request) {
     const sessionId = generateId("sess");
     await createStudySession({ id: sessionId, userId, questionsShown: selected.length });
 
+    // Fetch document stats for insight computation on the farewell screen
+    const docIds = [...new Set(selected.map(q => q.document_id))];
+    const docStatRows = await getDocumentStatsForSession(userId, docIds);
+    const docStatsMap = Object.fromEntries(
+      docStatRows.map(d => [d.id, { title: d.title, total: Number(d.total), mastered: Number(d.mastered) }])
+    );
+
     const questions = selected.map((q) => ({
       id: q.id,
       question_text: q.question_text,
@@ -82,9 +90,14 @@ export async function POST(request) {
       answer_text: q.answer_text,
       explanation: q.explanation,
       source_reference: q.source_reference,
+      // Fields for end-of-session insight
+      document_id: q.document_id,
+      document_title: docStatsMap[q.document_id]?.title || null,
+      incorrect_count: Number(q.incorrect_count),
+      current_interval_days: Number(q.current_interval_days),
     }));
 
-    return NextResponse.json({ sessionId, questions });
+    return NextResponse.json({ sessionId, questions, documentStats: docStatsMap });
   } catch (error) {
     console.error("[API] sessions/start failed:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -103,10 +103,12 @@ export async function POST(request) {
     }
 
     let nextReviewAt = null;
+    let newIntervalDays = null;
 
     if (grade !== "skipped") {
       const newState = calcNewState(question, grade);
       nextReviewAt = newState.nextReviewAt;
+      newIntervalDays = newState.currentIntervalDays;
       await updateQuestionAfterGrade(questionId, userId, newState);
     }
 
@@ -120,7 +122,7 @@ export async function POST(request) {
       grade,
     });
 
-    return NextResponse.json({ success: true, nextReviewAt });
+    return NextResponse.json({ success: true, nextReviewAt, newIntervalDays });
   } catch (error) {
     console.error("[API] questions/grade failed:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
