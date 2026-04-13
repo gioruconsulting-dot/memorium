@@ -318,7 +318,7 @@ function FarewellScreen({ insightData, documentStats }) {
           src="/alligator.png"
           alt=""
           style={{
-            width:        'clamp(180px, 49.5vw, 360px)',
+            width:        'clamp(240px, 66vw, 480px)',
             height:       'auto',
             display:      'block',
             marginBottom: '20px',
@@ -332,9 +332,9 @@ function FarewellScreen({ insightData, documentStats }) {
         {insightMsg && (
           <p
             style={{
-              color:        'var(--color-foreground)',
-              fontSize:     '15px',
-              fontWeight:   500,
+              color:        '#EEFF99',
+              fontSize:     'clamp(1.1rem, 5vw, 1.35rem)',
+              fontWeight:   600,
               textAlign:    'center',
               lineHeight:   1.5,
               maxWidth:     '300px',
@@ -352,8 +352,8 @@ function FarewellScreen({ insightData, documentStats }) {
         <p
           className="font-semibold text-center px-8"
           style={{
-            color:      '#EEFF99',
-            fontSize:   'clamp(1.95rem, 9vw, 2.55rem)',
+            color:      '#ffffff',
+            fontSize:   'clamp(1.2rem, 5.5vw, 1.55rem)',
             lineHeight: 1.3,
             position:   'relative',
             zIndex:     1,
