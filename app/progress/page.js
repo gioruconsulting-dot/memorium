@@ -111,10 +111,16 @@ function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicC
 
 // ─── Section 2: Interval Trend ─────────────────────────────────────────────────
 
-function IntervalChart({ weeks, currentAvgInterval, startingAvgInterval, longTermCount, hasEnoughData }) {
-  // Display newest week at top
-  const displayWeeks = [...weeks].reverse();
-  const maxInterval  = Math.max(...weeks.map(w => w.avgInterval !== null ? w.avgInterval : 0), 1);
+function IntervalChart({ weeks, currentAvgInterval, startingAvgInterval, hasEnoughData }) {
+  // Trim leading weeks with no data — show from first data point onwards,
+  // keeping empty weeks that fall between data points
+  const firstDataIdx = weeks.findIndex(w => w.avgInterval !== null);
+  const trimmedWeeks = firstDataIdx === -1 ? [] : weeks.slice(firstDataIdx);
+  const displayWeeks = [...trimmedWeeks].reverse(); // newest at top
+
+  // x-axis max = highest bar + 15% headroom
+  const rawMax = Math.max(...weeks.map(w => w.avgInterval !== null ? w.avgInterval : 0), 1);
+  const maxInterval = rawMax * 1.15;
 
   return (
     <div>
@@ -125,29 +131,10 @@ function IntervalChart({ weeks, currentAvgInterval, startingAvgInterval, longTer
             key={week.weekStart}
             style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}
           >
-            {/* Week label */}
-            <span
-              style={{
-                width: 62,
-                fontSize: 11,
-                color: 'var(--color-muted)',
-                flexShrink: 0,
-                textAlign: 'right',
-              }}
-            >
+            <span style={{ width: 62, fontSize: 11, color: 'var(--color-muted)', flexShrink: 0, textAlign: 'right' }}>
               {week.label}
             </span>
-
-            {/* Bar track */}
-            <div
-              style={{
-                flex: 1,
-                height: 8,
-                background: 'rgba(255,255,255,0.07)',
-                borderRadius: 4,
-                overflow: 'hidden',
-              }}
-            >
+            <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,0.07)', borderRadius: 4, overflow: 'hidden' }}>
               {week.avgInterval !== null && (
                 <div
                   style={{
@@ -159,17 +146,7 @@ function IntervalChart({ weeks, currentAvgInterval, startingAvgInterval, longTer
                 />
               )}
             </div>
-
-            {/* Day value */}
-            <span
-              style={{
-                width: 26,
-                fontSize: 10,
-                color: 'var(--color-muted)',
-                flexShrink: 0,
-                textAlign: 'left',
-              }}
-            >
+            <span style={{ width: 26, fontSize: 10, color: 'var(--color-muted)', flexShrink: 0, textAlign: 'left' }}>
               {week.avgInterval !== null ? `${week.avgInterval}d` : ''}
             </span>
           </div>
@@ -177,38 +154,22 @@ function IntervalChart({ weeks, currentAvgInterval, startingAvgInterval, longTer
       </div>
 
       {/* Insight sentence */}
-      <div style={{ marginTop: 20, fontSize: 13, lineHeight: 1.65 }}>
+      <div style={{ marginTop: 20 }}>
         {hasEnoughData ? (
-          <>
-            <p style={{ color: 'var(--color-foreground)' }}>
-              Your questions now stay in memory an average of{' '}
-              <span style={{ color: 'var(--color-easy)', fontWeight: 600 }}>
-                {currentAvgInterval} days
-              </span>
-              {startingAvgInterval !== null && startingAvgInterval !== currentAvgInterval && (
-                <>
-                  {' '}— up from{' '}
-                  <span style={{ fontWeight: 600 }}>{startingAvgInterval} days</span>{' '}
-                  when you started
-                </>
-              )}
-            </p>
-            <p style={{ color: 'var(--color-muted)', marginTop: 6 }}>
-              {longTermCount} question{longTermCount !== 1 ? 's' : ''} on 14+ day intervals
-            </p>
-          </>
+          <p style={{ fontSize: 15, color: '#EEFF99', lineHeight: 1.5 }}>
+            This week your questions stay in your memory for an average of {currentAvgInterval} days
+            {startingAvgInterval !== null && startingAvgInterval !== currentAvgInterval
+              ? `, when you started they stayed ${startingAvgInterval} days`
+              : null}
+          </p>
         ) : (
-          <>
-            <p style={{ color: 'var(--color-muted)' }}>
-              Keep studying — trends appear after 2 weeks
-            </p>
-            {longTermCount > 0 && (
-              <p style={{ color: 'var(--color-muted)', marginTop: 6 }}>
-                {longTermCount} question{longTermCount !== 1 ? 's' : ''} on 14+ day intervals
-              </p>
-            )}
-          </>
+          <p style={{ fontSize: 13, color: 'var(--color-muted)', lineHeight: 1.6 }}>
+            Keep studying — trends appear after 2 weeks
+          </p>
         )}
+        <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 6, lineHeight: 1.5 }}>
+          This graph shows you how long on average it will take you to forget the questions you reviewed each specific week
+        </p>
       </div>
     </div>
   );
@@ -406,7 +367,14 @@ export default function ProgressPage() {
       </Section>
 
       <Section title="Is my memory really improving?">
-        {hasSessions ? <IntervalChart {...intervalTrend} /> : <NoSessions />}
+        {hasSessions ? (
+          <IntervalChart
+            weeks={intervalTrend.weeks}
+            currentAvgInterval={intervalTrend.currentAvgInterval}
+            startingAvgInterval={intervalTrend.startingAvgInterval}
+            hasEnoughData={intervalTrend.hasEnoughData}
+          />
+        ) : <NoSessions />}
       </Section>
 
       <Section title="How consistent have I been?">
