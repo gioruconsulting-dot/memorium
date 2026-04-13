@@ -98,9 +98,11 @@ function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicC
           <span style={{ color: 'var(--color-muted)' }}>|</span>
           {' '}{topicCount} topic{topicCount !== 1 ? 's' : ''}
         </p>
-        <p style={{ fontSize: 15, color: 'var(--color-foreground)', marginTop: 4, lineHeight: 1.5 }}>
-          <span style={{ color: '#5db152', fontWeight: 600 }}>{mastered}</span>
-          {' '}Q now in your Long Term Memory
+        <p style={{ fontSize: 15, color: '#EEFF99', marginTop: 4, lineHeight: 1.5 }}>
+          {mastered} Q now in your long term memory
+        </p>
+        <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 6 }}>
+          each dot represents a question
         </p>
       </div>
     </div>
