@@ -132,7 +132,7 @@ export default async function Home() {
 
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-semibold text-[#EEFF99] mb-1">
-          {firstName ? `Welcome back, ${firstName}! Let's get going!` : "Welcome back! Let's get going!"}
+          {firstName ? `Welcome back, ${firstName}!` : 'Welcome back!'}<br />{"Let's get going!"}
         </h1>
 
         {/* Streak + progress bar */}
