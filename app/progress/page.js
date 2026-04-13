@@ -179,7 +179,8 @@ function IntervalChart({ weeks, currentAvgInterval, startingAvgInterval, hasEnou
 
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-function calCellBg(count) {
+function calCellBg(count, isToday) {
+  if (isToday)       return '#d4a832';
   if (count === 0)   return 'rgba(255,255,255,0.07)';
   if (count <= 5)    return 'rgba(238,255,153,0.45)';
   if (count <= 10)   return 'rgba(93,177,82,0.60)';
@@ -193,8 +194,15 @@ function ActivityCalendar({ days, totalSessions, totalAnswers, daysActive }) {
     weeks.push(days.slice(w * 7, w * 7 + 7));
   }
 
-  // 2-week active recall %: count days with any activity in the last 14 days
-  const last14 = days.slice(-14);
+  // Today's date string for highlighting and % calculation
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  // 2-week active recall %: past 14 days up to and including today (ignore future cells)
+  const todayDate = new Date(todayStr + 'T00:00:00Z');
+  const windowStart = new Date(todayDate);
+  windowStart.setUTCDate(windowStart.getUTCDate() - 13);
+  const windowStartStr = windowStart.toISOString().split('T')[0];
+  const last14 = days.filter(d => d.date >= windowStartStr && d.date <= todayStr);
   const activeDays14 = last14.filter(d => d.count > 0).length;
   const activePercent = Math.round((activeDays14 / 14) * 100);
 
@@ -207,7 +215,7 @@ function ActivityCalendar({ days, totalSessions, totalAnswers, daysActive }) {
           {DAY_LABELS.map((d, i) => (
             <div
               key={i}
-              style={{ textAlign: 'center', fontSize: 12, color: 'var(--color-muted)', fontWeight: 500 }}
+              style={{ textAlign: 'center', fontSize: 17, color: 'var(--color-muted)', fontWeight: 500 }}
             >
               {d}
             </div>
@@ -232,11 +240,12 @@ function ActivityCalendar({ days, totalSessions, totalAnswers, daysActive }) {
             {/* Month label */}
             <div
               style={{
-                fontSize: 11,
+                fontSize: 15,
                 color: 'var(--color-muted)',
                 textAlign: 'right',
-                paddingTop: 3,
-                lineHeight: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
                 fontWeight: 500,
               }}
             >
@@ -249,7 +258,7 @@ function ActivityCalendar({ days, totalSessions, totalAnswers, daysActive }) {
                 <div
                   key={day.date}
                   title={`${day.date}: ${day.count} question${day.count !== 1 ? 's' : ''}`}
-                  style={{ aspectRatio: '1', borderRadius: 2, background: calCellBg(day.count) }}
+                  style={{ aspectRatio: '1', borderRadius: 2, background: calCellBg(day.count, day.date === todayStr) }}
                 />
               ))}
             </div>
@@ -257,18 +266,18 @@ function ActivityCalendar({ days, totalSessions, totalAnswers, daysActive }) {
         );
       })}
 
-      {/* 2-week active % — yellow insight line */}
-      <p style={{ fontSize: 15, color: '#EEFF99', marginTop: 16, lineHeight: 1.5 }}>
-        {activePercent}% of active recall days in the past 2 weeks
-      </p>
-
       {/* Lifetime stats line */}
-      <p style={{ fontSize: 15, color: 'var(--color-foreground)', marginTop: 4, lineHeight: 1.5 }}>
+      <p style={{ fontSize: 15, color: 'var(--color-foreground)', marginTop: 16, lineHeight: 1.5 }}>
         {totalSessions} session{totalSessions !== 1 ? 's' : ''}{' '}
         <span style={{ color: 'var(--color-muted)' }}>|</span>
         {' '}{totalAnswers} answer{totalAnswers !== 1 ? 's' : ''}{' '}
         <span style={{ color: 'var(--color-muted)' }}>|</span>
         {' '}{daysActive} day{daysActive !== 1 ? 's' : ''} active
+      </p>
+
+      {/* 2-week active % — yellow insight line */}
+      <p style={{ fontSize: 15, color: '#EEFF99', marginTop: 4, lineHeight: 1.5 }}>
+        {activePercent}% of active recall days in the past 2 weeks
       </p>
     </div>
   );
