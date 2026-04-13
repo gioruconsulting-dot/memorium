@@ -152,7 +152,7 @@ export default async function Home() {
               <div
                 className="absolute inset-y-0 left-0 rounded-full"
                 style={{
-                  width: `${Math.round(Math.min(progressPct, 1) * 100)}%`,
+                  width: `${Math.round((0.30 + progressPct * 0.70) * 100)}%`,
                   background: 'var(--color-easy)',
                 }}
               />
