@@ -3,6 +3,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { getUserContentCounts, getAllDueQuestions, getUserStreak, getCompletedSessionCount, getUpNextDocumentTitles } from "@/lib/db/queries";
 import OnboardingCard from "@/components/OnboardingCard";
+import StarryBackground from "@/components/StarryBackground";
 
 const LEVELS = [
   { number: 1, min: 0,   max: 0,        emoji: '🐣', label: 'Baby'        },
@@ -70,7 +71,8 @@ export default async function Home() {
 
   if (isNewUser) {
     return (
-      <div className="py-10">
+      <div className="py-10" style={{ position: 'relative', zIndex: 1 }}>
+        <StarryBackground />
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-semibold text-[#EEFF99] mb-2">
             Welcome! Let your epic learning journey begin.
@@ -127,7 +129,8 @@ export default async function Home() {
   }
 
   return (
-    <div className="py-10">
+    <div className="py-10" style={{ position: 'relative', zIndex: 1 }}>
+      <StarryBackground />
       {completedSessions === 0 && <OnboardingCard completedSessions={completedSessions} />}
 
       <div className="mb-8 text-center">
