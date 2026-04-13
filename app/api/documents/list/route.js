@@ -18,6 +18,7 @@ export async function GET() {
       question_count: d.question_count,
       created_at: d.created_at,
       adopted: d.document_owner_id !== userId,
+      is_public: Number(d.is_public) === 1,
       mastered: Number(d.mastered),
       progressing: Number(d.progressing),
       new_count: Number(d.new_count),

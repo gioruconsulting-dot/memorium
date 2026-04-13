@@ -147,6 +147,7 @@ export default function LibraryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deleting, setDeleting] = useState(null);
+  const [togglingShare, setTogglingShare] = useState(null); // documentId being toggled
   const [sortIdx, setSortIdx] = useState(0);
 
   const sortMode = SORT_OPTIONS[sortIdx].key;
@@ -191,6 +192,27 @@ export default function LibraryPage() {
       setError(err.message);
     } finally {
       setDeleting(null);
+    }
+  }
+
+  async function handleToggleShare(doc) {
+    const nextPublic = !doc.is_public;
+    setTogglingShare(doc.id);
+    try {
+      const res = await fetch('/api/documents/set-public', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documentId: doc.id, isPublic: nextPublic }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update sharing');
+      setDocuments((prev) =>
+        prev.map((d) => d.id === doc.id ? { ...d, is_public: nextPublic } : d)
+      );
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setTogglingShare(null);
     }
   }
 
@@ -330,14 +352,37 @@ export default function LibraryPage() {
                 <EffortMeter totalReps={doc.total_reps} total={doc.total} />
               </div>
 
-              <button
-                onClick={() => handleDelete(doc)}
-                disabled={deleting === doc.id}
-                className="shrink-0 text-sm font-medium px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-40"
-                style={{ color: 'var(--color-forgot)' }}
-              >
-                {deleting === doc.id ? 'Removing…' : doc.adopted ? 'Remove' : 'Delete'}
-              </button>
+              {doc.adopted ? (
+                <button
+                  onClick={() => handleDelete(doc)}
+                  disabled={deleting === doc.id}
+                  className="shrink-0 text-sm font-medium px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-40"
+                  style={{ color: 'var(--color-forgot)' }}
+                >
+                  {deleting === doc.id ? 'Removing…' : 'Remove'}
+                </button>
+              ) : (
+                <div className="shrink-0 flex flex-col items-end gap-1.5">
+                  <button
+                    onClick={() => handleToggleShare(doc)}
+                    disabled={togglingShare === doc.id}
+                    className="text-sm font-medium px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-40"
+                    style={{ color: 'var(--color-muted)' }}
+                  >
+                    {togglingShare === doc.id
+                      ? '…'
+                      : doc.is_public ? "Don't Share" : 'Share'}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(doc)}
+                    disabled={deleting === doc.id}
+                    className="text-sm font-medium px-3 py-1.5 rounded-lg transition-opacity disabled:opacity-40"
+                    style={{ color: 'var(--color-forgot)' }}
+                  >
+                    {deleting === doc.id ? 'Removing…' : 'Delete'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}
