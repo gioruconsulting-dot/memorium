@@ -19,14 +19,23 @@ export async function GET() {
   }
 
   try {
-    const { knowledge, intervalRows, activityDays, lifetimeStats } = await getProgressPageData(userId);
+    const { knowledge, themesRows, intervalRows, activityDays, lifetimeStats } = await getProgressPageData(userId);
 
     // ── Knowledge map ─────────────────────────────────────────────────────────
+    const allThemes = new Set();
+    for (const row of themesRows) {
+      if (row.themes) {
+        row.themes.split(/[,\n;]+/).map(t => t.trim().toLowerCase()).filter(Boolean).forEach(t => allThemes.add(t));
+      }
+    }
+
     const knowledgeMap = {
-      mastered:   Number(knowledge.mastered),
+      mastered:    Number(knowledge.mastered),
       progressing: Number(knowledge.progressing),
-      new:        Number(knowledge.new_count),
-      total:      Number(knowledge.total),
+      new:         Number(knowledge.new_count),
+      total:       Number(knowledge.total),
+      docCount:    Number(knowledge.doc_count),
+      topicCount:  allThemes.size,
     };
 
     // ── Interval trend ────────────────────────────────────────────────────────

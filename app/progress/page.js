@@ -39,7 +39,7 @@ function NoSessions() {
 
 // ─── Section 1: Knowledge Map ──────────────────────────────────────────────────
 
-function KnowledgeMap({ mastered, progressing, newCount, total }) {
+function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicCount }) {
   const MAX_DOTS = 400;
   let dMastered, dProgressing, dNew, displayTotal;
 
@@ -63,8 +63,8 @@ function KnowledgeMap({ mastered, progressing, newCount, total }) {
 
   // Roughly square grid; cap at 20 columns
   const cols = Math.min(20, Math.max(3, Math.ceil(Math.sqrt(displayTotal))));
-  // Cap dot size at 18px; for large grids let them shrink to fill width
-  const maxGridPx = Math.min(340, cols * 18 + (cols - 1) * 3);
+  // Dot size cap 22px (+22%), gap 4px — overall square ~20% bigger than before
+  const maxGridPx = Math.min(500, cols * 22 + (cols - 1) * 4);
 
   const dotBg = {
     m: '#5db152',
@@ -79,7 +79,7 @@ function KnowledgeMap({ mastered, progressing, newCount, total }) {
           style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${cols}, 1fr)`,
-            gap: 3,
+            gap: 4,
           }}
         >
           {dots.map((type, i) => (
@@ -90,9 +90,19 @@ function KnowledgeMap({ mastered, progressing, newCount, total }) {
           ))}
         </div>
       </div>
-      <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 14 }}>
-        {mastered} of {total} in long-term memory
-      </p>
+      <div style={{ marginTop: 16 }}>
+        <p style={{ fontSize: 15, color: 'var(--color-foreground)', lineHeight: 1.5 }}>
+          {total} Q generated{' '}
+          <span style={{ color: 'var(--color-muted)' }}>|</span>
+          {' '}{docCount} document{docCount !== 1 ? 's' : ''}{' '}
+          <span style={{ color: 'var(--color-muted)' }}>|</span>
+          {' '}{topicCount} topic{topicCount !== 1 ? 's' : ''}
+        </p>
+        <p style={{ fontSize: 15, color: 'var(--color-foreground)', marginTop: 4, lineHeight: 1.5 }}>
+          <span style={{ color: '#5db152', fontWeight: 600 }}>{mastered}</span>
+          {' '}Q now in your Long Term Memory
+        </p>
+      </div>
     </div>
   );
 }
@@ -388,6 +398,8 @@ export default function ProgressPage() {
           progressing={knowledgeMap.progressing}
           newCount={knowledgeMap.new}
           total={knowledgeMap.total}
+          docCount={knowledgeMap.docCount}
+          topicCount={knowledgeMap.topicCount}
         />
       </Section>
 
