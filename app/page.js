@@ -118,12 +118,12 @@ export default async function Home() {
     : (currentStreak - level.min) / (nextLevel.min - level.min);
   const daysToLevelUp = isMaxLevel ? 0 : nextLevel.min - currentStreak;
 
-  // "Up next" line
-  let upNextLine = null;
+  // "Up next" line — suffix only (the label is rendered separately in bold/white)
+  let upNextSuffix = null;
   if (upNextTitles.length === 1) {
-    upNextLine = `Up next: ${upNextTitles[0]}, keep going`;
+    upNextSuffix = `${upNextTitles[0]}, keep going`;
   } else if (upNextTitles.length >= 2) {
-    upNextLine = `Up next: recap questions from ${upNextTitles[0]} and ${upNextTitles[1]}, ready to remember?`;
+    upNextSuffix = `recap questions from ${upNextTitles[0]} and ${upNextTitles[1]}, ready to remember?`;
   }
 
   return (
@@ -157,7 +157,7 @@ export default async function Home() {
                 }}
               />
             </div>
-            <span className="text-xs" style={{ color: 'var(--color-muted)' }}>
+            <span className="text-sm font-semibold" style={{ color: 'var(--color-foreground)' }}>
               {isMaxLevel ? 'Best Streak EVER' : `Level up in ${daysToLevelUp} day${daysToLevelUp !== 1 ? 's' : ''}`}
             </span>
           </div>
@@ -171,9 +171,10 @@ export default async function Home() {
         </div>
 
         {/* Up next */}
-        {upNextLine && (
+        {upNextSuffix && (
           <p className="mt-5 text-sm italic" style={{ color: 'var(--color-muted)' }}>
-            {upNextLine}
+            <span className="font-bold not-italic" style={{ color: 'var(--color-foreground)' }}>Up next:</span>
+            {' '}{upNextSuffix}
           </p>
         )}
       </div>
