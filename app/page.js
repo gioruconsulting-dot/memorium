@@ -131,7 +131,7 @@ export default async function Home() {
       {completedSessions === 0 && <OnboardingCard completedSessions={completedSessions} />}
 
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-semibold text-[#EEFF99] mb-1">
+        <h1 className="font-semibold text-[#EEFF99] mb-1" style={{ fontSize: '1.65rem' }}>
           {firstName ? `Welcome back, ${firstName}!` : 'Welcome back!'}<br />{"Let's get going!"}
         </h1>
 
