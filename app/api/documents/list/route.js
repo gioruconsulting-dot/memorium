@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { getAllDocuments, getAdoptedDocuments } from "@/lib/db/queries";
+import { getDocumentLibraryStats } from "@/lib/db/queries";
 
 export async function GET() {
   const { userId } = await auth();
@@ -9,15 +9,22 @@ export async function GET() {
   }
 
   try {
-    const [uploaded, adopted] = await Promise.all([
-      getAllDocuments(userId),
-      getAdoptedDocuments(userId),
-    ]);
+    const rows = await getDocumentLibraryStats(userId);
 
-    const documents = [
-      ...uploaded.map((d) => ({ ...d, adopted: false })),
-      ...adopted.map((d) => ({ ...d, adopted: true })),
-    ].sort((a, b) => Number(b.created_at) - Number(a.created_at));
+    const documents = rows.map((d) => ({
+      id: d.id,
+      title: d.title,
+      themes: d.themes,
+      question_count: d.question_count,
+      created_at: d.created_at,
+      adopted: d.document_owner_id !== userId,
+      mastered: Number(d.mastered),
+      progressing: Number(d.progressing),
+      new_count: Number(d.new_count),
+      total: Number(d.total),
+      total_reps: Number(d.total_reps),
+      last_studied_at: d.last_studied_at ? Number(d.last_studied_at) : null,
+    }));
 
     return NextResponse.json({ documents });
   } catch (error) {
