@@ -136,7 +136,7 @@ export default async function Home() {
         </h1>
 
         {/* Streak + progress bar */}
-        <div className="mt-4">
+        <div className="mt-7">
           <p className="text-lg font-semibold" style={{ color: 'var(--color-foreground)' }}>
             🔥 <span style={{ color: 'var(--color-accent)' }}>{currentStreak}</span> day streak
             {' · '}
@@ -172,7 +172,7 @@ export default async function Home() {
 
         {/* Up next */}
         {upNextSuffix && (
-          <p className="mt-5 text-sm italic" style={{ color: 'var(--color-muted)' }}>
+          <p className="mt-8 mb-3 text-sm italic" style={{ color: 'var(--color-muted)' }}>
             <span className="font-bold not-italic" style={{ color: 'var(--color-foreground)' }}>Up next:</span>
             {' '}{upNextSuffix}
           </p>
