@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
-import { getUserContentCounts, getAllDueQuestions, getUserStreak, getCompletedSessionCount } from "@/lib/db/queries";
+import { getUserContentCounts, getAllDueQuestions, getUserStreak, getCompletedSessionCount, getUpNextDocumentTitles } from "@/lib/db/queries";
 import OnboardingCard from "@/components/OnboardingCard";
 
 const LEVELS = [
@@ -104,13 +104,27 @@ export default async function Home() {
     );
   }
 
-  const [dueQuestions, completedSessions] = await Promise.all([
+  const [dueQuestions, completedSessions, upNextTitles] = await Promise.all([
     getAllDueQuestions(userId),
     getCompletedSessionCount(userId),
+    getUpNextDocumentTitles(userId),
   ]);
   const dueCount = dueQuestions.length;
   const level = getLevel(currentStreak);
-  const recordLevel = getLevel(maxStreak);
+  const nextLevel = LEVELS[level.number]; // undefined at max level (Immortal)
+  const isMaxLevel = !nextLevel;
+  const progressPct = isMaxLevel
+    ? 1
+    : (currentStreak - level.min) / (nextLevel.min - level.min);
+  const daysToLevelUp = isMaxLevel ? 0 : nextLevel.min - currentStreak;
+
+  // "Up next" line
+  let upNextLine = null;
+  if (upNextTitles.length === 1) {
+    upNextLine = `Up next: ${upNextTitles[0]}, keep going`;
+  } else if (upNextTitles.length >= 2) {
+    upNextLine = `Up next: recap questions from ${upNextTitles[0]} and ${upNextTitles[1]}, ready to remember?`;
+  }
 
   return (
     <div className="py-10">
@@ -118,25 +132,50 @@ export default async function Home() {
 
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-semibold text-[#EEFF99] mb-1">
-          {firstName ? `Welcome back, ${firstName}.` : 'Welcome back!'}
+          {firstName ? `Welcome back, ${firstName}! Let's get going!` : "Welcome back! Let's get going!"}
         </h1>
 
-        {/* Streak + level */}
-        <div className="mt-4 mb-1">
-          <div className="text-[2.5rem] font-bold leading-none" style={{ color: '#EEFF99' }}>
-            {level.emoji} {currentStreak > 0 ? `Level ${level.number}` : ''}
-          </div>
-          <p className="mt-[6px] text-base font-semibold" style={{ color: '#e8e6e1' }}>
-            {currentStreak > 0
-              ? `${level.label} · ${currentStreak} day streak`
-              : `${level.label} · Start your streak today`}
+        {/* Streak + progress bar */}
+        <div className="mt-4">
+          <p className="text-lg font-semibold" style={{ color: 'var(--color-foreground)' }}>
+            🔥 <span style={{ color: 'var(--color-accent)' }}>{currentStreak}</span> day streak
+            {' · '}
+            {level.label} Level
           </p>
+
+          {/* Bar row */}
+          <div className="flex items-center justify-center gap-3 mt-2">
+            <div
+              className="relative h-2 rounded-full"
+              style={{ width: '160px', background: 'var(--color-border)' }}
+            >
+              <div
+                className="absolute inset-y-0 left-0 rounded-full"
+                style={{
+                  width: `${Math.round(Math.min(progressPct, 1) * 100)}%`,
+                  background: 'var(--color-easy)',
+                }}
+              />
+            </div>
+            <span className="text-xs" style={{ color: 'var(--color-muted)' }}>
+              {isMaxLevel ? 'Best Streak EVER' : `Level up in ${daysToLevelUp} day${daysToLevelUp !== 1 ? 's' : ''}`}
+            </span>
+          </div>
+
+          {/* Best streak */}
           {maxStreak > 0 && (
-            <p className="mt-[3px] text-sm" style={{ color: '#4ADE80' }}>
-              Record Streak: {maxStreak} day{maxStreak !== 1 ? 's' : ''} · {recordLevel.label}
+            <p className="mt-1.5 text-xs" style={{ color: 'var(--color-muted)' }}>
+              Best: {maxStreak} day{maxStreak !== 1 ? 's' : ''}
             </p>
           )}
         </div>
+
+        {/* Up next */}
+        {upNextLine && (
+          <p className="mt-5 text-sm italic" style={{ color: 'var(--color-muted)' }}>
+            {upNextLine}
+          </p>
+        )}
       </div>
 
       <div className="space-y-3">
