@@ -187,22 +187,27 @@ function calCellBg(count) {
 }
 
 function ActivityCalendar({ days, totalSessions, totalAnswers, daysActive }) {
-  // Split 63 days into 9 weeks of 7 (calStart is always a Monday)
+  // Split 49 days into 7 weeks of 7 (calStart is always a Monday)
   const weeks = [];
-  for (let w = 0; w < 9; w++) {
+  for (let w = 0; w < 7; w++) {
     weeks.push(days.slice(w * 7, w * 7 + 7));
   }
+
+  // 2-week active recall %: count days with any activity in the last 14 days
+  const last14 = days.slice(-14);
+  const activeDays14 = last14.filter(d => d.count > 0).length;
+  const activePercent = Math.round((activeDays14 / 14) * 100);
 
   return (
     <div>
       {/* Day-of-week column headers */}
-      <div style={{ display: 'grid', gridTemplateColumns: '26px 1fr', gap: 4, marginBottom: 4 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '34px 1fr', gap: 4, marginBottom: 5 }}>
         <div />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
           {DAY_LABELS.map((d, i) => (
             <div
               key={i}
-              style={{ textAlign: 'center', fontSize: 9, color: 'var(--color-muted)' }}
+              style={{ textAlign: 'center', fontSize: 12, color: 'var(--color-muted)', fontWeight: 500 }}
             >
               {d}
             </div>
@@ -222,16 +227,17 @@ function ActivityCalendar({ days, totalSessions, totalAnswers, daysActive }) {
         return (
           <div
             key={wi}
-            style={{ display: 'grid', gridTemplateColumns: '26px 1fr', gap: 4, marginBottom: 3 }}
+            style={{ display: 'grid', gridTemplateColumns: '34px 1fr', gap: 4, marginBottom: 3 }}
           >
-            {/* Month label (shows only when month changes) */}
+            {/* Month label */}
             <div
               style={{
-                fontSize: 8,
+                fontSize: 11,
                 color: 'var(--color-muted)',
                 textAlign: 'right',
                 paddingTop: 3,
                 lineHeight: 1,
+                fontWeight: 500,
               }}
             >
               {monthLabel}
@@ -243,11 +249,7 @@ function ActivityCalendar({ days, totalSessions, totalAnswers, daysActive }) {
                 <div
                   key={day.date}
                   title={`${day.date}: ${day.count} question${day.count !== 1 ? 's' : ''}`}
-                  style={{
-                    aspectRatio: '1',
-                    borderRadius: 2,
-                    background: calCellBg(day.count),
-                  }}
+                  style={{ aspectRatio: '1', borderRadius: 2, background: calCellBg(day.count) }}
                 />
               ))}
             </div>
@@ -255,13 +257,18 @@ function ActivityCalendar({ days, totalSessions, totalAnswers, daysActive }) {
         );
       })}
 
-      {/* Lifetime summary line */}
-      <p style={{ fontSize: 12, color: 'var(--color-muted)', marginTop: 14 }}>
-        {totalSessions} session{totalSessions !== 1 ? 's' : ''}
-        {' · '}
-        {totalAnswers} answer{totalAnswers !== 1 ? 's' : ''}
-        {' · '}
-        {daysActive} day{daysActive !== 1 ? 's' : ''} active
+      {/* 2-week active % — yellow insight line */}
+      <p style={{ fontSize: 15, color: '#EEFF99', marginTop: 16, lineHeight: 1.5 }}>
+        {activePercent}% of active recall days in the past 2 weeks
+      </p>
+
+      {/* Lifetime stats line */}
+      <p style={{ fontSize: 15, color: 'var(--color-foreground)', marginTop: 4, lineHeight: 1.5 }}>
+        {totalSessions} session{totalSessions !== 1 ? 's' : ''}{' '}
+        <span style={{ color: 'var(--color-muted)' }}>|</span>
+        {' '}{totalAnswers} answer{totalAnswers !== 1 ? 's' : ''}{' '}
+        <span style={{ color: 'var(--color-muted)' }}>|</span>
+        {' '}{daysActive} day{daysActive !== 1 ? 's' : ''} active
       </p>
     </div>
   );

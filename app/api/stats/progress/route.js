@@ -100,7 +100,7 @@ export async function GET() {
 
     // ── Activity calendar (63 days = 9 weeks) ─────────────────────────────────
     const calStart = new Date(thisMonday);
-    calStart.setUTCDate(calStart.getUTCDate() - 8 * 7); // Monday 8 weeks ago
+    calStart.setUTCDate(calStart.getUTCDate() - 6 * 7); // Monday 6 weeks ago (7 weeks total)
 
     const dayMap = {};
     for (const row of activityDays) {
@@ -108,7 +108,7 @@ export async function GET() {
     }
 
     const calDays = [];
-    for (let i = 0; i < 63; i++) {
+    for (let i = 0; i < 49; i++) {
       const d = new Date(calStart);
       d.setUTCDate(d.getUTCDate() + i);
       const dateStr = d.toISOString().split('T')[0];
