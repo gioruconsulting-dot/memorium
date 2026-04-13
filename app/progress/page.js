@@ -7,25 +7,24 @@ import Link from 'next/link';
 
 function Section({ title, children, first }) {
   return (
-    <div
-      style={{
-        marginTop:  first ? 0 : 44,
-        paddingTop: first ? 0 : 36,
-        borderTop:  first ? 'none' : '1px solid var(--color-border)',
-      }}
-    >
-      <h2
-        style={{
-          fontSize: '1rem',
-          fontWeight: 600,
-          color: 'var(--color-accent)',
-          marginBottom: 20,
-          letterSpacing: '-0.01em',
-        }}
+    <div style={{ marginTop: first ? 0 : 16 }}>
+      <div
+        className="rounded-2xl p-5"
+        style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
       >
-        {title}
-      </h2>
-      {children}
+        <h2
+          style={{
+            fontSize: '1rem',
+            fontWeight: 700,
+            color: 'var(--color-foreground)',
+            marginBottom: 20,
+            letterSpacing: '-0.01em',
+          }}
+        >
+          {title}
+        </h2>
+        {children}
+      </div>
     </div>
   );
 }
@@ -383,7 +382,7 @@ export default function ProgressPage() {
     <div className="py-8">
       <h1 className="text-2xl font-semibold text-center text-[#EEFF99] mb-8">Progress</h1>
 
-      <Section title="How much do I know?" first>
+      <Section title="How much more do I know now?" first>
         <KnowledgeMap
           mastered={knowledgeMap.mastered}
           progressing={knowledgeMap.progressing}
@@ -392,11 +391,11 @@ export default function ProgressPage() {
         />
       </Section>
 
-      <Section title="Is my memory improving?">
+      <Section title="Is my memory really improving?">
         {hasSessions ? <IntervalChart {...intervalTrend} /> : <NoSessions />}
       </Section>
 
-      <Section title="How consistent am I?">
+      <Section title="How consistent have I been?">
         {hasSessions ? <ActivityCalendar {...activityCalendar} /> : <NoSessions />}
       </Section>
     </div>
