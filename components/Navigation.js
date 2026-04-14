@@ -33,11 +33,12 @@ export default function Navigation() {
             <Link
               key={href}
               href={href}
-              className="flex-1 flex flex-col items-center justify-center gap-0.5"
+              className="flex-1 flex flex-col items-center justify-center"
               style={{
-                minHeight: '64px',
+                minHeight: '72px',
+                paddingBlock: '12px',
+                gap: '5px',
                 color: active ? 'var(--color-accent)' : 'var(--color-muted)',
-                paddingBlock: '8px',
               }}
             >
               <img
@@ -47,11 +48,17 @@ export default function Navigation() {
                 height={40}
                 style={{
                   mixBlendMode: 'lighten',
-                  opacity: active ? 1 : 0.45,
-                  filter: active ? 'none' : 'grayscale(40%)',
+                  objectFit: 'contain',
+                  opacity: active ? 1 : 0.4,
+                  filter: active ? 'none' : 'grayscale(50%)',
+                  display: 'block',
+                  border: 'none',
+                  outline: 'none',
+                  boxShadow: 'none',
+                  background: 'transparent',
                 }}
               />
-              <span className="text-xs font-medium">{label}</span>
+              <span style={{ fontSize: '11px', fontWeight: 500 }}>{label}</span>
             </Link>
           );
         })}
