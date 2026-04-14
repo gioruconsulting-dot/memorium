@@ -68,8 +68,12 @@ function dotTypeAtPos(i, dMastered, dProgressing) {
 }
 
 function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicCount }) {
+  // Read previous state once at first render (before useLayoutEffect saves new state)
+  // so we can compute the mastered delta for the insight line
+  const [prevData] = useState(() => lsGet('repetita-progress-dots'));
+
   // animState: null = render final state immediately (no animation)
-  // { initColors: string[], delays: {[i]: ms}, animating: bool }
+  // { initColors: string[], delays: {[i]: ms}, transitionMs: number, animating: bool }
   const [animState, setAnimState] = useState(null);
 
   useLayoutEffect(() => {
@@ -105,10 +109,23 @@ function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicC
       return;
     }
 
-    // Compute stagger delays once (with organic jitter) — spread over max 1.5s
+    // Sort: dots becoming green (m) first, then yellow (p), then dark (n)
+    // This ensures "improving" signals (mastered, then progressing) animate in the right order
+    const typeOrder = { m: 0, p: 1, n: 2 };
+    changing.sort((a, b) =>
+      typeOrder[dotTypeAtPos(a, newD.dMastered, newD.dProgressing)] -
+      typeOrder[dotTypeAtPos(b, newD.dMastered, newD.dProgressing)]
+    );
+
+    // Always 2.5s total: fewer dots → slower individual transitions, more dots → faster
+    // transitionMs: how long each dot's color transition takes
+    // staggerSpread: time from first dot starting to last dot starting
+    // total = staggerSpread + transitionMs = 2500ms
     const N = changing.length;
-    const maxTotalDelay = Math.min(1500, N * 150);
-    const perDot = N > 1 ? maxTotalDelay / (N - 1) : 0;
+    const transitionMs = N === 1 ? 2500 : Math.max(400, Math.min(2000, Math.round(2500 / N)));
+    const staggerSpread = N === 1 ? 0 : 2500 - transitionMs;
+    const perDot = N > 1 ? staggerSpread / (N - 1) : 0;
+
     const delays = {};
     changing.forEach((pos, idx) => {
       const jitter = perDot > 0 ? (Math.random() - 0.5) * 0.3 * perDot : 0;
@@ -116,21 +133,26 @@ function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicC
     });
 
     // eslint-disable-next-line -- intentional: set old-color state before first paint (useLayoutEffect)
-    setAnimState({ initColors, delays, animating: false });
+    setAnimState({ initColors, delays, transitionMs, animating: false });
 
-    // After page settles, start the color transitions
+    // Start animation after 600ms (page settle)
     const t1 = setTimeout(
       () => setAnimState(s => s ? { ...s, animating: true } : s),
-      300
+      600
     );
     // Save new state after animation completes
     const t2 = setTimeout(
       () => lsSet('repetita-progress-dots', { ...current, timestamp: Date.now() }),
-      300 + maxTotalDelay + 1000
+      600 + staggerSpread + transitionMs
     );
 
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // How many more questions are in long-term memory vs previous visit
+  const masteredDelta = prevData && mastered > (prevData.mastered || 0)
+    ? mastered - (prevData.mastered || 0)
+    : null;
 
   const newD = computeDisplayCounts(mastered, progressing, newCount);
   const { dMastered, dProgressing, displayTotal } = newD;
@@ -152,15 +174,17 @@ function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicC
             const finalType = dotTypeAtPos(i, dMastered, dProgressing);
             const isChanging = animState !== null && animState.delays[i] !== undefined;
             const delay = isChanging ? animState.delays[i] : 0;
+            const tMs = animState?.transitionMs ?? 800;
+            const tSec = (tMs / 1000).toFixed(2);
 
             // Determine which color to render at this moment
             let bgType;
             if (!animState) {
-              bgType = finalType;                      // no animation — use final
+              bgType = finalType;                   // no animation — use final
             } else if (!animState.animating) {
-              bgType = animState.initColors[i];        // pre-animation — use old color
+              bgType = animState.initColors[i];     // pre-animation — show old color
             } else {
-              bgType = finalType;                      // animating — CSS transition to final
+              bgType = finalType;                   // animating — CSS transition to final
             }
 
             const style = {
@@ -170,9 +194,9 @@ function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicC
             };
 
             if (isChanging) {
-              style.transition = `background-color 0.8s ease-in-out ${delay}ms`;
+              style.transition = `background-color ${tSec}s ease-in-out ${delay}ms`;
               if (animState.animating) {
-                style.animation = `dotPop 0.8s ease-in-out ${delay}ms both`;
+                style.animation = `dotPop ${tSec}s ease-in-out ${delay}ms both`;
               }
             }
 
@@ -190,6 +214,7 @@ function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicC
         </p>
         <p style={{ fontSize: 15, color: '#EEFF99', marginTop: 4, lineHeight: 1.5 }}>
           {mastered} Q now in your long term memory
+          {masteredDelta ? ` (+${masteredDelta} compared to the previous study session!)` : null}
         </p>
         <p style={{ fontSize: 13, color: 'var(--color-muted)', marginTop: 6 }}>
           each dot represents a question
