@@ -35,22 +35,22 @@ export default function Navigation() {
               href={href}
               className="flex-1 flex flex-col items-center justify-center"
               style={{
-                minHeight: '72px',
-                paddingBlock: '12px',
-                gap: '5px',
+                minHeight: '50px',
+                paddingBlock: '8px',
+                gap: '2px',
                 color: active ? 'var(--color-accent)' : 'var(--color-muted)',
               }}
             >
               <img
                 src={icon}
                 alt={label}
-                width={40}
-                height={40}
+                width={52}
+                height={52}
                 style={{
                   mixBlendMode: 'lighten',
                   objectFit: 'contain',
                   opacity: active ? 1 : 0.4,
-                  filter: active ? 'none' : 'grayscale(50%)',
+                  filter: active ? 'brightness(3)' : 'grayscale(50%) brightness(3)',
                   display: 'block',
                   border: 'none',
                   outline: 'none',
@@ -58,7 +58,7 @@ export default function Navigation() {
                   background: 'transparent',
                 }}
               />
-              <span style={{ fontSize: '11px', fontWeight: 500 }}>{label}</span>
+              <span style={{ fontSize: '13px', fontWeight: 500 }}>{label}</span>
             </Link>
           );
         })}
