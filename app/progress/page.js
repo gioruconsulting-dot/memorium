@@ -1,9 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
 
-// ─── Layout helpers ────────────────────────────────────────────────────────────
+// ─── localStorage helpers ─────────────────────────────────────────────────────
+
+function lsGet(key) {
+  try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+}
+function lsSet(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+}
+
+// ─── Layout helpers ───────────────────────────────────────────────────────────
 
 function Section({ title, children, first }) {
   return (
@@ -37,43 +46,100 @@ function NoSessions() {
   );
 }
 
-// ─── Section 1: Knowledge Map ──────────────────────────────────────────────────
+// ─── Section 1: Knowledge Map ─────────────────────────────────────────────────
+
+const MAX_DOTS = 400;
+const DOT_BG = { m: '#5db152', p: '#d4a832', n: 'rgba(255,255,255,0.1)' };
+
+function computeDisplayCounts(mastered, progressing, newCount) {
+  const total = mastered + progressing + newCount;
+  if (total <= MAX_DOTS) {
+    return { dMastered: mastered, dProgressing: progressing, dNew: newCount, displayTotal: total };
+  }
+  const dMastered = Math.round(mastered * MAX_DOTS / total);
+  const dProgressing = Math.round(progressing * MAX_DOTS / total);
+  return { dMastered, dProgressing, dNew: MAX_DOTS - dMastered - dProgressing, displayTotal: MAX_DOTS };
+}
+
+function dotTypeAtPos(i, dMastered, dProgressing) {
+  if (i < dMastered) return 'm';
+  if (i < dMastered + dProgressing) return 'p';
+  return 'n';
+}
 
 function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicCount }) {
-  const MAX_DOTS = 400;
-  let dMastered, dProgressing, dNew, displayTotal;
+  // animState: null = render final state immediately (no animation)
+  // { initColors: string[], delays: {[i]: ms}, animating: bool }
+  const [animState, setAnimState] = useState(null);
 
-  if (total <= MAX_DOTS) {
-    dMastered   = mastered;
-    dProgressing = progressing;
-    dNew         = newCount;
-    displayTotal = total;
-  } else {
-    displayTotal = MAX_DOTS;
-    dMastered    = Math.round(mastered    * MAX_DOTS / total);
-    dProgressing = Math.round(progressing * MAX_DOTS / total);
-    dNew         = MAX_DOTS - dMastered - dProgressing;
-  }
+  useLayoutEffect(() => {
+    const prev = lsGet('repetita-progress-dots');
+    const current = { mastered, progressing, new: newCount };
 
-  const dots = [
-    ...Array(dMastered).fill('m'),
-    ...Array(dProgressing).fill('p'),
-    ...Array(Math.max(0, dNew)).fill('n'),
-  ];
+    if (
+      !prev ||
+      (prev.mastered === mastered && prev.progressing === progressing && prev.new === newCount)
+    ) {
+      lsSet('repetita-progress-dots', { ...current, timestamp: Date.now() });
+      return;
+    }
 
-  // Roughly square grid; cap at 20 columns
+    const oldD = computeDisplayCounts(prev.mastered || 0, prev.progressing || 0, prev.new || 0);
+    const newD = computeDisplayCounts(mastered, progressing, newCount);
+
+    // Initial colors per position based on OLD layout
+    const initColors = Array.from({ length: newD.displayTotal }, (_, i) =>
+      dotTypeAtPos(i, oldD.dMastered, oldD.dProgressing)
+    );
+
+    // Find which positions change type
+    const changing = [];
+    for (let i = 0; i < newD.displayTotal; i++) {
+      if (initColors[i] !== dotTypeAtPos(i, newD.dMastered, newD.dProgressing)) {
+        changing.push(i);
+      }
+    }
+
+    if (changing.length === 0) {
+      lsSet('repetita-progress-dots', { ...current, timestamp: Date.now() });
+      return;
+    }
+
+    // Compute stagger delays once (with organic jitter) — spread over max 1.5s
+    const N = changing.length;
+    const maxTotalDelay = Math.min(1500, N * 150);
+    const perDot = N > 1 ? maxTotalDelay / (N - 1) : 0;
+    const delays = {};
+    changing.forEach((pos, idx) => {
+      const jitter = perDot > 0 ? (Math.random() - 0.5) * 0.3 * perDot : 0;
+      delays[pos] = Math.max(0, Math.round(idx * perDot + jitter));
+    });
+
+    // eslint-disable-next-line -- intentional: set old-color state before first paint (useLayoutEffect)
+    setAnimState({ initColors, delays, animating: false });
+
+    // After page settles, start the color transitions
+    const t1 = setTimeout(
+      () => setAnimState(s => s ? { ...s, animating: true } : s),
+      300
+    );
+    // Save new state after animation completes
+    const t2 = setTimeout(
+      () => lsSet('repetita-progress-dots', { ...current, timestamp: Date.now() }),
+      300 + maxTotalDelay + 1000
+    );
+
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const newD = computeDisplayCounts(mastered, progressing, newCount);
+  const { dMastered, dProgressing, displayTotal } = newD;
   const cols = Math.min(20, Math.max(3, Math.ceil(Math.sqrt(displayTotal))));
-  // Dot size cap 22px (+22%), gap 4px — overall square ~20% bigger than before
   const maxGridPx = Math.min(500, cols * 22 + (cols - 1) * 4);
-
-  const dotBg = {
-    m: '#5db152',
-    p: '#d4a832',
-    n: 'rgba(255,255,255,0.1)',
-  };
 
   return (
     <div>
+      <style>{`@keyframes dotPop{0%{transform:scale(1)}30%{transform:scale(1.3)}100%{transform:scale(1)}}`}</style>
       <div style={{ maxWidth: maxGridPx }}>
         <div
           style={{
@@ -82,12 +148,36 @@ function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicC
             gap: 4,
           }}
         >
-          {dots.map((type, i) => (
-            <div
-              key={i}
-              style={{ aspectRatio: '1', borderRadius: '50%', background: dotBg[type] }}
-            />
-          ))}
+          {Array.from({ length: displayTotal }, (_, i) => {
+            const finalType = dotTypeAtPos(i, dMastered, dProgressing);
+            const isChanging = animState !== null && animState.delays[i] !== undefined;
+            const delay = isChanging ? animState.delays[i] : 0;
+
+            // Determine which color to render at this moment
+            let bgType;
+            if (!animState) {
+              bgType = finalType;                      // no animation — use final
+            } else if (!animState.animating) {
+              bgType = animState.initColors[i];        // pre-animation — use old color
+            } else {
+              bgType = finalType;                      // animating — CSS transition to final
+            }
+
+            const style = {
+              aspectRatio: '1',
+              borderRadius: '50%',
+              background: DOT_BG[bgType],
+            };
+
+            if (isChanging) {
+              style.transition = `background-color 0.8s ease-in-out ${delay}ms`;
+              if (animState.animating) {
+                style.animation = `dotPop 0.8s ease-in-out ${delay}ms both`;
+              }
+            }
+
+            return <div key={i} style={style} />;
+          })}
         </div>
       </div>
       <div style={{ marginTop: 16 }}>
@@ -109,11 +199,30 @@ function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicC
   );
 }
 
-// ─── Section 2: Interval Trend ─────────────────────────────────────────────────
+// ─── Section 2: Interval Trend ────────────────────────────────────────────────
 
 function IntervalChart({ weeks, currentAvgInterval, startingAvgInterval, hasEnoughData }) {
-  // Trim leading weeks with no data — show from first data point onwards,
-  // keeping empty weeks that fall between data points
+  const containerRef = useRef(null);
+  // barReady: false = top bar at 0%, true = top bar at target width
+  const [barReady, setBarReady] = useState(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setBarReady(true);
+          observer.disconnect(); // Fire once per mount — scrolling away and back shows final state
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Trim leading weeks with no data
   const firstDataIdx = weeks.findIndex(w => w.avgInterval !== null);
   const trimmedWeeks = firstDataIdx === -1 ? [] : weeks.slice(firstDataIdx);
   const displayWeeks = [...trimmedWeeks].reverse(); // newest at top
@@ -123,34 +232,44 @@ function IntervalChart({ weeks, currentAvgInterval, startingAvgInterval, hasEnou
   const maxInterval = rawMax * 1.15;
 
   return (
-    <div>
+    <div ref={containerRef}>
       {/* Bar rows */}
       <div>
-        {displayWeeks.map((week) => (
-          <div
-            key={week.weekStart}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}
-          >
-            <span style={{ width: 62, fontSize: 11, color: 'var(--color-muted)', flexShrink: 0, textAlign: 'right' }}>
-              {week.label}
-            </span>
-            <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,0.07)', borderRadius: 4, overflow: 'hidden' }}>
-              {week.avgInterval !== null && (
-                <div
-                  style={{
-                    width: `${Math.round((week.avgInterval / maxInterval) * 100)}%`,
-                    height: '100%',
-                    background: 'var(--color-easy)',
-                    borderRadius: 4,
-                  }}
-                />
-              )}
+        {displayWeeks.map((week, idx) => {
+          const targetPct = week.avgInterval !== null
+            ? Math.round((week.avgInterval / maxInterval) * 100)
+            : 0;
+          // Only the top bar (current week) animates; all others render at full width immediately
+          const isCurrentWeek = idx === 0;
+          const barWidth = (isCurrentWeek && !barReady) ? '0%' : `${targetPct}%`;
+
+          return (
+            <div
+              key={week.weekStart}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}
+            >
+              <span style={{ width: 62, fontSize: 11, color: 'var(--color-muted)', flexShrink: 0, textAlign: 'right' }}>
+                {week.label}
+              </span>
+              <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,0.07)', borderRadius: 4, overflow: 'hidden' }}>
+                {week.avgInterval !== null && (
+                  <div
+                    style={{
+                      width: barWidth,
+                      height: '100%',
+                      background: 'var(--color-easy)',
+                      borderRadius: 4,
+                      transition: isCurrentWeek ? 'width 1s ease-out' : 'none',
+                    }}
+                  />
+                )}
+              </div>
+              <span style={{ width: 26, fontSize: 10, color: 'var(--color-muted)', flexShrink: 0, textAlign: 'left' }}>
+                {week.avgInterval !== null ? `${week.avgInterval}d` : ''}
+              </span>
             </div>
-            <span style={{ width: 26, fontSize: 10, color: 'var(--color-muted)', flexShrink: 0, textAlign: 'left' }}>
-              {week.avgInterval !== null ? `${week.avgInterval}d` : ''}
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Insight sentence */}
@@ -175,7 +294,7 @@ function IntervalChart({ weeks, currentAvgInterval, startingAvgInterval, hasEnou
   );
 }
 
-// ─── Section 3: Activity Calendar ──────────────────────────────────────────────
+// ─── Section 3: Activity Calendar ─────────────────────────────────────────────
 
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
@@ -188,14 +307,61 @@ function calCellBg(count, isToday) {
 }
 
 function ActivityCalendar({ days, totalSessions, totalAnswers, daysActive }) {
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  // calState: null = render everything in final colors immediately (no animation)
+  // { newActiveDays: Set<string>, delays: {[date]: ms}, revealing: bool }
+  const [calState, setCalState] = useState(null);
+
+  useLayoutEffect(() => {
+    const prev = lsGet('repetita-progress-calendar');
+
+    if (!prev || prev.lastVisitDate === todayStr) {
+      lsSet('repetita-progress-calendar', { lastVisitDate: todayStr });
+      return;
+    }
+
+    const lastVisit = prev.lastVisitDate;
+    // Days after last visit with activity, sorted chronologically
+    const newActive = days
+      .filter(d => d.date > lastVisit && d.date <= todayStr && d.count > 0)
+      .map(d => d.date)
+      .sort();
+
+    if (newActive.length === 0) {
+      lsSet('repetita-progress-calendar', { lastVisitDate: todayStr });
+      return;
+    }
+
+    // Compute per-day reveal delays — cap total animation at 2s
+    const N = newActive.length;
+    const maxDelay = N > 1 ? Math.min((N - 1) * 700, 2000) : 0;
+    const interval = N > 1 ? maxDelay / (N - 1) : 0;
+    const delays = {};
+    newActive.forEach((date, i) => { delays[date] = Math.round(i * interval); });
+
+    // eslint-disable-next-line -- intentional: set pre-reveal state before first paint (useLayoutEffect)
+    setCalState({ newActiveDays: new Set(newActive), delays, revealing: false });
+
+    // After page settles, start revealing new days one by one
+    const t1 = setTimeout(
+      () => setCalState(s => s ? { ...s, revealing: true } : s),
+      300
+    );
+    // Save new visit date after last day has transitioned
+    const t2 = setTimeout(
+      () => lsSet('repetita-progress-calendar', { lastVisitDate: todayStr }),
+      300 + maxDelay + 400
+    );
+
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Split 49 days into 7 weeks of 7 (calStart is always a Monday)
   const weeks = [];
   for (let w = 0; w < 7; w++) {
     weeks.push(days.slice(w * 7, w * 7 + 7));
   }
-
-  // Today's date string for highlighting and % calculation
-  const todayStr = new Date().toISOString().split('T')[0];
 
   // 2-week active recall %: past 14 days up to and including today (ignore future cells)
   const todayDate = new Date(todayStr + 'T00:00:00Z');
@@ -254,13 +420,41 @@ function ActivityCalendar({ days, totalSessions, totalAnswers, daysActive }) {
 
             {/* 7 day cells */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3 }}>
-              {week.map((day) => (
-                <div
-                  key={day.date}
-                  title={`${day.date}: ${day.count} question${day.count !== 1 ? 's' : ''}`}
-                  style={{ aspectRatio: '1', borderRadius: 2, background: calCellBg(day.count, day.date === todayStr) }}
-                />
-              ))}
+              {week.map((day) => {
+                const isToday = day.date === todayStr;
+                const isNewActive = calState !== null && calState.newActiveDays.has(day.date);
+
+                let bg;
+                let transition = 'none';
+
+                if (isNewActive) {
+                  const delay = calState.delays[day.date] ?? 0;
+                  if (!calState.revealing) {
+                    // Snap to dark immediately — no transition (avoids backwards animation)
+                    bg = 'rgba(255,255,255,0.07)';
+                    transition = 'none';
+                  } else {
+                    // Transition from dark to final color, staggered by delay
+                    bg = calCellBg(day.count, isToday);
+                    transition = `background-color 0.4s ease-in-out ${delay}ms`;
+                  }
+                } else {
+                  bg = calCellBg(day.count, isToday);
+                }
+
+                return (
+                  <div
+                    key={day.date}
+                    title={`${day.date}: ${day.count} question${day.count !== 1 ? 's' : ''}`}
+                    style={{
+                      aspectRatio: '1',
+                      borderRadius: 2,
+                      background: bg,
+                      transition,
+                    }}
+                  />
+                );
+              })}
             </div>
           </div>
         );
