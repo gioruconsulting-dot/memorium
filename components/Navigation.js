@@ -5,10 +5,10 @@ import { usePathname } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
 
 const LINKS = [
-  { href: '/',         emoji: '🏠', label: 'Home' },
-  { href: '/study',    emoji: '📖', label: 'Study' },
-  { href: '/progress', emoji: '📊', label: 'Progress' },
-  { href: '/library',  emoji: '📚', label: 'Library' },
+  { href: '/',         icon: '/icons/icon-home.png',          label: 'Home' },
+  { href: '/study',    icon: '/icons/icon-study-book.png',    label: 'Study' },
+  { href: '/progress', icon: '/icons/icon-progress-chart.png', label: 'Progress' },
+  { href: '/library',  icon: '/icons/icon-library-books.png', label: 'Library' },
 ];
 
 export default function Navigation() {
@@ -27,7 +27,7 @@ export default function Navigation() {
           borderTop: '1px solid var(--color-border)',
         }}
       >
-        {LINKS.map(({ href, emoji, label }) => {
+        {LINKS.map(({ href, icon, label }) => {
           const active = pathname === href;
           return (
             <Link
@@ -35,11 +35,22 @@ export default function Navigation() {
               href={href}
               className="flex-1 flex flex-col items-center justify-center gap-0.5"
               style={{
-                minHeight: '56px',
+                minHeight: '64px',
                 color: active ? 'var(--color-accent)' : 'var(--color-muted)',
+                paddingBlock: '8px',
               }}
             >
-              <span className="text-xl leading-none font-medium">{emoji}</span>
+              <img
+                src={icon}
+                alt={label}
+                width={40}
+                height={40}
+                style={{
+                  mixBlendMode: 'lighten',
+                  opacity: active ? 1 : 0.45,
+                  filter: active ? 'none' : 'grayscale(40%)',
+                }}
+              />
               <span className="text-xs font-medium">{label}</span>
             </Link>
           );
@@ -59,7 +70,7 @@ export default function Navigation() {
         }}
       >
         <span className="font-semibold mr-2 text-[#EEFF99]">Repetita</span>
-        {LINKS.map(({ href, emoji, label }) => {
+        {LINKS.map(({ href, icon, label }) => {
           const active = pathname === href;
           return (
             <Link
@@ -68,7 +79,17 @@ export default function Navigation() {
               className="flex items-center gap-1.5 text-sm font-medium"
               style={{ color: active ? 'var(--color-accent)' : 'var(--color-muted)' }}
             >
-              <span>{emoji}</span>
+              <img
+                src={icon}
+                alt={label}
+                width={20}
+                height={20}
+                style={{
+                  mixBlendMode: 'lighten',
+                  opacity: active ? 1 : 0.45,
+                  filter: active ? 'none' : 'grayscale(40%)',
+                }}
+              />
               <span>{label}</span>
             </Link>
           );
