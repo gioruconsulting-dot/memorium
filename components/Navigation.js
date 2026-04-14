@@ -35,9 +35,9 @@ export default function Navigation() {
               href={href}
               className="flex-1 flex flex-col items-center justify-center"
               style={{
-                minHeight: '50px',
-                paddingBlock: '8px',
-                gap: '2px',
+                minHeight: '36px',
+                paddingBlock: '4px',
+                gap: '0px',
                 color: active ? 'var(--color-accent)' : 'var(--color-muted)',
               }}
             >
@@ -58,7 +58,7 @@ export default function Navigation() {
                   background: 'transparent',
                 }}
               />
-              <span style={{ fontSize: '13px', fontWeight: 500 }}>{label}</span>
+              <span style={{ fontSize: '13px', fontWeight: 500, lineHeight: 1 }}>{label}</span>
             </Link>
           );
         })}
