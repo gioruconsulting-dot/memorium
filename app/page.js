@@ -37,7 +37,7 @@ export default async function Home() {
   // ── New user (no content yet) ──────────────────────────────────────────────
   if (isNewUser) {
     return (
-      <div style={{ position: 'relative', zIndex: 1, padding: '24px 16px 16px' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '24px 0 16px' }}>
         <StarryBackground />
         <div style={{ marginBottom: '24px' }}>
           <p style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--color-muted)', marginBottom: '6px' }}>
@@ -103,7 +103,7 @@ export default async function Home() {
   }
 
   return (
-    <div style={{ position: 'relative', zIndex: 1, padding: '24px 16px 8px' }}>
+    <div style={{ position: 'relative', zIndex: 1, padding: '24px 0 8px' }}>
       <StarryBackground />
 
       {/* Onboarding for users who have content but haven't studied yet */}
