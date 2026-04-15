@@ -220,7 +220,7 @@ function ReturningUserCard() {
   return (
     <div
       style={{
-        border: '1px solid rgba(138, 136, 128, 0.5)',
+        border: '1px solid #1e1e2a',
         borderRadius: '14px',
         overflow: 'hidden',
         background: '#0e0e18',
