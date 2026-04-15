@@ -21,44 +21,9 @@ function getLevel(streak) {
   return LEVELS.findLast(l => streak >= l.min) || LEVELS[0];
 }
 
-function Card({ href, emoji, title, description, highlight, emojiColor, compact, glow }) {
-  return (
-    <Link
-      href={href}
-      className={`block px-6 rounded-2xl transition-colors hover:bg-violet-500/10 ${compact ? 'py-[0.792rem]' : 'py-[1.215rem]'}`}
-      style={{
-        background: glow ? 'color-mix(in srgb, #7c3aed 8%, var(--color-surface))' : 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
-        ...(glow && { borderLeftColor: '#7c3aed', borderLeftWidth: '4px' }),
-      }}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xl leading-none" style={emojiColor ? { color: emojiColor } : undefined}>{emoji}</span>
-            <span className="font-semibold text-base">{title}</span>
-          </div>
-          {highlight && (
-            <p className="text-sm font-medium mb-0.5" style={{ color: '#a78bfa' }}>
-              {highlight}
-            </p>
-          )}
-          <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
-            {description}
-          </p>
-        </div>
-        <span className="shrink-0 mt-0.5" style={{ color: 'var(--color-muted)' }}>→</span>
-      </div>
-    </Link>
-  );
-}
-
 export default async function Home() {
   const { userId } = await auth();
-
-  if (!userId) {
-    redirect("/sign-in");
-  }
+  if (!userId) redirect("/sign-in");
 
   const [user, { documentCount, questionCount }, { currentStreak, maxStreak }] = await Promise.all([
     currentUser(),
@@ -69,153 +34,236 @@ export default async function Home() {
   const isNewUser = documentCount === 0 && questionCount === 0;
   const firstName = user?.firstName || null;
 
+  // ── New user (no content yet) ──────────────────────────────────────────────
   if (isNewUser) {
     return (
-      <div className="py-10" style={{ position: 'relative', zIndex: 1 }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '24px 16px 16px' }}>
         <StarryBackground />
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-[#EEFF99] mb-2">
-            Welcome! Let your epic learning journey begin.
+        <div style={{ marginBottom: '24px' }}>
+          <p style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--color-muted)', marginBottom: '6px' }}>
+            HOME
+          </p>
+          <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.15, marginBottom: '4px' }}>
+            {firstName ? `Welcome, ${firstName}` : 'Welcome!'}
           </h1>
-          <p className="text-lg font-medium text-white">
-            Head to your Library to browse shared content or upload your own.
+          <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)' }}>
+            Let your epic learning journey begin.
           </p>
         </div>
-
-        <div className="space-y-3">
-          <Link
-            href="/library"
-            className="block px-6 py-[0.792rem] rounded-2xl transition-colors hover:bg-violet-500/10"
-            style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
-          >
-            <div className="flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-xl leading-none font-bold" style={{ color: '#EEFF99' }}>+</span>
-                  <span className="font-semibold text-base">Add content</span>
-                </div>
-                <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
-                  add your own content or browse others
-                </p>
-              </div>
-              <span className="shrink-0" style={{ color: 'var(--color-muted)' }}>→</span>
+        <OnboardingCard completedSessions={0} />
+        <Link
+          href="/library"
+          style={{
+            display: 'block',
+            textDecoration: 'none',
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '14px',
+            padding: '12px 16px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-foreground)', marginBottom: '2px' }}>
+                <span style={{ color: '#EEFF99', marginRight: '6px' }}>+</span>Add content
+              </p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--color-muted)' }}>
+                add your own content or browse others
+              </p>
             </div>
-          </Link>
-        </div>
+            <span style={{ color: 'var(--color-muted)' }}>→</span>
+          </div>
+        </Link>
       </div>
     );
   }
 
+  // ── Returning user ─────────────────────────────────────────────────────────
   const [dueQuestions, completedSessions, upNextTitles] = await Promise.all([
     getAllDueQuestions(userId),
     getCompletedSessionCount(userId),
     getUpNextDocumentTitles(userId),
   ]);
+
   const dueCount = dueQuestions.length;
   const level = getLevel(currentStreak);
-  const nextLevel = LEVELS[level.number]; // undefined at max level (Immortal)
+  const nextLevel = LEVELS[level.number];
   const isMaxLevel = !nextLevel;
   const progressPct = isMaxLevel
     ? 1
     : (currentStreak - level.min) / (nextLevel.min - level.min);
   const daysToLevelUp = isMaxLevel ? 0 : nextLevel.min - currentStreak;
 
-  // "Up next" line — suffix only (the label is rendered separately in bold/white)
-  let upNextSuffix = null;
+  // Hero card description — italic doc titles
+  let heroDescription = null;
   if (upNextTitles.length === 1) {
-    upNextSuffix = `${upNextTitles[0]}, keep going`;
+    heroDescription = <><em>{upNextTitles[0]}</em>, keep going.</>;
   } else if (upNextTitles.length >= 2) {
-    upNextSuffix = `recap questions from ${upNextTitles[0]} and ${upNextTitles[1]}, ready to remember?`;
+    heroDescription = <>Recap questions from <em>{upNextTitles[0]}</em> and <em>{upNextTitles[1]}</em>.</>;
   }
 
   return (
-    <div className="py-10" style={{ position: 'relative', zIndex: 1 }}>
+    <div style={{ position: 'relative', zIndex: 1, padding: '24px 16px 8px' }}>
       <StarryBackground />
-      {completedSessions === 0 && <OnboardingCard completedSessions={completedSessions} />}
 
-      <div className="mb-8 text-center">
-        <h1 className="font-semibold text-[#EEFF99] mb-1" style={{ fontSize: '1.65rem' }}>
-          {firstName ? `Welcome back, ${firstName}` : 'Welcome back'}<br />{"Let's get going!"}
+      {/* Onboarding for users who have content but haven't studied yet */}
+      {completedSessions === 0 && <OnboardingCard completedSessions={0} />}
+
+      {/* ── GREETING ─────────────────────────────────────────────────────── */}
+      <div style={{ marginBottom: '16px' }}>
+        <p style={{
+          fontSize: '0.65rem',
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.12em',
+          color: 'var(--color-muted)',
+          marginBottom: '4px',
+        }}>
+          Home
+        </p>
+        <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.15, marginBottom: '4px' }}>
+          {firstName ? `Welcome back, ${firstName}` : 'Welcome back'}
         </h1>
-
-        {/* Streak + progress bar */}
-        <div className="mt-7">
-          <p className="text-lg font-semibold" style={{ color: 'var(--color-foreground)' }}>
-            🔥 <span style={{ color: 'var(--color-accent)' }}>{currentStreak}</span> day streak
-            {' · '}
-            {level.label} Level
-          </p>
-
-          {/* Bar row */}
-          <div className="flex items-center justify-center gap-3 mt-2">
-            <div
-              className="relative h-2 rounded-full"
-              style={{ width: '160px', background: 'var(--color-border)' }}
-            >
-              <div
-                className="absolute inset-y-0 left-0 rounded-full"
-                style={{
-                  width: `${Math.round((0.30 + progressPct * 0.70) * 100)}%`,
-                  background: 'var(--color-easy)',
-                }}
-              />
-            </div>
-            <span className="text-sm font-semibold" style={{ color: 'var(--color-foreground)' }}>
-              {isMaxLevel ? 'Best Streak EVER' : `Level up in ${daysToLevelUp} day${daysToLevelUp !== 1 ? 's' : ''}`}
-            </span>
-          </div>
-
-          {/* Best streak */}
-          {maxStreak > 0 && (
-            <p className="mt-1.5 text-xs" style={{ color: 'var(--color-muted)' }}>
-              Best: {maxStreak} day{maxStreak !== 1 ? 's' : ''}
-            </p>
-          )}
-        </div>
-
-        {/* Up next */}
-        {upNextSuffix && (
-          <p className="mt-8 mb-3 text-sm italic" style={{ color: 'var(--color-muted)' }}>
-            <span className="font-bold not-italic" style={{ color: 'var(--color-foreground)' }}>Up next:</span>
-            {' '}{upNextSuffix}
-          </p>
-        )}
+        <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)' }}>
+          Ready for today's run?
+        </p>
       </div>
 
-      <div className="space-y-3">
+      {/* ── STREAK CARD ──────────────────────────────────────────────────── */}
+      <div style={{
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        borderRadius: '14px',
+        padding: '14px 16px',
+        marginBottom: '10px',
+      }}>
+        {/* Row 1: streak label + level pill */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+          <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-foreground)' }}>
+            🔥 <span style={{ color: 'var(--color-accent)' }}>{currentStreak}</span> day streak
+          </span>
+          <span style={{
+            fontSize: '0.7rem',
+            fontWeight: 500,
+            color: 'var(--color-muted)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '999px',
+            padding: '2px 10px',
+          }}>
+            {level.emoji} {level.label} Lv.
+          </span>
+        </div>
+        {/* Progress bar */}
+        <div style={{ height: '6px', borderRadius: '999px', background: 'var(--color-border)', marginBottom: '8px' }}>
+          <div style={{
+            height: '100%',
+            borderRadius: '999px',
+            background: '#4ADE80',
+            width: `${Math.round((0.30 + progressPct * 0.70) * 100)}%`,
+          }} />
+        </div>
+        {/* Row 2: best + level up */}
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--color-muted)' }}>
+            {maxStreak > 0 ? `Best: ${maxStreak} day${maxStreak !== 1 ? 's' : ''}` : ''}
+          </span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--color-muted)' }}>
+            {isMaxLevel ? 'Best Streak EVER 🏆' : `Level up in ${daysToLevelUp} day${daysToLevelUp !== 1 ? 's' : ''}`}
+          </span>
+        </div>
+      </div>
+
+      {/* ── HERO CARD — START STUDYING ───────────────────────────────────── */}
+      <Link href="/study" style={{ display: 'block', textDecoration: 'none', marginBottom: '10px' }}>
+        <div style={{
+          background: 'color-mix(in srgb, #7c3aed 6%, var(--color-surface))',
+          border: '1px solid rgba(124, 58, 237, 0.35)',
+          borderRadius: '18px',
+          padding: '16px',
+        }}>
+          {/* UP NEXT overline + due pill */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+            <span style={{
+              fontSize: '0.65rem',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              color: 'var(--color-muted)',
+            }}>
+              Up Next
+            </span>
+            {dueCount > 0 && (
+              <span style={{
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                color: '#a78bfa',
+                background: 'rgba(124, 58, 237, 0.18)',
+                borderRadius: '999px',
+                padding: '2px 10px',
+              }}>
+                {dueCount} due
+              </span>
+            )}
+          </div>
+          {/* Title */}
+          <h2 style={{ fontSize: '1.65rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.2, marginBottom: '6px' }}>
+            Start Studying
+          </h2>
+          {/* Description */}
+          <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)', marginBottom: '14px', lineHeight: 1.5 }}>
+            {heroDescription || (dueCount > 0
+              ? `${dueCount} question${dueCount !== 1 ? 's' : ''} ready for review`
+              : "You're all caught up!")}
+          </p>
+          {/* Bottom row: label + circle arrow */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>
+              Keep memorising what you want
+            </span>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: '#7c3aed',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </Link>
+
+      {/* ── TERTIARY CARDS ───────────────────────────────────────────────── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {completedSessions > 0 && <OnboardingCard completedSessions={completedSessions} />}
-        <Card
-          href="/study"
-          emoji="📖"
-          title="Start Studying"
-          highlight={
-            dueCount > 0
-              ? `${dueCount} question${dueCount !== 1 ? 's' : ''} due — come on!`
-              : "You're all caught up!"
-          }
-          description="Keep memorising what you want"
-          glow
-        />
-        <Link
-          href="/library"
-          className="block px-6 py-[0.792rem] rounded-2xl transition-colors hover:bg-violet-500/10"
-          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
-        >
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-xl leading-none font-bold" style={{ color: '#EEFF99' }}>+</span>
-                <span className="font-semibold text-base">Add content</span>
-              </div>
-              <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
-                add your own content or browse others
+        <Link href="/library" style={{ display: 'block', textDecoration: 'none' }}>
+          <div style={{
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '14px',
+            padding: '12px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
+            <div>
+              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-foreground)', marginBottom: '2px' }}>
+                <span style={{ color: '#EEFF99', marginRight: '6px' }}>+</span>Add content
+              </p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--color-muted)' }}>
+                Add your own content or browse others
               </p>
             </div>
-            <span className="shrink-0" style={{ color: 'var(--color-muted)' }}>→</span>
+            <span style={{ color: 'var(--color-muted)' }}>→</span>
           </div>
         </Link>
       </div>
-
     </div>
   );
 }

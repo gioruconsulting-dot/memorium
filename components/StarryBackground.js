@@ -9,7 +9,7 @@ const PALETTE = [
 ];
 
 function generateStars() {
-  return Array.from({ length: 45 }, (_, id) => ({
+  return Array.from({ length: 60 }, (_, id) => ({
     id,
     x:        Math.random() * 100,
     y:        Math.random() * 100,

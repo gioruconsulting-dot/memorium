@@ -221,7 +221,7 @@ function ReturningUserCard() {
     <div
       style={{
         border: '1px solid var(--color-border)',
-        borderRadius: '1rem',
+        borderRadius: '14px',
         overflow: 'hidden',
         background: 'var(--color-surface)',
       }}
@@ -234,7 +234,7 @@ function ReturningUserCard() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0.675rem 1.25rem',
+          padding: '0.75rem 1rem',
           background: 'transparent',
           border: 'none',
           cursor: 'pointer',
@@ -242,9 +242,14 @@ function ReturningUserCard() {
           textAlign: 'left',
         }}
       >
-        <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>
-          Why am I doing this again?
-        </span>
+        <div>
+          <span style={{ fontSize: '0.875rem', fontWeight: 600, display: 'block' }}>
+            Why am I doing this again?
+          </span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--color-muted)' }}>
+            Quick reminder of your goal
+          </span>
+        </div>
         <svg
           width="16"
           height="16"
