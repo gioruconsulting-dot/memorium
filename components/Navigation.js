@@ -4,49 +4,73 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UserButton } from '@clerk/nextjs';
 
-// ── Inline SVG icons ────────────────────────────────────────────────────────
+// ── Shared icon constants ────────────────────────────────────────────────────
 
+const ICON_PROPS = {
+  width: 24,
+  height: 24,
+  viewBox: '0 0 32 32',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 2,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+};
+
+// ── Icon components ──────────────────────────────────────────────────────────
+
+// Home — pentagon outline + interior diamond marker.
+// The diamond replaces the generic door and reads as a precision
+// base-marker / headquarters rather than a childish house.
 function HomeIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3,14 L16,3 L29,14 L29,28 L3,28 Z" />
-      <path d="M13,28 L13,21 L19,21 L19,28" />
+    <svg {...ICON_PROPS}>
+      <path d="M3,13 L16,3 L29,13 L29,27 L3,27 Z" />
+      <path d="M16,15 L20,19 L16,23 L12,19 Z" />
     </svg>
   );
 }
 
+// Study — two offset stacked cards (deck).
+// Evokes an active study session / flashcard deck.
+// Clearly distinct from Library's static horizontal slabs.
 function StudyIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16,7 C11,6 5,8 4,11 L4,25 C5,22 11,20 16,22" />
-      <path d="M16,7 C21,6 27,8 28,11 L28,25 C27,22 21,20 16,22" />
-      <line x1="16" y1="7" x2="16" y2="22" />
+    <svg {...ICON_PROPS}>
+      <rect x="7"  y="4"  width="19" height="15" rx="2" />
+      <rect x="4"  y="9"  width="19" height="15" rx="2" />
     </svg>
   );
 }
 
+// Progress — diagonal ascending line with three ring nodes.
+// Reads as a progression path / upgrade arc rather than a corporate
+// bar chart. Elegant and distinctive.
 function ProgressIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2"  y="18" width="7" height="10" rx="1" />
-      <rect x="12" y="11" width="7" height="17" rx="1" />
-      <rect x="22" y="4"  width="7" height="24" rx="1" />
+    <svg {...ICON_PROPS}>
+      <line x1="5" y1="26" x2="27" y2="6" />
+      <circle cx="5"  cy="26" r="2.5" />
+      <circle cx="16" cy="16" r="2.5" />
+      <circle cx="27" cy="6"  r="2.5" />
     </svg>
   );
 }
 
+// Library — three horizontal slabs widening toward the bottom.
+// The perspective taper suggests stacked archive modules / volumes.
+// Calm and stable — clearly not Study.
 function LibraryIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3"  y="9"  width="7" height="16" rx="1" />
-      <rect x="12" y="5"  width="7" height="20" rx="1" />
-      <rect x="21" y="12" width="7" height="13" rx="1" />
-      <line x1="1" y1="26" x2="31" y2="26" />
+    <svg {...ICON_PROPS}>
+      <rect x="6" y="5"  width="20" height="5" rx="1" />
+      <rect x="4" y="13" width="24" height="5" rx="1" />
+      <rect x="2" y="21" width="28" height="5" rx="1" />
     </svg>
   );
 }
 
-// ── Nav links ───────────────────────────────────────────────────────────────
+// ── Nav data ─────────────────────────────────────────────────────────────────
 
 const LINKS = [
   { href: '/',         Icon: HomeIcon,     label: 'Home'     },
@@ -58,7 +82,7 @@ const LINKS = [
 const ACTIVE_COLOR   = 'rgba(238, 255, 153, 0.75)';
 const INACTIVE_COLOR = 'var(--color-muted)';
 
-// ── Component ───────────────────────────────────────────────────────────────
+// ── Component ────────────────────────────────────────────────────────────────
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -87,7 +111,10 @@ export default function Navigation() {
               className="flex-1 flex flex-col items-center justify-center"
               style={{ gap: '3px', color, transition: 'color 0.2s ease' }}
             >
-              <div style={{ filter: active ? 'drop-shadow(0 0 4px rgba(238, 255, 153, 0.3))' : 'none', transition: 'filter 0.2s ease' }}>
+              <div style={{
+                filter: active ? 'drop-shadow(0 0 3px rgba(238, 255, 153, 0.25))' : 'none',
+                transition: 'filter 0.2s ease',
+              }}>
                 <Icon />
               </div>
               <span style={{ fontSize: '11px', fontWeight: active ? 500 : 400, lineHeight: 1 }}>
