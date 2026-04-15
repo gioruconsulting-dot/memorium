@@ -110,23 +110,20 @@ export default async function Home() {
       {completedSessions === 0 && <OnboardingCard completedSessions={0} />}
 
       {/* ── GREETING ─────────────────────────────────────────────────────── */}
-      <div style={{ marginBottom: '16px' }}>
+      <div style={{ marginBottom: '16px', paddingLeft: '16px' }}>
         <p style={{
-          fontSize: '0.65rem',
+          fontSize: '0.75rem',
           fontWeight: 600,
           textTransform: 'uppercase',
           letterSpacing: '0.12em',
-          color: 'var(--color-muted)',
+          color: 'rgba(238, 255, 153, 0.8)',
           marginBottom: '4px',
         }}>
           Home
         </p>
-        <h1 style={{ fontSize: '1.9rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.1, marginBottom: '2px' }}>
+        <h1 style={{ fontSize: '1.9rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.1 }}>
           {firstName ? `Welcome back, ${firstName}` : 'Welcome back'}
         </h1>
-        <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)' }}>
-          Ready for today's run?
-        </p>
       </div>
 
       {/* ── STREAK CARD ──────────────────────────────────────────────────── */}
@@ -138,6 +135,10 @@ export default async function Home() {
         marginBottom: '20px',
         boxShadow: '0 0 16px rgba(124, 58, 237, 0.22), 0 0 32px rgba(124, 58, 237, 0.08)',
       }}>
+        {/* Ready line */}
+        <p style={{ fontSize: '1.09rem', color: 'var(--color-muted)', marginBottom: '10px' }}>
+          Ready for today's run?
+        </p>
         {/* Row 1: streak label + level pill */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
           <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-foreground)' }}>
