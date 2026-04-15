@@ -144,7 +144,7 @@ export default async function Home() {
             🔥 <span style={{ color: 'rgba(238, 255, 153, 0.8)' }}>{currentStreak}</span> day streak
           </span>
           <span style={{
-            fontSize: '0.7rem',
+            fontSize: '0.77rem',
             fontWeight: 500,
             color: 'var(--color-muted)',
             border: '1px solid var(--color-border)',
@@ -196,9 +196,9 @@ export default async function Home() {
             </span>
             {dueCount > 0 && (
               <span style={{
-                fontSize: '0.65rem',
+                fontSize: '0.715rem',
                 fontWeight: 500,
-                color: 'rgba(167, 139, 250, 0.7)',
+                color: 'var(--color-muted)',
                 background: 'rgba(124, 58, 237, 0.12)',
                 borderRadius: '999px',
                 padding: '2px 8px',
