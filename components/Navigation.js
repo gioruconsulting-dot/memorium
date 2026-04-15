@@ -97,8 +97,8 @@ export default function Navigation() {
         style={{
           background: '#0d0d0c',
           borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-          paddingTop: '8px',
-          paddingBottom: '8px',
+          paddingTop: '10px',
+          paddingBottom: '10px',
         }}
       >
         {LINKS.map(({ href, Icon, label }) => {
