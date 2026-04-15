@@ -140,7 +140,7 @@ export default async function Home() {
         {/* Row 1: streak label + level pill */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
           <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-foreground)' }}>
-            🔥 <span style={{ color: 'var(--color-accent)' }}>{currentStreak}</span> day streak
+            🔥 <span style={{ color: 'rgba(238, 255, 153, 0.8)' }}>{currentStreak}</span> day streak
           </span>
           <span style={{
             fontSize: '0.7rem',
