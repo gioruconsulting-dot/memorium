@@ -220,10 +220,11 @@ function ReturningUserCard() {
   return (
     <div
       style={{
-        border: '1px solid var(--color-border)',
+        border: '1px solid rgba(124, 58, 237, 0.18)',
         borderRadius: '14px',
         overflow: 'hidden',
-        background: 'var(--color-surface)',
+        background: '#0e0e18',
+        boxShadow: '0 0 16px rgba(124, 58, 237, 0.22), 0 0 32px rgba(124, 58, 237, 0.08)',
       }}
     >
       {/* Header / toggle */}

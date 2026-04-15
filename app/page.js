@@ -131,11 +131,12 @@ export default async function Home() {
 
       {/* ── STREAK CARD ──────────────────────────────────────────────────── */}
       <div style={{
-        background: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
+        background: '#0e0e18',
+        border: '1px solid rgba(124, 58, 237, 0.18)',
         borderRadius: '14px',
         padding: '14px 16px',
         marginBottom: '20px',
+        boxShadow: '0 0 16px rgba(124, 58, 237, 0.22), 0 0 32px rgba(124, 58, 237, 0.08)',
       }}>
         {/* Row 1: streak label + level pill */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
@@ -180,7 +181,7 @@ export default async function Home() {
           border: '1px solid rgba(124, 58, 237, 0.25)',
           borderRadius: '18px',
           padding: '16px',
-          boxShadow: '0 0 28px rgba(124, 58, 237, 0.45), 0 0 56px rgba(124, 58, 237, 0.18)',
+          boxShadow: '0 0 36px rgba(124, 58, 237, 0.6), 0 0 72px rgba(124, 58, 237, 0.25)',
         }}>
           {/* UP NEXT overline + due pill */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
@@ -245,13 +246,14 @@ export default async function Home() {
         {completedSessions > 0 && <OnboardingCard completedSessions={completedSessions} />}
         <Link href="/library" style={{ display: 'block', textDecoration: 'none' }}>
           <div style={{
-            background: 'var(--color-surface)',
-            border: '1px solid var(--color-border)',
+            background: '#0e0e18',
+            border: '1px solid rgba(124, 58, 237, 0.18)',
             borderRadius: '14px',
             padding: '12px 16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            boxShadow: '0 0 16px rgba(124, 58, 237, 0.22), 0 0 32px rgba(124, 58, 237, 0.08)',
           }}>
             <div>
               <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-foreground)', marginBottom: '2px' }}>
