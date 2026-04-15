@@ -243,10 +243,10 @@ function ReturningUserCard() {
         }}
       >
         <div>
-          <span style={{ fontSize: '0.875rem', fontWeight: 600, display: 'block' }}>
+          <span style={{ fontSize: '1rem', fontWeight: 600, display: 'block' }}>
             Why am I doing this again?
           </span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-muted)' }}>
+          <span style={{ fontSize: '0.825rem', color: 'var(--color-muted)' }}>
             Quick reminder of your goal
           </span>
         </div>

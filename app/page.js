@@ -121,7 +121,7 @@ export default async function Home() {
         }}>
           Home
         </p>
-        <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.15, marginBottom: '4px' }}>
+        <h1 style={{ fontSize: '1.9rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.1, marginBottom: '2px' }}>
           {firstName ? `Welcome back, ${firstName}` : 'Welcome back'}
         </h1>
         <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)' }}>
@@ -135,7 +135,7 @@ export default async function Home() {
         border: '1px solid var(--color-border)',
         borderRadius: '14px',
         padding: '14px 16px',
-        marginBottom: '10px',
+        marginBottom: '20px',
       }}>
         {/* Row 1: streak label + level pill */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
@@ -164,10 +164,10 @@ export default async function Home() {
         </div>
         {/* Row 2: best + level up */}
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-muted)' }}>
+          <span style={{ fontSize: '0.825rem', color: 'var(--color-muted)' }}>
             {maxStreak > 0 ? `Best: ${maxStreak} day${maxStreak !== 1 ? 's' : ''}` : ''}
           </span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-muted)' }}>
+          <span style={{ fontSize: '0.825rem', color: 'var(--color-muted)' }}>
             {isMaxLevel ? 'Best Streak EVER 🏆' : `Level up in ${daysToLevelUp} day${daysToLevelUp !== 1 ? 's' : ''}`}
           </span>
         </div>
@@ -176,53 +176,54 @@ export default async function Home() {
       {/* ── HERO CARD — START STUDYING ───────────────────────────────────── */}
       <Link href="/study" style={{ display: 'block', textDecoration: 'none', marginBottom: '10px' }}>
         <div style={{
-          background: 'color-mix(in srgb, #7c3aed 6%, var(--color-surface))',
-          border: '1px solid rgba(124, 58, 237, 0.35)',
+          background: '#08080f',
+          border: '1px solid rgba(124, 58, 237, 0.25)',
           borderRadius: '18px',
           padding: '16px',
+          boxShadow: '0 0 28px rgba(124, 58, 237, 0.45), 0 0 56px rgba(124, 58, 237, 0.18)',
         }}>
           {/* UP NEXT overline + due pill */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
             <span style={{
               fontSize: '0.65rem',
               fontWeight: 600,
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
-              color: 'var(--color-muted)',
+              color: 'rgba(238, 255, 153, 0.8)',
             }}>
               Up Next
             </span>
             {dueCount > 0 && (
               <span style={{
-                fontSize: '0.7rem',
-                fontWeight: 600,
-                color: '#a78bfa',
-                background: 'rgba(124, 58, 237, 0.18)',
+                fontSize: '0.65rem',
+                fontWeight: 500,
+                color: 'rgba(167, 139, 250, 0.7)',
+                background: 'rgba(124, 58, 237, 0.12)',
                 borderRadius: '999px',
-                padding: '2px 10px',
+                padding: '2px 8px',
               }}>
                 {dueCount} due
               </span>
             )}
           </div>
           {/* Title */}
-          <h2 style={{ fontSize: '1.65rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.2, marginBottom: '6px' }}>
+          <h2 style={{ fontSize: '1.65rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.2, marginBottom: '4px' }}>
             Start Studying
           </h2>
           {/* Description */}
-          <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)', marginBottom: '14px', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '0.95rem', color: '#9a9896', marginBottom: '10px', lineHeight: 1.5 }}>
             {heroDescription || (dueCount > 0
               ? `${dueCount} question${dueCount !== 1 ? 's' : ''} ready for review`
               : "You're all caught up!")}
           </p>
           {/* Bottom row: label + circle arrow */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>
+            <span style={{ fontSize: '0.88rem', color: '#9a9896' }}>
               Keep memorising what you want
             </span>
             <div style={{
-              width: '40px',
-              height: '40px',
+              width: '48px',
+              height: '48px',
               borderRadius: '50%',
               background: '#7c3aed',
               display: 'flex',
@@ -253,10 +254,10 @@ export default async function Home() {
             justifyContent: 'space-between',
           }}>
             <div>
-              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-foreground)', marginBottom: '2px' }}>
+              <p style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-foreground)', marginBottom: '2px' }}>
                 <span style={{ color: '#EEFF99', marginRight: '6px' }}>+</span>Add content
               </p>
-              <p style={{ fontSize: '0.75rem', color: 'var(--color-muted)' }}>
+              <p style={{ fontSize: '0.825rem', color: 'var(--color-muted)' }}>
                 Add your own content or browse others
               </p>
             </div>
