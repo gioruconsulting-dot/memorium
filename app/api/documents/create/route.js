@@ -68,7 +68,7 @@ export async function POST(request) {
     } catch (aiError) {
       console.error("[API] Question generation failed:", aiError.message);
       return NextResponse.json(
-        { error: `Question generation failed: ${aiError.message}` },
+        { error: 'Question generation failed. Please try again.' },
         { status: 502 }
       );
     }
@@ -119,7 +119,7 @@ export async function POST(request) {
   } catch (error) {
     console.error("[API] Upload failed:", error);
     return NextResponse.json(
-      { error: `Upload failed: ${error.message}` },
+      { error: 'Upload failed. Please try again.' },
       { status: 500 }
     );
   }

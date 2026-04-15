@@ -128,6 +128,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[API] stats/progress failed:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

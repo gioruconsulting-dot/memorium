@@ -43,12 +43,14 @@ export async function POST(request) {
 
   await ensureUser(userId);
 
-  // limit: number = cap questions; null = no cap (heroic)
+  // limit: number = cap questions; capped at 100 max
+  const MAX_SESSION_LIMIT = 100;
   let limit = 15;
   try {
     const body = await request.json().catch(() => ({}));
-    if (body.limit === null) limit = Infinity;
-    else if (typeof body.limit === 'number' && body.limit > 0) limit = body.limit;
+    if (typeof body.limit === 'number' && body.limit > 0) {
+      limit = Math.min(Math.floor(body.limit), MAX_SESSION_LIMIT);
+    }
   } catch {}
 
   try {
@@ -69,9 +71,7 @@ export async function POST(request) {
       return Number(a.created_at) - Number(b.created_at);
     });
 
-    const selected = interleaveByDocument(
-      limit === Infinity ? sorted : sorted.slice(0, limit)
-    );
+    const selected = interleaveByDocument(sorted.slice(0, limit));
 
     const sessionId = generateId("sess");
     await createStudySession({ id: sessionId, userId, questionsShown: selected.length });
@@ -100,6 +100,6 @@ export async function POST(request) {
     return NextResponse.json({ sessionId, questions, documentStats: docStatsMap });
   } catch (error) {
     console.error("[API] sessions/start failed:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

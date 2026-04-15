@@ -125,6 +125,6 @@ export async function POST(request) {
     return NextResponse.json({ success: true, nextReviewAt, newIntervalDays });
   } catch (error) {
     console.error("[API] questions/grade failed:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

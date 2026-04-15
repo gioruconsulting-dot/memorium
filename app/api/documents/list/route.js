@@ -30,6 +30,6 @@ export async function GET() {
     return NextResponse.json({ documents });
   } catch (error) {
     console.error("[API] documents/list failed:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -18,6 +18,6 @@ export async function PATCH(request) {
     return NextResponse.json({ success: true, isPublic });
   } catch (error) {
     console.error("[API] documents/set-public failed:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

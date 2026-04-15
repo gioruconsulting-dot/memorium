@@ -68,6 +68,6 @@ export async function POST(request) {
     return NextResponse.json({ success: true, questionCount: sourceQuestions.length });
   } catch (error) {
     console.error("[API] documents/adopt failed:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

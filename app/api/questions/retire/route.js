@@ -24,6 +24,6 @@ export async function POST(request) {
     return NextResponse.json({ success: true, globallyRetired: result.globallyRetired });
   } catch (error) {
     console.error("[API] questions/retire failed:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
