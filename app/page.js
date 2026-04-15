@@ -132,7 +132,7 @@ export default async function Home() {
       {/* ── STREAK CARD ──────────────────────────────────────────────────── */}
       <div style={{
         background: '#0e0e18',
-        border: '1px solid rgba(124, 58, 237, 0.18)',
+        border: '1px solid rgba(138, 136, 128, 0.5)',
         borderRadius: '14px',
         padding: '14px 16px',
         marginBottom: '20px',
@@ -178,7 +178,7 @@ export default async function Home() {
       <Link href="/study" style={{ display: 'block', textDecoration: 'none', marginBottom: '10px' }}>
         <div style={{
           background: '#08080f',
-          border: '1px solid rgba(124, 58, 237, 0.25)',
+          border: '1px solid rgba(138, 136, 128, 0.5)',
           borderRadius: '18px',
           padding: '16px',
           boxShadow: '0 0 36px rgba(124, 58, 237, 0.6), 0 0 72px rgba(124, 58, 237, 0.25)',
@@ -247,7 +247,7 @@ export default async function Home() {
         <Link href="/library" style={{ display: 'block', textDecoration: 'none' }}>
           <div style={{
             background: '#0e0e18',
-            border: '1px solid rgba(124, 58, 237, 0.18)',
+            border: '1px solid rgba(138, 136, 128, 0.5)',
             borderRadius: '14px',
             padding: '12px 16px',
             display: 'flex',
