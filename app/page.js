@@ -121,9 +121,12 @@ export default async function Home() {
         }}>
           Home
         </p>
-        <h1 style={{ fontSize: '1.9rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.1 }}>
+        <h1 style={{ fontSize: '1.9rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.1, marginBottom: '2px' }}>
           {firstName ? `Welcome back, ${firstName}` : 'Welcome back'}
         </h1>
+        <p style={{ fontSize: '1.035rem', color: 'var(--color-muted)' }}>
+          Ready for today's run?
+        </p>
       </div>
 
       {/* ── STREAK CARD ──────────────────────────────────────────────────── */}
@@ -135,10 +138,6 @@ export default async function Home() {
         marginBottom: '20px',
         boxShadow: '0 0 16px rgba(124, 58, 237, 0.22), 0 0 32px rgba(124, 58, 237, 0.08)',
       }}>
-        {/* Ready line */}
-        <p style={{ fontSize: '1.09rem', color: 'var(--color-muted)', marginBottom: '10px' }}>
-          Ready for today's run?
-        </p>
         {/* Row 1: streak label + level pill */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
           <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-foreground)' }}>
