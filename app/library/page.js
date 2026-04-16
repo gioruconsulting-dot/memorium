@@ -139,7 +139,7 @@ const heading = (
 // Upload / browse action block — tertiary card language
 const actionRows = (
   <div style={{
-    background:   '#1a1a18',
+    background:   '#0e0e18',
     border:       '1px solid rgba(255,255,255,0.06)',
     borderRadius: '16px',
     overflow:     'hidden',
@@ -258,7 +258,7 @@ export default function LibraryPage() {
             <div key={i} className="animate-pulse" style={{
               borderRadius: '14px',
               height:       110,
-              background:   '#1a1a18',
+              background:   '#0e0e18',
               border:       '1px solid rgba(255,255,255,0.06)',
             }} />
           ))}
@@ -341,7 +341,7 @@ export default function LibraryPage() {
           <div
             key={doc.id}
             style={{
-              background:   '#1a1a18',
+              background:   '#0e0e18',
               border:       '1px solid rgba(255,255,255,0.06)',
               borderRadius: '14px',
               padding:      '14px 16px',
