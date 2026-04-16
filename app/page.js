@@ -111,16 +111,6 @@ export default async function Home() {
 
       {/* ── GREETING ─────────────────────────────────────────────────────── */}
       <div style={{ marginBottom: '16px', paddingLeft: '16px' }}>
-        <p style={{
-          fontSize: '0.75rem',
-          fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: '0.12em',
-          color: 'rgba(238, 255, 153, 0.8)',
-          marginBottom: '4px',
-        }}>
-          Home
-        </p>
         <h1 style={{ fontSize: '1.9rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.1, marginBottom: '2px' }}>
           {firstName ? `Welcome back, ${firstName}` : 'Welcome back'}
         </h1>
