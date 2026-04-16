@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
+import StarryBackground from '@/components/StarryBackground';
 
 // ─── localStorage helpers ─────────────────────────────────────────────────────
 
@@ -14,19 +15,48 @@ function lsSet(key, value) {
 
 // ─── Layout helpers ───────────────────────────────────────────────────────────
 
-function Section({ title, children, first }) {
+const wrapperStyle = { position: 'relative', zIndex: 1, paddingTop: '24px', paddingBottom: '40px' };
+
+const titleStyle = {
+  fontSize:     '1.84rem',
+  fontWeight:   700,
+  color:        '#ffffff',
+  lineHeight:   1.1,
+  marginBottom: '20px',
+  paddingLeft:  '20px',
+};
+
+function Section({ title, overline, children, first }) {
   return (
-    <div style={{ marginTop: first ? 0 : 16 }}>
+    <div style={{ marginTop: first ? 0 : 10 }}>
       <div
-        className="rounded-2xl p-5"
-        style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+        style={{
+          background:   '#0e0e18',
+          border:       '1px solid rgba(255,255,255,0.06)',
+          borderRadius: '14px',
+          padding:      '16px 18px',
+          boxShadow:    '0 0 16px rgba(124,58,237,0.278), 0 0 32px rgba(124,58,237,0.101)',
+        }}
       >
+        {overline && (
+          <span style={{
+            display:       'block',
+            fontSize:      '0.64rem',
+            fontWeight:    600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            color:         'rgba(238, 255, 153, 0.85)',
+            marginBottom:  '6px',
+          }}>
+            {overline}
+          </span>
+        )}
         <h2
           style={{
-            fontSize: '1rem',
-            fontWeight: 700,
-            color: 'var(--color-foreground)',
-            marginBottom: 20,
+            fontSize:      '1rem',
+            fontWeight:    700,
+            color:         'var(--color-foreground)',
+            marginBottom:  20,
             letterSpacing: '-0.01em',
           }}
         >
@@ -529,17 +559,20 @@ export default function ProgressPage() {
   // ── Loading ──
   if (loading) {
     return (
-      <div className="py-8">
-        <h1 className="text-2xl font-semibold text-center text-[#EEFF99] mb-8">Progress</h1>
-        <div className="space-y-8">
+      <div style={wrapperStyle}>
+        <StarryBackground />
+        <h1 style={titleStyle}>Progress</h1>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {[160, 220, 200].map((h, i) => (
             <div
               key={i}
-              className="rounded-2xl animate-pulse"
+              className="animate-pulse"
               style={{
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                height: h,
+                borderRadius: '14px',
+                height:       h,
+                background:   '#0e0e18',
+                border:       '1px solid rgba(255,255,255,0.06)',
+                boxShadow:    '0 0 16px rgba(124,58,237,0.278), 0 0 32px rgba(124,58,237,0.101)',
               }}
             />
           ))}
@@ -551,13 +584,24 @@ export default function ProgressPage() {
   // ── Error ──
   if (error) {
     return (
-      <div className="py-8 text-center">
-        <h1 className="text-2xl font-semibold text-[#EEFF99] mb-6">Progress</h1>
-        <p className="mb-4" style={{ color: 'var(--color-forgot)' }}>{error}</p>
+      <div style={wrapperStyle}>
+        <StarryBackground />
+        <h1 style={titleStyle}>Progress</h1>
+        <p style={{ color: 'var(--color-forgot)', marginBottom: '16px', fontSize: '0.875rem' }}>
+          {error}
+        </p>
         <button
           onClick={fetchData}
-          className="px-5 py-2.5 rounded-lg font-medium text-sm"
-          style={{ background: 'var(--color-foreground)', color: 'var(--color-background)' }}
+          style={{
+            padding:      '10px 20px',
+            borderRadius: '8px',
+            fontWeight:   500,
+            fontSize:     '0.875rem',
+            background:   'var(--color-foreground)',
+            color:        'var(--color-background)',
+            border:       'none',
+            cursor:       'pointer',
+          }}
         >
           Try Again
         </button>
@@ -568,15 +612,24 @@ export default function ProgressPage() {
   // ── Empty state (0 questions) ──
   if (!data || data.knowledgeMap.total === 0) {
     return (
-      <div className="py-8 text-center">
-        <h1 className="text-2xl font-semibold text-[#EEFF99] mb-6">Progress</h1>
-        <p className="mb-5" style={{ color: 'var(--color-muted)' }}>
+      <div style={wrapperStyle}>
+        <StarryBackground />
+        <h1 style={titleStyle}>Progress</h1>
+        <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem', marginBottom: '16px' }}>
           Upload your first document to start tracking progress.
         </p>
         <Link
           href="/library"
-          className="inline-block px-5 py-2.5 rounded-lg font-medium text-sm"
-          style={{ background: 'var(--color-foreground)', color: 'var(--color-background)' }}
+          style={{
+            display:      'inline-block',
+            padding:      '10px 20px',
+            borderRadius: '8px',
+            fontWeight:   500,
+            fontSize:     '0.875rem',
+            background:   'var(--color-foreground)',
+            color:        'var(--color-background)',
+            textDecoration: 'none',
+          }}
         >
           Go to Library
         </Link>
@@ -587,10 +640,11 @@ export default function ProgressPage() {
   const { knowledgeMap, intervalTrend, activityCalendar, hasSessions } = data;
 
   return (
-    <div className="py-8">
-      <h1 className="text-2xl font-semibold text-center text-[#EEFF99] mb-8">Progress</h1>
+    <div style={wrapperStyle}>
+      <StarryBackground />
+      <h1 style={titleStyle}>Progress</h1>
 
-      <Section title="How much more do I know now?" first>
+      <Section title="How much more do I know now?" overline="Knowledge Map" first>
         <KnowledgeMap
           mastered={knowledgeMap.mastered}
           progressing={knowledgeMap.progressing}
@@ -601,7 +655,7 @@ export default function ProgressPage() {
         />
       </Section>
 
-      <Section title="Is my memory really improving?">
+      <Section title="Is my memory really improving?" overline="Memory Trend">
         {hasSessions ? (
           <IntervalChart
             weeks={intervalTrend.weeks}
@@ -612,7 +666,7 @@ export default function ProgressPage() {
         ) : <NoSessions />}
       </Section>
 
-      <Section title="How consistent have I been?">
+      <Section title="How consistent have I been?" overline="Consistency">
         {hasSessions ? <ActivityCalendar {...activityCalendar} /> : <NoSessions />}
       </Section>
     </div>
