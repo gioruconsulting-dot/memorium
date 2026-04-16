@@ -125,12 +125,12 @@ function sortDocuments(documents, sortKey) {
 // Page heading — white, left-aligned, matches homepage title weight
 const heading = (
   <h1 style={{
-    fontSize:     '1.6rem',
+    fontSize:     '1.84rem',
     fontWeight:   700,
     color:        '#ffffff',
     lineHeight:   1.1,
     marginBottom: '20px',
-    paddingLeft:  '2px',
+    paddingLeft:  '20px',
   }}>
     Library
   </h1>
