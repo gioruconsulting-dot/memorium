@@ -261,7 +261,7 @@ export default function LibraryPage() {
               height:       110,
               background:   '#0e0e18',
               border:       '1px solid rgba(255,255,255,0.06)',
-              boxShadow:    '0 0 16px rgba(124,58,237,0.22), 0 0 32px rgba(124,58,237,0.08)',
+              boxShadow:    '0 0 16px rgba(124,58,237,0.253), 0 0 32px rgba(124,58,237,0.092)',
             }} />
           ))}
         </div>
@@ -349,7 +349,7 @@ export default function LibraryPage() {
               border:       '1px solid rgba(255,255,255,0.06)',
               borderRadius: '14px',
               padding:      '14px 16px',
-              boxShadow:    '0 0 16px rgba(124,58,237,0.22), 0 0 32px rgba(124,58,237,0.08)',
+              boxShadow:    '0 0 16px rgba(124,58,237,0.253), 0 0 32px rgba(124,58,237,0.092)',
             }}
           >
             {/* Top row: overline label + action pills */}
