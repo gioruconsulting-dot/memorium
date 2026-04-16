@@ -120,27 +120,6 @@ function sortDocuments(documents, sortKey) {
   return sorted;
 }
 
-// ── Fixed background glow ────────────────────────────────────────────────────
-// Sits at a fixed viewport position behind the document cards.
-// As cards scroll through this zone each one picks up the ambient glow.
-// Intensity matches the "Why am I…" card on the homepage.
-const cardGlow = (
-  <div
-    aria-hidden="true"
-    style={{
-      position:      'fixed',
-      top:           '310px',
-      left:          '50%',
-      transform:     'translateX(-50%)',
-      width:         '500px',
-      height:        '400px',
-      background:    'radial-gradient(ellipse at center, rgba(124,58,237,0.20) 0%, rgba(124,58,237,0.08) 42%, transparent 70%)',
-      pointerEvents: 'none',
-      zIndex:        0,
-    }}
-  />
-);
-
 // ── Shared layout pieces ──────────────────────────────────────────────────────
 
 // Page heading — white, left-aligned, matches homepage title weight
@@ -272,7 +251,7 @@ export default function LibraryPage() {
     return (
       <div style={wrapperStyle}>
         <StarryBackground />
-        {cardGlow}
+
         {heading}
         {actionRows}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -282,6 +261,7 @@ export default function LibraryPage() {
               height:       110,
               background:   '#0e0e18',
               border:       '1px solid rgba(255,255,255,0.06)',
+              boxShadow:    '0 0 16px rgba(124,58,237,0.22), 0 0 32px rgba(124,58,237,0.08)',
             }} />
           ))}
         </div>
@@ -295,7 +275,7 @@ export default function LibraryPage() {
     return (
       <div style={wrapperStyle}>
         <StarryBackground />
-        {cardGlow}
+
         {heading}
         {actionRows}
         <p style={{ color: 'var(--color-forgot)', marginBottom: '16px', fontSize: '0.875rem' }}>
@@ -326,7 +306,7 @@ export default function LibraryPage() {
     return (
       <div style={wrapperStyle}>
         <StarryBackground />
-        {cardGlow}
+
         {heading}
         {actionRows}
         <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem' }}>
@@ -343,7 +323,6 @@ export default function LibraryPage() {
   return (
     <div style={wrapperStyle}>
       <StarryBackground />
-      {cardGlow}
 
       {heading}
       {actionRows}
@@ -370,6 +349,7 @@ export default function LibraryPage() {
               border:       '1px solid rgba(255,255,255,0.06)',
               borderRadius: '14px',
               padding:      '14px 16px',
+              boxShadow:    '0 0 16px rgba(124,58,237,0.22), 0 0 32px rgba(124,58,237,0.08)',
             }}
           >
             {/* Top row: overline label + action pills */}
