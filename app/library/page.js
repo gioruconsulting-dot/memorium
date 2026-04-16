@@ -95,7 +95,7 @@ function EffortMeter({ totalReps, total }) {
           }} />
         ))}
       </div>
-      <span style={{ fontSize: 11, color: 'var(--color-muted)' }}>
+      <span style={{ fontSize: 12, color: 'var(--color-muted)' }}>
         {label}{' · '}{totalReps} rep{totalReps !== 1 ? 's' : ''}{' · '}~{avgRounded} per Q
       </span>
     </div>
@@ -356,7 +356,7 @@ export default function LibraryPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
               {/* Overline — replaces badge pill */}
               <span style={{
-                fontSize:      '0.6rem',
+                fontSize:      '0.64rem',
                 fontWeight:    600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
@@ -372,7 +372,7 @@ export default function LibraryPage() {
                     onClick={() => handleToggleShare(doc)}
                     disabled={togglingShare === doc.id}
                     style={{
-                      fontSize:     '0.68rem',
+                      fontSize:     '0.725rem',
                       fontWeight:   500,
                       color:        'var(--color-muted)',
                       background:   'rgba(255,255,255,0.06)',
@@ -391,7 +391,7 @@ export default function LibraryPage() {
                   onClick={() => handleDelete(doc)}
                   disabled={deleting === doc.id}
                   style={{
-                    fontSize:     '0.68rem',
+                    fontSize:     '0.725rem',
                     fontWeight:   500,
                     color:        'var(--color-forgot)',
                     background:   'rgba(212,86,74,0.1)',
@@ -409,13 +409,13 @@ export default function LibraryPage() {
             </div>
 
             {/* Title */}
-            <p style={{ fontWeight: 700, fontSize: '0.9375rem', color: '#e8e6e1', lineHeight: 1.35, marginBottom: '3px' }}>
+            <p style={{ fontWeight: 700, fontSize: '1rem', color: '#e8e6e1', lineHeight: 1.35, marginBottom: '3px' }}>
               {doc.title}
             </p>
 
             {/* Theme */}
             {doc.themes && (
-              <p style={{ fontSize: '0.8125rem', color: '#8a8880' }}>
+              <p style={{ fontSize: '0.867rem', color: '#8a8880' }}>
                 {doc.themes}
               </p>
             )}
