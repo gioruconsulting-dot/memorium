@@ -353,7 +353,7 @@ export default function LibraryPage() {
             }}
           >
             {/* Top row: overline label + action pills */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '7px' }}>
               {/* Overline — replaces badge pill */}
               <span style={{
                 fontSize:      '0.64rem',
@@ -409,7 +409,7 @@ export default function LibraryPage() {
             </div>
 
             {/* Title */}
-            <p style={{ fontWeight: 700, fontSize: '1rem', color: '#e8e6e1', lineHeight: 1.35, marginBottom: '3px' }}>
+            <p style={{ fontWeight: 700, fontSize: '1rem', color: '#e8e6e1', lineHeight: 1.35, marginBottom: '2.5px' }}>
               {doc.title}
             </p>
 
