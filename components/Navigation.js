@@ -76,7 +76,7 @@ const LINKS = [
 ];
 
 // Brighter active colour (0.9 vs old 0.75) — crisp, not aura-y
-const ACTIVE_COLOR   = 'rgba(238, 255, 153, 0.9)';
+const ACTIVE_COLOR   = 'rgba(255, 255, 255, 0.9)';
 const INACTIVE_COLOR = 'var(--color-muted)';
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -117,7 +117,7 @@ export default function Navigation() {
                 paddingInline: '10px',
                 paddingBlock: '5px',
                 borderRadius: '10px',
-                background: active ? 'rgba(238, 255, 153, 0.08)' : 'transparent',
+                background: active ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
                 transition: 'background 0.2s ease',
               }}>
                 <Icon />
