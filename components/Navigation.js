@@ -12,60 +12,56 @@ const ICON_PROPS = {
   viewBox: '0 0 32 32',
   fill: 'none',
   stroke: 'currentColor',
-  strokeWidth: 2,
+  strokeWidth: 2.3,           // slightly heavier — less fragile at mobile size
   strokeLinecap: 'round',
   strokeLinejoin: 'round',
 };
 
 // ── Icon components ──────────────────────────────────────────────────────────
 
-// Home — pentagon outline + interior diamond marker.
-// The diamond replaces the generic door and reads as a precision
-// base-marker / headquarters rather than a childish house.
+// Home — pentagon with a single centered ring mark.
+// Ring replaces the diamond for a cleaner one-element interior.
 function HomeIcon() {
   return (
     <svg {...ICON_PROPS}>
       <path d="M3,13 L16,3 L29,13 L29,27 L3,27 Z" />
-      <path d="M16,15 L20,19 L16,23 L12,19 Z" />
+      <circle cx="16" cy="19" r="3" />
     </svg>
   );
 }
 
-// Study — two offset stacked cards (deck).
-// Evokes an active study session / flashcard deck.
-// Clearly distinct from Library's static horizontal slabs.
+// Study — two cards with increased offset so both reads are distinct.
+// More air between them → stronger "deck" silhouette at mobile scale.
 function StudyIcon() {
   return (
     <svg {...ICON_PROPS}>
-      <rect x="7"  y="4"  width="19" height="15" rx="2" />
-      <rect x="4"  y="9"  width="19" height="15" rx="2" />
+      <rect x="9"  y="3"  width="18" height="14" rx="2.5" />
+      <rect x="4"  y="9"  width="18" height="14" rx="2.5" />
     </svg>
   );
 }
 
-// Progress — diagonal ascending line with three ring nodes.
-// Reads as a progression path / upgrade arc rather than a corporate
-// bar chart. Elegant and distinctive.
+// Progress — three ascending vertical pillars (short → medium → tall).
+// Reads instantly as "leveling up" or "game progression."
+// No nodes, no diagonal, no analytics feeling.
 function ProgressIcon() {
   return (
     <svg {...ICON_PROPS}>
-      <line x1="5" y1="26" x2="27" y2="6" />
-      <circle cx="5"  cy="26" r="2.5" />
-      <circle cx="16" cy="16" r="2.5" />
-      <circle cx="27" cy="6"  r="2.5" />
+      <rect x="3"  y="19" width="7" height="9"  rx="2" />
+      <rect x="13" y="12" width="7" height="16" rx="2" />
+      <rect x="23" y="5"  width="7" height="23" rx="2" />
     </svg>
   );
 }
 
-// Library — three horizontal slabs widening toward the bottom.
-// The perspective taper suggests stacked archive modules / volumes.
-// Calm and stable — clearly not Study.
+// Library — three uniform-width horizontal slabs.
+// Equal widths give a strong, stable block silhouette — clearly an archive.
 function LibraryIcon() {
   return (
     <svg {...ICON_PROPS}>
-      <rect x="6" y="5"  width="20" height="5" rx="1" />
-      <rect x="4" y="13" width="24" height="5" rx="1" />
-      <rect x="2" y="21" width="28" height="5" rx="1" />
+      <rect x="3" y="4"  width="26" height="6" rx="2" />
+      <rect x="3" y="13" width="26" height="6" rx="2" />
+      <rect x="3" y="22" width="26" height="6" rx="2" />
     </svg>
   );
 }
@@ -79,7 +75,8 @@ const LINKS = [
   { href: '/library',  Icon: LibraryIcon,  label: 'Library'  },
 ];
 
-const ACTIVE_COLOR   = 'rgba(238, 255, 153, 0.75)';
+// Brighter active colour (0.9 vs old 0.75) — crisp, not aura-y
+const ACTIVE_COLOR   = 'rgba(238, 255, 153, 0.9)';
 const INACTIVE_COLOR = 'var(--color-muted)';
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -108,18 +105,26 @@ export default function Navigation() {
             <Link
               key={href}
               href={href}
-              className="flex-1 flex flex-col items-center justify-center"
-              style={{ gap: '3px', color, transition: 'color 0.2s ease' }}
+              className="flex-1 flex items-center justify-center"
+              style={{ color, transition: 'color 0.2s ease' }}
             >
+              {/* Pill wrapper — shown only on active tab, same padding always to prevent layout shift */}
               <div style={{
-                filter: active ? 'drop-shadow(0 0 3px rgba(238, 255, 153, 0.25))' : 'none',
-                transition: 'filter 0.2s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '3px',
+                paddingInline: '10px',
+                paddingBlock: '5px',
+                borderRadius: '10px',
+                background: active ? 'rgba(238, 255, 153, 0.08)' : 'transparent',
+                transition: 'background 0.2s ease',
               }}>
                 <Icon />
+                <span style={{ fontSize: '11px', fontWeight: active ? 500 : 400, lineHeight: 1 }}>
+                  {label}
+                </span>
               </div>
-              <span style={{ fontSize: '11px', fontWeight: active ? 500 : 400, lineHeight: 1 }}>
-                {label}
-              </span>
             </Link>
           );
         })}
