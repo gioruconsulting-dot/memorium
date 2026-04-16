@@ -12,7 +12,7 @@ const ICON_PROPS = {
   viewBox: '0 0 32 32',
   fill: 'none',
   stroke: 'currentColor',
-  strokeWidth: 2.3,           // slightly heavier — less fragile at mobile size
+  strokeWidth: 2.5,           // slightly heavier — less fragile at mobile size
   strokeLinecap: 'round',
   strokeLinejoin: 'round',
 };
