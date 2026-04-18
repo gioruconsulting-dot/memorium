@@ -1070,7 +1070,7 @@ export default function StudyPage() {
             left:      0,
             right:     0,
             zIndex:    20,
-            background:'#121210',
+            background:'transparent',
           }}
         >
           <div className="max-w-2xl mx-auto px-4">
@@ -1147,7 +1147,7 @@ export default function StudyPage() {
           left:      0,
           right:     0,
           zIndex:    20,
-          background:'#121210',
+          background:'transparent',
         }}
       >
         <div className="max-w-2xl mx-auto px-4">
