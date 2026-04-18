@@ -790,7 +790,7 @@ export default function StudyPage() {
               {/* Headline — fades in at 0.5s */}
               <div className="text-center mb-3 px-2" style={{ animation: 'completeReveal 0.3s ease 0.5s both' }}>
                 <p className="font-semibold leading-snug" style={{
-                  color:    '#EEFF99',
+                  color:    '#ffffff',
                   fontSize: 'clamp(1.1rem, 5vw, 1.35rem)',
                 }}>
                   {headline}
@@ -815,27 +815,54 @@ export default function StudyPage() {
 
                 {/* Review before you go */}
                 {toRevisit.length > 0 && (
-                  <div className="mb-3 rounded-2xl overflow-hidden" style={{ border: '1px solid var(--color-border)' }}>
+                  <div style={{
+                    marginBottom: '14px',
+                    borderRadius: '14px',
+                    overflow: 'hidden',
+                    background: '#0e0e18',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    boxShadow: '0 0 16px rgba(124,58,237,0.18), 0 0 32px rgba(124,58,237,0.07)',
+                  }}>
                     <button
                       onClick={() => setReviewExpanded(v => !v)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium"
-                      style={{ background: 'var(--color-surface)', color: 'var(--color-foreground)' }}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '12px 16px',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
                     >
-                      <span>{toRevisit.length} question{toRevisit.length !== 1 ? 's' : ''} to revisit</span>
-                      <span style={{ color: 'var(--color-muted)' }}>{reviewExpanded ? '▲' : '▼'}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{
+                          fontSize: '0.6rem', fontWeight: 600,
+                          textTransform: 'uppercase', letterSpacing: '0.1em',
+                          color: 'rgba(238,255,153,0.85)',
+                        }}>Review</span>
+                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#e8e6e1' }}>
+                          {toRevisit.length} question{toRevisit.length !== 1 ? 's' : ''} to revisit
+                        </span>
+                      </span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--color-muted)' }}>{reviewExpanded ? '▲' : '▼'}</span>
                     </button>
                     {reviewExpanded && (
-                      <div style={{ maxHeight: '140px', overflowY: 'auto' }}>
+                      <div style={{ maxHeight: '150px', overflowY: 'auto', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                         {toRevisit.map(({ question }) => (
                           <div
                             key={question.id}
-                            className="px-4 py-3"
-                            style={{ borderTop: '1px solid var(--color-border)', background: 'var(--color-surface)' }}
+                            style={{
+                              padding: '10px 16px',
+                              borderBottom: '1px solid rgba(255,255,255,0.04)',
+                              background: '#0a0a12',
+                            }}
                           >
-                            <p className="text-xs leading-snug mb-1" style={{ color: 'var(--color-foreground)' }}>
+                            <p style={{ fontSize: '0.75rem', lineHeight: 1.5, marginBottom: '3px', color: '#e8e6e1' }}>
                               {question.question_text}
                             </p>
-                            <p className="text-xs leading-snug" style={{ color: 'var(--color-muted)' }}>
+                            <p style={{ fontSize: '0.75rem', lineHeight: 1.4, color: 'var(--color-muted)' }}>
                               {question.answer_text}
                             </p>
                           </div>
@@ -845,29 +872,72 @@ export default function StudyPage() {
                   </div>
                 )}
 
-                {/* CTAs */}
-                <div className="space-y-3 pb-6">
+                {/* CTAs — fixed hierarchy: progress (primary) → keep going (secondary) → done (tertiary) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingBottom: '24px' }}>
+
+                  {/* Primary: See your progress — green glow */}
                   <a
-                    href={hasMore ? '/study' : '/progress'}
-                    className="block w-full py-3.5 rounded-xl font-medium text-center text-white"
-                    style={{ background: '#7c3aed' }}
+                    href="/progress"
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      padding: '15px 20px',
+                      background: '#08080f',
+                      border: '1px solid rgba(74,222,128,0.32)',
+                      borderRadius: '14px',
+                      boxShadow: '0 0 26px rgba(74,222,128,0.42), 0 0 52px rgba(74,222,128,0.16)',
+                      color: '#e8e6e1',
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      textAlign: 'center',
+                      textDecoration: 'none',
+                    }}
                   >
-                    {hasMore ? 'Keep going' : 'See your progress'}
+                    See your progress
                   </a>
-                  <a
-                    href={hasMore ? '/progress' : '/upload'}
-                    className="block w-full py-3.5 rounded-xl font-medium text-center text-white"
-                    style={{ background: 'var(--color-accent)' }}
-                  >
-                    {hasMore ? 'See your progress' : 'Upload new material'}
-                  </a>
+
+                  {/* Secondary: Keep going — purple glow (only when more due) */}
+                  {hasMore && (
+                    <a
+                      href="/study"
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        padding: '13px 20px',
+                        background: '#08080f',
+                        border: '1px solid rgba(124,58,237,0.35)',
+                        borderRadius: '14px',
+                        boxShadow: '0 0 22px rgba(124,58,237,0.4), 0 0 44px rgba(124,58,237,0.16)',
+                        color: '#e8e6e1',
+                        fontWeight: 600,
+                        fontSize: '0.9375rem',
+                        textAlign: 'center',
+                        textDecoration: 'none',
+                      }}
+                    >
+                      Keep going
+                    </a>
+                  )}
+
+                  {/* Tertiary: Done for today — blue glow */}
                   <button
                     onClick={() => setPhase('farewell')}
-                    className="w-full py-3.5 rounded-xl font-medium text-center"
-                    style={{ background: 'transparent', border: '1px solid #4b5563', color: 'var(--color-foreground)' }}
+                    style={{
+                      width: '100%',
+                      padding: '12px 20px',
+                      background: '#0e0e18',
+                      border: '1px solid rgba(96,165,250,0.25)',
+                      borderRadius: '14px',
+                      boxShadow: '0 0 18px rgba(96,165,250,0.28), 0 0 36px rgba(96,165,250,0.11)',
+                      color: '#e8e6e1',
+                      fontWeight: 400,
+                      fontSize: '0.9375rem',
+                      cursor: 'pointer',
+                    }}
                   >
                     Done for today
                   </button>
+
                 </div>
 
               </div>

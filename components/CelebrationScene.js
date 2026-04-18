@@ -174,7 +174,7 @@ export default function CelebrationScene() {
         <div style={{
           position:  'absolute',
           bottom:    '12px',
-          left:      'calc(50% - 57px)',
+          left:      'calc(50% - 58px)',
           zIndex:    2,
         }}>
           <PixelDancer />
