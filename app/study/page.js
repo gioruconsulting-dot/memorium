@@ -834,23 +834,23 @@ export default function StudyPage() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        padding: '12px 16px',
+                        padding: '11px 16px',
                         background: 'transparent',
                         border: 'none',
                         cursor: 'pointer',
                       }}
                     >
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <span style={{
-                          fontSize: '0.6rem', fontWeight: 600,
+                          fontSize: '0.54rem', fontWeight: 600,
                           textTransform: 'uppercase', letterSpacing: '0.1em',
                           color: 'rgba(238,255,153,0.85)',
                         }}>Review</span>
-                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#e8e6e1' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#e8e6e1' }}>
                           {toRevisit.length} question{toRevisit.length !== 1 ? 's' : ''} to revisit
                         </span>
                       </span>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--color-muted)' }}>{reviewExpanded ? '▲' : '▼'}</span>
+                      <span style={{ fontSize: '0.65rem', color: 'var(--color-muted)' }}>{reviewExpanded ? '▲' : '▼'}</span>
                     </button>
                     {reviewExpanded && (
                       <div style={{ maxHeight: '150px', overflowY: 'auto', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
@@ -863,10 +863,10 @@ export default function StudyPage() {
                               background: '#0a0a12',
                             }}
                           >
-                            <p style={{ fontSize: '0.75rem', lineHeight: 1.5, marginBottom: '3px', color: '#e8e6e1' }}>
+                            <p style={{ fontSize: '0.675rem', lineHeight: 1.5, marginBottom: '3px', color: '#e8e6e1' }}>
                               {question.question_text}
                             </p>
-                            <p style={{ fontSize: '0.75rem', lineHeight: 1.4, color: 'var(--color-muted)' }}>
+                            <p style={{ fontSize: '0.675rem', lineHeight: 1.4, color: 'var(--color-muted)' }}>
                               {question.answer_text}
                             </p>
                           </div>
@@ -876,70 +876,67 @@ export default function StudyPage() {
                   </div>
                 )}
 
-                {/* CTAs — fixed hierarchy: progress (primary) → keep going (secondary) → done (tertiary) */}
+                {/* CTAs — picker-card style: overline + title, left-aligned, same font size */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingBottom: '24px' }}>
 
-                  {/* Primary: See your progress — green glow */}
+                  {/* Primary: See your progress — green glow, darker bg (#08080f) */}
                   <a
                     href="/progress"
                     style={{
-                      display: 'block',
-                      width: '100%',
-                      padding: '15px 20px',
-                      background: '#08080f',
-                      border: '1px solid rgba(74,222,128,0.32)',
-                      borderRadius: '14px',
-                      boxShadow: '0 0 26px rgba(74,222,128,0.42), 0 0 52px rgba(74,222,128,0.16)',
-                      color: '#e8e6e1',
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      textAlign: 'center',
+                      display:        'block',
+                      width:          '100%',
+                      background:     '#08080f',
+                      border:         '1px solid rgba(74,222,128,0.35)',
+                      borderRadius:   '14px',
+                      padding:        '22px 20px',
+                      boxShadow:      '0 0 28px rgba(74,222,128,0.45), 0 0 56px rgba(74,222,128,0.18)',
+                      cursor:         'pointer',
+                      textAlign:      'left',
                       textDecoration: 'none',
                     }}
                   >
-                    See your progress
+                    <div style={{ fontSize: '0.64rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(74,222,128,0.85)', marginBottom: '6px' }}>Your stats</div>
+                    <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e8e6e1' }}>See your progress</p>
                   </a>
 
-                  {/* Secondary: Keep going — purple glow (only when more due) */}
+                  {/* Secondary: Keep going — purple glow, lighter bg (#0e0e18), only when more due */}
                   {hasMore && (
                     <a
                       href="/study"
                       style={{
-                        display: 'block',
-                        width: '100%',
-                        padding: '13px 20px',
-                        background: '#08080f',
-                        border: '1px solid rgba(124,58,237,0.35)',
-                        borderRadius: '14px',
-                        boxShadow: '0 0 22px rgba(124,58,237,0.4), 0 0 44px rgba(124,58,237,0.16)',
-                        color: '#e8e6e1',
-                        fontWeight: 600,
-                        fontSize: '0.9375rem',
-                        textAlign: 'center',
+                        display:        'block',
+                        width:          '100%',
+                        background:     '#0e0e18',
+                        border:         '1px solid rgba(124,58,237,0.35)',
+                        borderRadius:   '14px',
+                        padding:        '18px 20px',
+                        boxShadow:      '0 0 22px rgba(124,58,237,0.4), 0 0 44px rgba(124,58,237,0.16)',
+                        cursor:         'pointer',
+                        textAlign:      'left',
                         textDecoration: 'none',
                       }}
                     >
-                      Keep going
+                      <div style={{ fontSize: '0.64rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(238,255,153,0.85)', marginBottom: '6px' }}>Continue</div>
+                      <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e8e6e1' }}>Keep going</p>
                     </a>
                   )}
 
-                  {/* Tertiary: Done for today — blue glow */}
+                  {/* Tertiary: Done for today — blue glow, lighter bg (#0e0e18) */}
                   <button
                     onClick={() => setPhase('farewell')}
                     style={{
-                      width: '100%',
-                      padding: '12px 20px',
-                      background: '#0e0e18',
-                      border: '1px solid rgba(96,165,250,0.25)',
+                      width:        '100%',
+                      background:   '#0e0e18',
+                      border:       '1px solid rgba(96,165,250,0.25)',
                       borderRadius: '14px',
-                      boxShadow: '0 0 18px rgba(96,165,250,0.28), 0 0 36px rgba(96,165,250,0.11)',
-                      color: '#e8e6e1',
-                      fontWeight: 400,
-                      fontSize: '0.9375rem',
-                      cursor: 'pointer',
+                      padding:      '18px 20px',
+                      boxShadow:    '0 0 22px rgba(96,165,250,0.28), 0 0 44px rgba(96,165,250,0.11)',
+                      cursor:       'pointer',
+                      textAlign:    'left',
                     }}
                   >
-                    Done for today
+                    <div style={{ fontSize: '0.64rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(96,165,250,0.75)', marginBottom: '6px' }}>Wrap up</div>
+                    <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e8e6e1' }}>Done for today</p>
                   </button>
 
                 </div>

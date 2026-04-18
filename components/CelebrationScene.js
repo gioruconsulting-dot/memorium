@@ -109,7 +109,7 @@ export default function CelebrationScene() {
       <div style={{
         position: 'relative',
         width:    '100%',
-        height:   'clamp(300px, 38vw, 380px)',
+        height:   'clamp(270px, 34.2vw, 342px)',
         background: '#121210',
         overflow: 'hidden',
       }}>
