@@ -772,8 +772,10 @@ export default function StudyPage() {
           overflow:   'hidden',
         }}>
 
+          <StarryBackground />
+
           {/* Celebration scene — flush to top, fades in */}
-          <div style={{ flexShrink: 0, animation: 'completeReveal 0.3s ease 0.3s both' }}>
+          <div style={{ flexShrink: 0, animation: 'completeReveal 0.3s ease 0.3s both', position: 'relative', zIndex: 1 }}>
             <CelebrationScene />
           </div>
 
@@ -784,6 +786,8 @@ export default function StudyPage() {
             padding:    '16px 16px 0',
             display:    'flex',
             flexDirection: 'column',
+            position:   'relative',
+            zIndex:     1,
           }}>
             <div className="w-full max-w-sm mx-auto" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
 
