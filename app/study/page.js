@@ -1042,8 +1042,8 @@ export default function StudyPage() {
     borderRadius: '14px',
     padding:      '12px 14px',
     background:   '#0e0e18',
-    border:       '1px solid rgba(255,255,255,0.07)',
-    boxShadow:    '0 0 16px rgba(124,58,237,0.14), 0 0 32px rgba(124,58,237,0.05)',
+    border:       '1px solid rgba(255,255,255,0.08)',
+    boxShadow:    '0 0 20px rgba(124,58,237,0.22), 0 0 40px rgba(124,58,237,0.09)',
   };
 
   const typeOverlineStyle = {
@@ -1065,15 +1065,12 @@ export default function StudyPage() {
         <div
           ref={headerRef}
           style={{
-            position:            'fixed',
-            top:                 0,
-            left:                0,
-            right:               0,
-            zIndex:              20,
-            background:          'rgba(10,10,14,0.9)',
-            backdropFilter:      'blur(12px)',
-            WebkitBackdropFilter:'blur(12px)',
-            borderBottom:        '1px solid rgba(255,255,255,0.06)',
+            position:  'fixed',
+            top:       0,
+            left:      0,
+            right:     0,
+            zIndex:    20,
+            background:'#121210',
           }}
         >
           <div className="max-w-2xl mx-auto px-4">
@@ -1109,10 +1106,10 @@ export default function StudyPage() {
               rows={4}
               className="w-full rounded-xl px-4 py-3 text-base leading-relaxed resize-none focus:outline-none focus:border-[rgba(124,58,237,0.5)]"
               style={{
-                background:  '#0c0c16',
-                border:      '1px solid rgba(255,255,255,0.07)',
+                background:  '#0e0e18',
+                border:      '1px solid rgba(255,255,255,0.08)',
                 color:       'var(--color-foreground)',
-                boxShadow:   'inset 0 1px 4px rgba(0,0,0,0.35)',
+                boxShadow:   '0 0 14px rgba(124,58,237,0.1), 0 0 28px rgba(124,58,237,0.04)',
                 transition:  'border-color 0.15s ease',
               }}
             />
@@ -1145,15 +1142,12 @@ export default function StudyPage() {
       <div
         ref={headerRef}
         style={{
-          position:            'fixed',
-          top:                 0,
-          left:                0,
-          right:               0,
-          zIndex:              20,
-          background:          'rgba(10,10,14,0.9)',
-          backdropFilter:      'blur(12px)',
-          WebkitBackdropFilter:'blur(12px)',
-          borderBottom:        '1px solid rgba(255,255,255,0.06)',
+          position:  'fixed',
+          top:       0,
+          left:      0,
+          right:     0,
+          zIndex:    20,
+          background:'#121210',
         }}
       >
         <div className="max-w-2xl mx-auto px-4">
@@ -1214,9 +1208,9 @@ export default function StudyPage() {
           {/* Your answer — subtle inset card */}
           {userAttempt.trim() && (
             <div style={{
-              background:   '#0c0c16',
-              border:       '1px solid rgba(255,255,255,0.07)',
-              borderRadius: '12px',
+              background:   '#0e0e18',
+              border:       '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '14px',
               padding:      '10px 14px',
             }}>
               <div style={{ fontSize: '0.64rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-muted)', marginBottom: '4px' }}>
