@@ -152,25 +152,25 @@ function ProgressBar({ current, total }) {
 
 const GRADE_THEMES = {
   easy: {
-    bg:        'rgba(5, 46, 22, 0.94)',
-    bgPressed: 'rgba(5, 46, 22, 0.98)',
+    bg:        'rgba(6, 51, 24, 0.97)',
+    bgPressed: 'rgba(6, 51, 24, 1)',
     text:      '#86efac',
-    border:    'rgba(74, 222, 128, 0.37)',
-    glow:      '0 0 14px rgba(74,222,128,0.21), 0 0 28px rgba(74,222,128,0.08)',
+    border:    'rgba(74, 222, 128, 0.41)',
+    glow:      'none',
   },
   hard: {
-    bg:        'rgba(78, 32, 0, 0.94)',
-    bgPressed: 'rgba(78, 32, 0, 0.98)',
+    bg:        'rgba(86, 35, 0, 0.97)',
+    bgPressed: 'rgba(86, 35, 0, 1)',
     text:      '#fbbf24',
-    border:    'rgba(217, 119, 6, 0.44)',
-    glow:      '0 0 14px rgba(217,119,6,0.21), 0 0 28px rgba(217,119,6,0.08)',
+    border:    'rgba(217, 119, 6, 0.48)',
+    glow:      'none',
   },
   forgot: {
-    bg:        'rgba(70, 6, 6, 0.94)',
-    bgPressed: 'rgba(70, 6, 6, 0.98)',
+    bg:        'rgba(77, 7, 7, 0.97)',
+    bgPressed: 'rgba(77, 7, 7, 1)',
     text:      '#fca5a5',
-    border:    'rgba(239, 68, 68, 0.37)',
-    glow:      '0 0 14px rgba(239,68,68,0.18), 0 0 28px rgba(239,68,68,0.07)',
+    border:    'rgba(239, 68, 68, 0.41)',
+    glow:      'none',
   },
 };
 
@@ -1144,7 +1144,7 @@ export default function StudyPage() {
               style={{
                 background: '#7c3aed',
                 color:      '#ffffff',
-                boxShadow:  canReveal ? '0 0 18px rgba(124,58,237,0.39), 0 0 36px rgba(124,58,237,0.13)' : 'none',
+                boxShadow:  canReveal ? '0 0 18px rgba(124,58,237,0.35), 0 0 36px rgba(124,58,237,0.12)' : 'none',
                 transition: 'box-shadow 0.2s ease',
               }}
             >
