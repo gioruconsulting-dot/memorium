@@ -152,25 +152,25 @@ function ProgressBar({ current, total }) {
 
 const GRADE_THEMES = {
   easy: {
-    bg:        'rgba(5, 46, 22, 0.82)',
+    bg:        'rgba(5, 46, 22, 0.94)',
     bgPressed: 'rgba(5, 46, 22, 0.98)',
     text:      '#86efac',
-    border:    'rgba(74, 222, 128, 0.32)',
-    glow:      '0 0 12px rgba(74,222,128,0.18), 0 0 24px rgba(74,222,128,0.07)',
+    border:    'rgba(74, 222, 128, 0.37)',
+    glow:      '0 0 14px rgba(74,222,128,0.21), 0 0 28px rgba(74,222,128,0.08)',
   },
   hard: {
-    bg:        'rgba(78, 32, 0, 0.82)',
+    bg:        'rgba(78, 32, 0, 0.94)',
     bgPressed: 'rgba(78, 32, 0, 0.98)',
     text:      '#fbbf24',
-    border:    'rgba(217, 119, 6, 0.38)',
-    glow:      '0 0 12px rgba(217,119,6,0.18), 0 0 24px rgba(217,119,6,0.07)',
+    border:    'rgba(217, 119, 6, 0.44)',
+    glow:      '0 0 14px rgba(217,119,6,0.21), 0 0 28px rgba(217,119,6,0.08)',
   },
   forgot: {
-    bg:        'rgba(70, 6, 6, 0.82)',
+    bg:        'rgba(70, 6, 6, 0.94)',
     bgPressed: 'rgba(70, 6, 6, 0.98)',
     text:      '#fca5a5',
-    border:    'rgba(239, 68, 68, 0.32)',
-    glow:      '0 0 12px rgba(239,68,68,0.16), 0 0 24px rgba(239,68,68,0.06)',
+    border:    'rgba(239, 68, 68, 0.37)',
+    glow:      '0 0 14px rgba(239,68,68,0.18), 0 0 28px rgba(239,68,68,0.07)',
   },
 };
 
