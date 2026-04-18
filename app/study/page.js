@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import CelebrationScene from '@/components/CelebrationScene';
+import StarryBackground from '@/components/StarryBackground';
 
 // ── motivational messages ─────────────────────────────────────────────────────
 
@@ -149,16 +150,30 @@ function ProgressBar({ current, total }) {
   );
 }
 
-function GradeButton({ label, sublabel, onClick, bgClass, disabled }) {
+// Semi-transparent tinted grade buttons with press feedback
+function GradeButton({ label, sublabel, onClick, colorRgb, disabled }) {
+  const [pressed, setPressed] = useState(false);
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`flex-1 flex flex-col items-center justify-center py-3 sm:py-5 px-2 rounded-xl font-medium text-white transition-all active:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed ${bgClass}`}
-      style={{ minHeight: '48px' }}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      onMouseLeave={() => setPressed(false)}
+      onTouchStart={() => setPressed(true)}
+      onTouchEnd={() => setPressed(false)}
+      className="flex-1 flex flex-col items-center justify-center rounded-xl font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+      style={{
+        minHeight:  '56px',
+        padding:    '12px 8px',
+        background: pressed ? `rgba(${colorRgb}, 0.22)` : `rgba(${colorRgb}, 0.1)`,
+        color:      `rgb(${colorRgb})`,
+        border:     `1px solid rgba(${colorRgb}, 0.28)`,
+        transition: 'background 0.1s ease',
+      }}
     >
-      <span className="text-base sm:text-lg leading-tight">{label}</span>
-      {sublabel && <span className="text-xs mt-0.5 opacity-70 hidden sm:block">{sublabel}</span>}
+      <span style={{ fontSize: '1rem', lineHeight: 1.2 }}>{label}</span>
+      {sublabel && <span className="hidden sm:block" style={{ fontSize: '0.75rem', marginTop: '2px', opacity: 0.7 }}>{sublabel}</span>}
     </button>
   );
 }
@@ -850,64 +865,103 @@ export default function StudyPage() {
   if (phase === 'picker') {
     const totalTime = timeEstimate(dueCount);
     return (
-      <div className="min-h-dvh flex flex-col items-center justify-center px-4 py-10">
-        <div className="w-full max-w-sm">
+      <div style={{
+        position:       'relative',
+        zIndex:         1,
+        minHeight:      '100dvh',
+        display:        'flex',
+        flexDirection:  'column',
+        alignItems:     'center',
+        justifyContent: 'center',
+        padding:        '48px 20px',
+      }}>
+        <StarryBackground />
 
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="text-[1.6rem] font-bold text-[#EEFF99] leading-tight">
+        <div style={{ width: '100%', maxWidth: '360px' }}>
+
+          {/* Header — due count + time */}
+          <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+            <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#EEFF99', lineHeight: 1.2 }}>
               <p>{dueCount} question{dueCount !== 1 ? 's' : ''} due</p>
-              <p className="mt-0.5">{totalTime} total</p>
+              <p style={{ marginTop: '2px' }}>{totalTime} total</p>
             </div>
           </div>
 
-          {/* Buttons */}
-          <div className="space-y-3">
+          {/* Session option cards */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
             {dueCount <= 5 ? (
-              /* 1–5: single "Review all" button */
+              /* 1–5: single "Review all" — violet hero treatment */
               <button
                 onClick={() => startSession(dueCount)}
-                className="w-full py-4 px-6 rounded-xl font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors flex flex-col items-center gap-0.5"
+                style={{
+                  width:        '100%',
+                  background:   '#08080f',
+                  border:       '1px solid #16161e',
+                  borderRadius: '14px',
+                  padding:      '18px 20px',
+                  boxShadow:    '0 0 36px rgba(124,58,237,0.6), 0 0 72px rgba(124,58,237,0.25)',
+                  cursor:       'pointer',
+                  textAlign:    'left',
+                }}
               >
-                <span className="text-[1.1rem] font-bold">Review all</span>
-                <span className="text-[0.95rem] font-normal">{dueCount} question{dueCount !== 1 ? 's' : ''} | {totalTime}</span>
+                <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>Review all</p>
+                <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)' }}>{dueCount} question{dueCount !== 1 ? 's' : ''} · {totalTime}</p>
               </button>
             ) : (
               <>
-                {/* Quick session — always shown for 6+ */}
+                {/* Quick session — understated dark card */}
                 <button
                   onClick={() => startSession(5)}
-                  className="w-full py-4 px-6 rounded-xl font-semibold transition-colors flex flex-col items-center gap-0.5"
                   style={{
-                    border: '1px solid var(--color-border)',
-                    color: 'var(--color-foreground)',
-                    background: 'transparent',
+                    width:        '100%',
+                    background:   '#0e0e18',
+                    border:       '1px solid rgba(255,255,255,0.06)',
+                    borderRadius: '14px',
+                    padding:      '18px 20px',
+                    cursor:       'pointer',
+                    textAlign:    'left',
                   }}
                 >
-                  <span className="text-[1.1rem] font-bold">Quick Session</span>
-                  <span className="text-[0.95rem] font-normal">5 questions | {timeEstimate(5)}</span>
+                  <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>Quick Session</p>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)' }}>5 questions · {timeEstimate(5)}</p>
                 </button>
 
-                {/* Normal session — always shown for 6+ */}
+                {/* Normal session — violet hero card */}
                 <button
                   onClick={() => startSession(15)}
-                  className="w-full py-4 px-6 rounded-xl font-semibold text-white bg-violet-600 hover:bg-violet-700 transition-colors flex flex-col items-center gap-0.5"
+                  style={{
+                    width:        '100%',
+                    background:   '#08080f',
+                    border:       '1px solid #16161e',
+                    borderRadius: '14px',
+                    padding:      '18px 20px',
+                    boxShadow:    '0 0 36px rgba(124,58,237,0.6), 0 0 72px rgba(124,58,237,0.25)',
+                    cursor:       'pointer',
+                    textAlign:    'left',
+                  }}
                 >
-                  <span className="text-[1.1rem] font-bold">Normal Session</span>
-                  <span className="text-[0.95rem] font-normal">15 questions | {timeEstimate(15)}</span>
+                  <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>Normal Session</p>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)' }}>15 questions · {timeEstimate(15)}</p>
                 </button>
 
-                {/* Heroic — only shown for 15+ */}
+                {/* Heroic — only shown for 15+ — warm orange glow */}
                 {dueCount >= 15 && (
                   <button
                     onClick={() => startSession(null)}
-                    className="w-full py-4 px-6 rounded-xl font-semibold text-white transition-colors flex flex-col items-center gap-0.5"
-                    style={{ background: '#ea580c' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#c2410c'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#ea580c'}
+                    style={{
+                      width:        '100%',
+                      background:   '#0e0e18',
+                      border:       '1px solid rgba(234,88,12,0.3)',
+                      borderRadius: '14px',
+                      padding:      '18px 20px',
+                      boxShadow:    '0 0 36px rgba(234,88,12,0.5), 0 0 72px rgba(234,88,12,0.2)',
+                      cursor:       'pointer',
+                      textAlign:    'left',
+                    }}
                   >
-                    <span className="text-[1.1rem] font-bold">🔥 Heroic Session</span>
-                    <span className="text-[0.95rem] font-normal">as many as you can handle</span>
+                    <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>🔥 Heroic Session</p>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)' }}>as many as you can handle</p>
                   </button>
                 )}
               </>
@@ -959,6 +1013,23 @@ export default function StudyPage() {
     );
   }
 
+  // ── shared question card style ──────────────────────────────────────────────
+  const questionCardStyle = {
+    borderRadius: '14px',
+    padding:      '12px 14px',
+    background:   '#0e0e18',
+    border:       '1px solid rgba(255,255,255,0.06)',
+  };
+
+  const typeOverlineStyle = {
+    fontSize:      '0.64rem',
+    fontWeight:    600,
+    textTransform: 'uppercase',
+    letterSpacing: '0.1em',
+    color:         '#EEFF99',
+    marginBottom:  '6px',
+  };
+
   // ── PRE-REVEAL: everything fits in one screen, no scrolling needed ──────────
   if (!revealed) {
     return (
@@ -967,7 +1038,15 @@ export default function StudyPage() {
         {/* Fixed header: progress bar + question */}
         <div
           ref={headerRef}
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 20, background: 'var(--color-background)' }}
+          style={{
+            position:     'fixed',
+            top:          0,
+            left:         0,
+            right:        0,
+            zIndex:       20,
+            background:   '#0d0d0c',
+            borderBottom: '1px solid rgba(255,255,255,0.06)',
+          }}
         >
           <div className="max-w-2xl mx-auto px-4">
             <div className="px-4">
@@ -975,19 +1054,13 @@ export default function StudyPage() {
                 <ProgressBar current={index} total={questions.length} />
 
                 {index === 0 && (
-                  <p className="text-base text-center text-green-400">
+                  <p className="text-base text-center" style={{ color: '#4ADE80' }}>
                     {isHeroic ? 'Ready. Set. Go. Be Heroic' : `🔒 ${questions.length} questions. No other choice. Complete.`}
                   </p>
                 )}
 
-                <div
-                  ref={cardRef}
-                  className="rounded-2xl p-3 sm:p-5"
-                  style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
-                >
-                  <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">
-                    {question.question_type}
-                  </div>
+                <div ref={cardRef} style={questionCardStyle}>
+                  <div style={typeOverlineStyle}>{question.question_type}</div>
                   <p className="text-base sm:text-xl font-semibold leading-snug">
                     {question.question_text}
                   </p>
@@ -1006,17 +1079,24 @@ export default function StudyPage() {
               onChange={(e) => setUserAttempt(e.target.value)}
               placeholder="Type your answer… (3+ words to unlock Reveal)"
               rows={4}
-              className="w-full rounded-xl px-4 py-3 text-base leading-relaxed resize-none focus:outline-none"
+              className="w-full rounded-xl px-4 py-3 text-base leading-relaxed resize-none focus:outline-none focus:border-[rgba(124,58,237,0.55)]"
               style={{
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-foreground)',
+                background:  '#0e0e18',
+                border:      '1px solid rgba(255,255,255,0.08)',
+                color:       'var(--color-foreground)',
+                transition:  'border-color 0.15s ease',
               }}
             />
             <button
               onClick={() => setRevealed(true)}
               disabled={!canReveal}
-              className="w-full py-4 rounded-xl font-medium text-base transition-opacity disabled:opacity-40 disabled:cursor-not-allowed bg-violet-600 text-white hover:bg-violet-700"
+              className="w-full py-4 rounded-xl font-medium text-base disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background: '#7c3aed',
+                color:      '#ffffff',
+                boxShadow:  canReveal ? '0 0 20px rgba(124,58,237,0.55), 0 0 40px rgba(124,58,237,0.2)' : 'none',
+                transition: 'box-shadow 0.2s ease',
+              }}
             >
               Reveal Answer
             </button>
@@ -1034,21 +1114,23 @@ export default function StudyPage() {
       {/* Fixed header: progress bar + question card */}
       <div
         ref={headerRef}
-        style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 20, background: 'var(--color-background)' }}
+        style={{
+          position:     'fixed',
+          top:          0,
+          left:         0,
+          right:        0,
+          zIndex:       20,
+          background:   '#0d0d0c',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}
       >
         <div className="max-w-2xl mx-auto px-4">
           <div className="px-4">
             <div className="w-full max-w-xl mx-auto pt-3 pb-2 space-y-3">
               <ProgressBar current={index} total={questions.length} />
 
-              <div
-                ref={cardRef}
-                className="rounded-2xl p-3 sm:p-5"
-                style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
-              >
-                <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">
-                  {question.question_type}
-                </div>
+              <div ref={cardRef} style={questionCardStyle}>
+                <div style={typeOverlineStyle}>{question.question_type}</div>
                 <p className="text-sm sm:text-lg font-semibold leading-snug">
                   {question.question_text}
                 </p>
@@ -1097,22 +1179,35 @@ export default function StudyPage() {
       <div className="min-h-dvh px-4" style={{ paddingTop: headerHeight }}>
         <div className="w-full max-w-xl mx-auto space-y-3 pt-3 pb-8">
 
+          {/* Your answer — subtle inset card */}
           {userAttempt.trim() && (
-            <div className="rounded-xl px-3 py-1.5 bg-gray-800/40">
-              <div className="text-xs uppercase tracking-wider text-gray-500 mb-0.5">Your answer</div>
-              <p className="text-sm text-gray-400 leading-snug">{userAttempt}</p>
+            <div style={{
+              background:   'rgba(255,255,255,0.03)',
+              border:       '1px solid rgba(255,255,255,0.06)',
+              borderRadius: '10px',
+              padding:      '10px 14px',
+            }}>
+              <div style={{ fontSize: '0.64rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-muted)', marginBottom: '4px' }}>
+                Your answer
+              </div>
+              <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)', lineHeight: 1.55 }}>{userAttempt}</p>
             </div>
           )}
 
+          {/* Answer */}
           <div>
-            <div className="text-xs uppercase tracking-wider text-gray-500 mb-1">Answer</div>
-            <p className="text-base font-medium leading-snug">{question.answer_text}</p>
+            <div style={{ fontSize: '0.64rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#EEFF99', marginBottom: '6px' }}>
+              Answer
+            </div>
+            <p style={{ fontSize: '1rem', fontWeight: 600, color: '#e8e6e1', lineHeight: 1.45 }}>{question.answer_text}</p>
           </div>
 
+          {/* Explanation & source toggle */}
           <div>
             <button
               onClick={() => setShowDetail((v) => !v)}
-              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-300 transition-colors"
+              className="flex items-center gap-1.5 text-sm transition-colors"
+              style={{ color: 'var(--color-muted)' }}
             >
               <span>{showDetail ? 'Hide' : 'Show'} explanation & source</span>
               <svg
@@ -1126,13 +1221,17 @@ export default function StudyPage() {
             {showDetail && (
               <div className="mt-3 space-y-3">
                 <div>
-                  <div className="text-xs uppercase tracking-wider text-gray-500 mb-1.5">Explanation</div>
-                  <p className="text-sm text-gray-400 leading-relaxed">{question.explanation}</p>
+                  <div style={{ fontSize: '0.64rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-muted)', marginBottom: '6px' }}>
+                    Explanation
+                  </div>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)', lineHeight: 1.6 }}>{question.explanation}</p>
                 </div>
                 {question.source_reference && (
                   <div>
-                    <div className="text-xs uppercase tracking-wider text-gray-500 mb-1.5">Source</div>
-                    <blockquote className="text-sm text-gray-400 leading-relaxed pl-3 italic border-l-2 border-gray-700">
+                    <div style={{ fontSize: '0.64rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-muted)', marginBottom: '6px' }}>
+                      Source
+                    </div>
+                    <blockquote style={{ fontSize: '0.875rem', color: 'var(--color-muted)', lineHeight: 1.6, paddingLeft: '12px', fontStyle: 'italic', borderLeft: '2px solid rgba(255,255,255,0.12)' }}>
                       {question.source_reference}
                     </blockquote>
                   </div>
@@ -1141,35 +1240,41 @@ export default function StudyPage() {
             )}
           </div>
 
-          <div className="flex gap-3">
+          {/* Grade buttons */}
+          <div style={{ display: 'flex', gap: '10px' }}>
             <GradeButton
               label="Easy"
               sublabel="Knew it"
               onClick={() => handleGrade('easy')}
-              bgClass="bg-green-400 hover:bg-green-300"
+              colorRgb="74, 222, 128"
               disabled={grading}
             />
             <GradeButton
               label="Hard"
               sublabel="Struggled"
               onClick={() => handleGrade('hard')}
-              bgClass="bg-amber-600 hover:bg-amber-700"
+              colorRgb="217, 119, 6"
               disabled={grading}
             />
             <GradeButton
               label="Forgot"
               sublabel="Missed it"
               onClick={() => handleGrade('forgot')}
-              bgClass="bg-red-600 hover:bg-red-700"
+              colorRgb="239, 68, 68"
               disabled={grading}
             />
           </div>
 
+          {/* Skip button */}
           <button
             onClick={() => handleGrade('skipped')}
             disabled={grading}
             className="w-full py-2 rounded-xl text-sm font-medium transition-opacity disabled:opacity-40"
-            style={{ color: 'var(--color-muted)', border: '1px solid var(--color-border)' }}
+            style={{
+              color:      '#8a8880',
+              background: 'transparent',
+              border:     '1px solid rgba(255,255,255,0.06)',
+            }}
           >
             Skip
           </button>
