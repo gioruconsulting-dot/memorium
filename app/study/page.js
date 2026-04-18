@@ -901,7 +901,7 @@ export default function StudyPage() {
             }}>
               Pick your session
             </h1>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--color-muted)' }}>
+            <p style={{ fontSize: '1.015rem', color: 'var(--color-muted)' }}>
               {dueCount} question{dueCount !== 1 ? 's' : ''} due · ~{totalTime}
             </p>
           </div>
@@ -925,7 +925,7 @@ export default function StudyPage() {
                 }}
               >
                 <div style={{ ...cardOverline, color: 'rgba(238,255,153,0.85)' }}>Standard</div>
-                <p style={{ fontSize: '1rem', fontWeight: 700, color: '#e8e6e1', marginBottom: '4px' }}>Review all</p>
+                <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e8e6e1', marginBottom: '4px' }}>Review all</p>
                 <p style={{ fontSize: '0.8125rem', color: 'var(--color-muted)' }}>{dueCount} question{dueCount !== 1 ? 's' : ''} · ~{totalTime}</p>
               </button>
             ) : (
@@ -936,16 +936,16 @@ export default function StudyPage() {
                   style={{
                     width:        '100%',
                     background:   '#0e0e18',
-                    border:       '1px solid rgba(96,165,250,0.18)',
+                    border:       '1px solid rgba(96,165,250,0.25)',
                     borderRadius: '14px',
                     padding:      '18px 20px',
-                    boxShadow:    '0 0 16px rgba(96,165,250,0.12), 0 0 32px rgba(96,165,250,0.05)',
+                    boxShadow:    '0 0 22px rgba(96,165,250,0.28), 0 0 44px rgba(96,165,250,0.11)',
                     cursor:       'pointer',
                     textAlign:    'left',
                   }}
                 >
                   <div style={{ ...cardOverline, color: 'rgba(96,165,250,0.75)' }}>Quick</div>
-                  <p style={{ fontSize: '1rem', fontWeight: 700, color: '#e8e6e1', marginBottom: '4px' }}>Quick Session</p>
+                  <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e8e6e1', marginBottom: '4px' }}>Quick Session</p>
                   <p style={{ fontSize: '0.8125rem', color: 'var(--color-muted)' }}>5 questions · ~{timeEstimate(5)}</p>
                 </button>
 
@@ -964,7 +964,7 @@ export default function StudyPage() {
                   }}
                 >
                   <div style={{ ...cardOverline, color: 'rgba(238,255,153,0.85)' }}>Standard</div>
-                  <p style={{ fontSize: '1rem', fontWeight: 700, color: '#e8e6e1', marginBottom: '4px' }}>Normal Session</p>
+                  <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e8e6e1', marginBottom: '4px' }}>Normal Session</p>
                   <p style={{ fontSize: '0.8125rem', color: 'var(--color-muted)' }}>15 questions · ~{timeEstimate(15)}</p>
                 </button>
 
@@ -975,16 +975,16 @@ export default function StudyPage() {
                     style={{
                       width:        '100%',
                       background:   '#0e0e18',
-                      border:       '1px solid rgba(234,88,12,0.22)',
+                      border:       '1px solid rgba(234,88,12,0.3)',
                       borderRadius: '14px',
                       padding:      '18px 20px',
-                      boxShadow:    '0 0 16px rgba(234,88,12,0.2), 0 0 32px rgba(234,88,12,0.08)',
+                      boxShadow:    '0 0 22px rgba(234,88,12,0.35), 0 0 44px rgba(234,88,12,0.14)',
                       cursor:       'pointer',
                       textAlign:    'left',
                     }}
                   >
                     <div style={{ ...cardOverline, color: 'rgba(251,146,60,0.8)' }}>Challenge</div>
-                    <p style={{ fontSize: '1rem', fontWeight: 700, color: '#e8e6e1', marginBottom: '4px' }}>Heroic Session</p>
+                    <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e8e6e1', marginBottom: '4px' }}>🔥 Heroic Session</p>
                     <p style={{ fontSize: '0.8125rem', color: 'var(--color-muted)' }}>All {dueCount} — as many as you can handle</p>
                   </button>
                 )}
