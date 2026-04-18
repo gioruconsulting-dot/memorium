@@ -150,8 +150,31 @@ function ProgressBar({ current, total }) {
   );
 }
 
-// Semi-transparent tinted grade buttons with press feedback
-function GradeButton({ label, sublabel, onClick, colorRgb, disabled }) {
+const GRADE_THEMES = {
+  easy: {
+    bg:        'rgba(5, 46, 22, 0.82)',
+    bgPressed: 'rgba(5, 46, 22, 0.98)',
+    text:      '#86efac',
+    border:    'rgba(74, 222, 128, 0.32)',
+    glow:      '0 0 12px rgba(74,222,128,0.18), 0 0 24px rgba(74,222,128,0.07)',
+  },
+  hard: {
+    bg:        'rgba(78, 32, 0, 0.82)',
+    bgPressed: 'rgba(78, 32, 0, 0.98)',
+    text:      '#fbbf24',
+    border:    'rgba(217, 119, 6, 0.38)',
+    glow:      '0 0 12px rgba(217,119,6,0.18), 0 0 24px rgba(217,119,6,0.07)',
+  },
+  forgot: {
+    bg:        'rgba(70, 6, 6, 0.82)',
+    bgPressed: 'rgba(70, 6, 6, 0.98)',
+    text:      '#fca5a5',
+    border:    'rgba(239, 68, 68, 0.32)',
+    glow:      '0 0 12px rgba(239,68,68,0.16), 0 0 24px rgba(239,68,68,0.06)',
+  },
+};
+
+function GradeButton({ label, sublabel, onClick, theme, disabled }) {
   const [pressed, setPressed] = useState(false);
   return (
     <button
@@ -166,9 +189,10 @@ function GradeButton({ label, sublabel, onClick, colorRgb, disabled }) {
       style={{
         minHeight:  '56px',
         padding:    '12px 8px',
-        background: pressed ? `rgba(${colorRgb}, 0.22)` : `rgba(${colorRgb}, 0.1)`,
-        color:      `rgb(${colorRgb})`,
-        border:     `1px solid rgba(${colorRgb}, 0.28)`,
+        background: pressed ? theme.bgPressed : theme.bg,
+        color:      theme.text,
+        border:     `1px solid ${theme.border}`,
+        boxShadow:  theme.glow,
         transition: 'background 0.1s ease',
       }}
     >
@@ -1120,7 +1144,7 @@ export default function StudyPage() {
               style={{
                 background: '#7c3aed',
                 color:      '#ffffff',
-                boxShadow:  canReveal ? '0 0 14px rgba(124,58,237,0.3), 0 0 28px rgba(124,58,237,0.1)' : 'none',
+                boxShadow:  canReveal ? '0 0 18px rgba(124,58,237,0.39), 0 0 36px rgba(124,58,237,0.13)' : 'none',
                 transition: 'box-shadow 0.2s ease',
               }}
             >
@@ -1272,21 +1296,21 @@ export default function StudyPage() {
               label="Easy"
               sublabel="Knew it"
               onClick={() => handleGrade('easy')}
-              colorRgb="74, 222, 128"
+              theme={GRADE_THEMES.easy}
               disabled={grading}
             />
             <GradeButton
               label="Hard"
               sublabel="Struggled"
               onClick={() => handleGrade('hard')}
-              colorRgb="217, 119, 6"
+              theme={GRADE_THEMES.hard}
               disabled={grading}
             />
             <GradeButton
               label="Forgot"
               sublabel="Missed it"
               onClick={() => handleGrade('forgot')}
-              colorRgb="239, 68, 68"
+              theme={GRADE_THEMES.forgot}
               disabled={grading}
             />
           </div>
