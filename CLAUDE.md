@@ -45,20 +45,111 @@ Study page   →  GET  /api/questions/session   (getDueQuestions, next_review_at
 
 - **`client.js`** — singleton `getDb()`, throws if `TURSO_DATABASE_URL` missing, enables `PRAGMA foreign_keys = ON`
 - **`schema.js`** — `SCHEMA_SQL` array run by `scripts/migrate.js`; 5 tables: `users`, `documents`, `questions`, `study_sessions`, `session_answers`. All timestamps are Unix epoch integers (`strftime('%s', 'now')`).
-- **`queries.js`** — all DB access lives here. Hardcodes `USER_ID = 'default-user'` (solo-user app). FK cascades are not reliably enforced by libsql, so `deleteDocument()` manually deletes child rows in order.
+- **`queries.js`** — all DB access lives here. FK cascades are not reliably enforced by libsql, so `deleteDocument()` manually deletes child rows in order.
 
 ### AI (`lib/ai/generate-questions.js`)
 
-Calls Anthropic `/v1/messages` directly via `fetch` (no SDK). Model read from `process.env.CLAUDE_MODEL`, fallback `claude-sonnet-4-20250514`. Asks for exactly 20 questions, accepts ≥15, retries up to 3× with backoff. Returns objects with fields: `question`, `type` (`recall`|`application`|`connection`), `correctAnswer`, `explanation`, `sourceReference`.
+Calls Anthropic `/v1/messages` directly via `fetch` (no SDK). Model read from `process.env.CLAUDE_MODEL`, fallback `claude-sonnet-4-6`. Asks for exactly 20 questions, accepts ≥15, retries up to 3× with backoff. Returns objects with fields: `question`, `type` (`recall`|`application`|`connection`), `correctAnswer`, `explanation`, `sourceReference`.
 
 ### API routes (`app/api/`)
 
-Routes not yet implemented return `{ message: "Not implemented yet" }` with status 501. Implemented so far: `POST /api/documents/create` (full upload + question generation pipeline).
+Routes not yet implemented return `{ message: "Not implemented yet" }` with status 501.
 
 ### Spaced repetition grading
 
-Grades are `easy`, `hard`, or `forgot`. In `queries.js`: `easy` and `hard` both increment `correct_count`; `forgot` increments `incorrect_count`. The interval math (updating `next_review_at` and `current_interval_days`) is the responsibility of `POST /api/questions/grade` — not yet implemented.
+Grades are `easy`, `hard`, or `forgot`. In `queries.js`: `easy` and `hard` both increment `correct_count`; `forgot` increments `incorrect_count`. Interval math lives in `POST /api/questions/grade`.
 
-### Styling
+---
 
-Tailwind v4 with `@import "tailwindcss"` (not `@tailwind` directives). CSS custom properties defined in `app/globals.css` for the full colour system (`--color-accent`, `--color-easy`, `--color-hard`, `--color-forgot`, etc.) with automatic dark mode via `@media (prefers-color-scheme: dark)`. Google Fonts DM Sans (body) and DM Serif Display (headings) loaded via `next/font/google` in `layout.js`.
+## Visual Design System
+
+**Aesthetic**: "calm premium arcade" — dark near-black backgrounds, restrained violet card glow, yellow-green (`#EEFF99`) for key numbers and overlines, white for titles, muted (`#8a8880` / `var(--color-muted)`) for secondary text.
+
+### Page wrapper (all content pages)
+
+```js
+// Always use this wrapper + StarryBackground as first child
+const wrapperStyle = { position: 'relative', zIndex: 1, paddingTop: '24px', paddingBottom: '40px' };
+
+// StarryBackground is position: fixed, zIndex: 0 — sits behind everything
+import StarryBackground from '@/components/StarryBackground';
+```
+
+### Page title (Library, Progress, Study)
+
+```js
+{
+  fontSize: '1.84rem', fontWeight: 700, color: '#ffffff',
+  lineHeight: 1.1, marginBottom: '20px', paddingLeft: '20px',
+}
+```
+
+### Standard card (Library docs, Progress sections)
+
+```js
+{
+  background:   '#0e0e18',
+  border:       '1px solid rgba(255,255,255,0.06)',
+  borderRadius: '14px',
+  padding:      '14px 16px',
+  boxShadow:    '0 0 16px rgba(124,58,237,0.278), 0 0 32px rgba(124,58,237,0.101)',
+}
+```
+
+### Hero card (Homepage "Start Studying" only — stronger glow)
+
+```js
+{
+  background:   '#08080f',
+  border:       '1px solid #16161e',
+  borderRadius: '18px',
+  boxShadow:    '0 0 36px rgba(124,58,237,0.6), 0 0 72px rgba(124,58,237,0.25)',
+}
+```
+
+### Secondary cards (Homepage streak, add content)
+
+```js
+{
+  background:   '#0e0e18',
+  border:       '1px solid #1e1e2a',
+  borderRadius: '14px',
+  boxShadow:    '0 0 16px rgba(124,58,237,0.22), 0 0 32px rgba(124,58,237,0.08)',
+}
+```
+
+### Overline label (small caps above section/card headings)
+
+```js
+{
+  fontSize: '0.64rem', fontWeight: 600,
+  textTransform: 'uppercase', letterSpacing: '0.1em',
+  color: 'rgba(238, 255, 153, 0.85)',  // yellow-green — use #60A5FA for "Adopted" type only
+  marginBottom: '6px',
+}
+```
+
+### Card title
+
+```js
+{ fontWeight: 700, fontSize: '1rem', color: '#e8e6e1', lineHeight: 1.35 }
+```
+
+### Card gap
+
+`10px` between cards (flex column with `gap: '10px'`, or `marginTop: 10` on non-first items).
+
+### Rules
+
+- **Use inline styles for all card/card-content styling.** Tailwind only for layout utilities (`flex-1`, `items-center`, `animate-pulse`, hover pseudo-classes via className).
+- **Nav icons are inline SVGs** — `strokeWidth: 2.75`, `viewBox: '0 0 32 32'`. Never use PNG or emoji.
+- **StarryBackground** must be the first child of the page wrapper on every content page (Library, Progress, Study — not /study flashcard flow, not /sign-in).
+- Loading skeletons match card style: same `#0e0e18` bg, same border, same glow, `animate-pulse` className.
+
+### Tailwind v4
+
+Uses `@import "tailwindcss"` (not `@tailwind` directives). CSS custom properties in `app/globals.css`: `--color-accent`, `--color-easy`, `--color-hard`, `--color-forgot`, `--color-muted`, `--color-foreground`, `--color-background`, `--color-surface`, `--color-border`. Dark mode forced permanently.
+
+### Fonts
+
+DM Sans (body) and DM Serif Display (headings) via `next/font/google` in `layout.js`.

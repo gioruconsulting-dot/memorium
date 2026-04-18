@@ -864,6 +864,11 @@ export default function StudyPage() {
 
   if (phase === 'picker') {
     const totalTime = timeEstimate(dueCount);
+    const cardOverline = {
+      fontSize: '0.64rem', fontWeight: 600,
+      textTransform: 'uppercase', letterSpacing: '0.1em',
+      marginBottom: '6px',
+    };
     return (
       <div style={{
         position:       'relative',
@@ -879,89 +884,108 @@ export default function StudyPage() {
 
         <div style={{ width: '100%', maxWidth: '360px' }}>
 
-          {/* Header — due count + time */}
-          <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-            <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#EEFF99', lineHeight: 1.2 }}>
-              <p>{dueCount} question{dueCount !== 1 ? 's' : ''} due</p>
-              <p style={{ marginTop: '2px' }}>{totalTime} total</p>
+          {/* Status header */}
+          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+            <div style={{
+              fontSize: '0.64rem', fontWeight: 600,
+              textTransform: 'uppercase', letterSpacing: '0.1em',
+              color: 'rgba(238,255,153,0.85)',
+              marginBottom: '10px',
+            }}>
+              Ready to study
             </div>
+            <h1 style={{
+              fontSize: '1.75rem', fontWeight: 700,
+              color: '#ffffff', lineHeight: 1.15,
+              marginBottom: '8px',
+            }}>
+              Pick your session
+            </h1>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--color-muted)' }}>
+              {dueCount} question{dueCount !== 1 ? 's' : ''} due · ~{totalTime}
+            </p>
           </div>
 
           {/* Session option cards */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
             {dueCount <= 5 ? (
-              /* 1–5: single "Review all" — violet hero treatment */
+              /* 1–5: single "Review all" — violet anchor treatment */
               <button
                 onClick={() => startSession(dueCount)}
                 style={{
                   width:        '100%',
                   background:   '#08080f',
-                  border:       '1px solid #16161e',
+                  border:       '1px solid rgba(124,58,237,0.35)',
                   borderRadius: '14px',
-                  padding:      '18px 20px',
-                  boxShadow:    '0 0 36px rgba(124,58,237,0.6), 0 0 72px rgba(124,58,237,0.25)',
+                  padding:      '22px 20px',
+                  boxShadow:    '0 0 28px rgba(124,58,237,0.45), 0 0 56px rgba(124,58,237,0.18)',
                   cursor:       'pointer',
                   textAlign:    'left',
                 }}
               >
-                <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>Review all</p>
-                <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)' }}>{dueCount} question{dueCount !== 1 ? 's' : ''} · {totalTime}</p>
+                <div style={{ ...cardOverline, color: 'rgba(238,255,153,0.85)' }}>Standard</div>
+                <p style={{ fontSize: '1rem', fontWeight: 700, color: '#e8e6e1', marginBottom: '4px' }}>Review all</p>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--color-muted)' }}>{dueCount} question{dueCount !== 1 ? 's' : ''} · ~{totalTime}</p>
               </button>
             ) : (
               <>
-                {/* Quick session — understated dark card */}
+                {/* Quick session — subtle cool cyan energy */}
                 <button
                   onClick={() => startSession(5)}
                   style={{
                     width:        '100%',
                     background:   '#0e0e18',
-                    border:       '1px solid rgba(255,255,255,0.06)',
+                    border:       '1px solid rgba(96,165,250,0.18)',
                     borderRadius: '14px',
                     padding:      '18px 20px',
+                    boxShadow:    '0 0 16px rgba(96,165,250,0.12), 0 0 32px rgba(96,165,250,0.05)',
                     cursor:       'pointer',
                     textAlign:    'left',
                   }}
                 >
-                  <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>Quick Session</p>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)' }}>5 questions · {timeEstimate(5)}</p>
+                  <div style={{ ...cardOverline, color: 'rgba(96,165,250,0.75)' }}>Quick</div>
+                  <p style={{ fontSize: '1rem', fontWeight: 700, color: '#e8e6e1', marginBottom: '4px' }}>Quick Session</p>
+                  <p style={{ fontSize: '0.8125rem', color: 'var(--color-muted)' }}>5 questions · ~{timeEstimate(5)}</p>
                 </button>
 
-                {/* Normal session — violet hero card */}
+                {/* Normal session — violet anchor, default choice */}
                 <button
                   onClick={() => startSession(15)}
                   style={{
                     width:        '100%',
                     background:   '#08080f',
-                    border:       '1px solid #16161e',
+                    border:       '1px solid rgba(124,58,237,0.35)',
                     borderRadius: '14px',
-                    padding:      '18px 20px',
-                    boxShadow:    '0 0 36px rgba(124,58,237,0.6), 0 0 72px rgba(124,58,237,0.25)',
+                    padding:      '22px 20px',
+                    boxShadow:    '0 0 28px rgba(124,58,237,0.45), 0 0 56px rgba(124,58,237,0.18)',
                     cursor:       'pointer',
                     textAlign:    'left',
                   }}
                 >
-                  <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>Normal Session</p>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)' }}>15 questions · {timeEstimate(15)}</p>
+                  <div style={{ ...cardOverline, color: 'rgba(238,255,153,0.85)' }}>Standard</div>
+                  <p style={{ fontSize: '1rem', fontWeight: 700, color: '#e8e6e1', marginBottom: '4px' }}>Normal Session</p>
+                  <p style={{ fontSize: '0.8125rem', color: 'var(--color-muted)' }}>15 questions · ~{timeEstimate(15)}</p>
                 </button>
 
-                {/* Heroic — only shown for 15+ — warm orange glow */}
+                {/* Heroic — warm ember energy, 15+ only */}
                 {dueCount >= 15 && (
                   <button
                     onClick={() => startSession(null)}
                     style={{
                       width:        '100%',
                       background:   '#0e0e18',
-                      border:       '1px solid rgba(234,88,12,0.3)',
+                      border:       '1px solid rgba(234,88,12,0.22)',
                       borderRadius: '14px',
                       padding:      '18px 20px',
-                      boxShadow:    '0 0 36px rgba(234,88,12,0.5), 0 0 72px rgba(234,88,12,0.2)',
+                      boxShadow:    '0 0 16px rgba(234,88,12,0.2), 0 0 32px rgba(234,88,12,0.08)',
                       cursor:       'pointer',
                       textAlign:    'left',
                     }}
                   >
-                    <p style={{ fontSize: '1.1rem', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>🔥 Heroic Session</p>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--color-muted)' }}>as many as you can handle</p>
+                    <div style={{ ...cardOverline, color: 'rgba(251,146,60,0.8)' }}>Challenge</div>
+                    <p style={{ fontSize: '1rem', fontWeight: 700, color: '#e8e6e1', marginBottom: '4px' }}>Heroic Session</p>
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--color-muted)' }}>All {dueCount} — as many as you can handle</p>
                   </button>
                 )}
               </>
