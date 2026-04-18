@@ -1042,8 +1042,8 @@ export default function StudyPage() {
     borderRadius: '14px',
     padding:      '12px 14px',
     background:   '#0e0e18',
-    border:       '1px solid rgba(255,255,255,0.08)',
-    boxShadow:    '0 0 20px rgba(124,58,237,0.22), 0 0 40px rgba(124,58,237,0.09)',
+    border:       '1px solid rgba(96,165,250,0.25)',
+    boxShadow:    '0 0 22px rgba(96,165,250,0.28), 0 0 44px rgba(96,165,250,0.11)',
   };
 
   const typeOverlineStyle = {
