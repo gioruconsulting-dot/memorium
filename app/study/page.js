@@ -1042,7 +1042,8 @@ export default function StudyPage() {
     borderRadius: '14px',
     padding:      '12px 14px',
     background:   '#0e0e18',
-    border:       '1px solid rgba(255,255,255,0.06)',
+    border:       '1px solid rgba(255,255,255,0.07)',
+    boxShadow:    '0 0 16px rgba(124,58,237,0.14), 0 0 32px rgba(124,58,237,0.05)',
   };
 
   const typeOverlineStyle = {
@@ -1058,18 +1059,21 @@ export default function StudyPage() {
   if (!revealed) {
     return (
       <div className="transition-opacity duration-200" style={{ opacity: fading ? 0 : 1 }}>
+        <StarryBackground />
 
         {/* Fixed header: progress bar + question */}
         <div
           ref={headerRef}
           style={{
-            position:     'fixed',
-            top:          0,
-            left:         0,
-            right:        0,
-            zIndex:       20,
-            background:   '#0d0d0c',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
+            position:            'fixed',
+            top:                 0,
+            left:                0,
+            right:               0,
+            zIndex:              20,
+            background:          'rgba(10,10,14,0.9)',
+            backdropFilter:      'blur(12px)',
+            WebkitBackdropFilter:'blur(12px)',
+            borderBottom:        '1px solid rgba(255,255,255,0.06)',
           }}
         >
           <div className="max-w-2xl mx-auto px-4">
@@ -1103,11 +1107,12 @@ export default function StudyPage() {
               onChange={(e) => setUserAttempt(e.target.value)}
               placeholder="Type your answer… (3+ words to unlock Reveal)"
               rows={4}
-              className="w-full rounded-xl px-4 py-3 text-base leading-relaxed resize-none focus:outline-none focus:border-[rgba(124,58,237,0.55)]"
+              className="w-full rounded-xl px-4 py-3 text-base leading-relaxed resize-none focus:outline-none focus:border-[rgba(124,58,237,0.5)]"
               style={{
-                background:  '#0e0e18',
-                border:      '1px solid rgba(255,255,255,0.08)',
+                background:  '#0c0c16',
+                border:      '1px solid rgba(255,255,255,0.07)',
                 color:       'var(--color-foreground)',
+                boxShadow:   'inset 0 1px 4px rgba(0,0,0,0.35)',
                 transition:  'border-color 0.15s ease',
               }}
             />
@@ -1118,7 +1123,7 @@ export default function StudyPage() {
               style={{
                 background: '#7c3aed',
                 color:      '#ffffff',
-                boxShadow:  canReveal ? '0 0 20px rgba(124,58,237,0.55), 0 0 40px rgba(124,58,237,0.2)' : 'none',
+                boxShadow:  canReveal ? '0 0 14px rgba(124,58,237,0.3), 0 0 28px rgba(124,58,237,0.1)' : 'none',
                 transition: 'box-shadow 0.2s ease',
               }}
             >
@@ -1134,18 +1139,21 @@ export default function StudyPage() {
   // ── POST-REVEAL: fixed header, answer content scrolls below ────────────────
   return (
     <div className="transition-opacity duration-200" style={{ opacity: fading ? 0 : 1 }}>
+      <StarryBackground />
 
       {/* Fixed header: progress bar + question card */}
       <div
         ref={headerRef}
         style={{
-          position:     'fixed',
-          top:          0,
-          left:         0,
-          right:        0,
-          zIndex:       20,
-          background:   '#0d0d0c',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          position:            'fixed',
+          top:                 0,
+          left:                0,
+          right:               0,
+          zIndex:              20,
+          background:          'rgba(10,10,14,0.9)',
+          backdropFilter:      'blur(12px)',
+          WebkitBackdropFilter:'blur(12px)',
+          borderBottom:        '1px solid rgba(255,255,255,0.06)',
         }}
       >
         <div className="max-w-2xl mx-auto px-4">
@@ -1206,9 +1214,9 @@ export default function StudyPage() {
           {/* Your answer — subtle inset card */}
           {userAttempt.trim() && (
             <div style={{
-              background:   'rgba(255,255,255,0.03)',
-              border:       '1px solid rgba(255,255,255,0.06)',
-              borderRadius: '10px',
+              background:   '#0c0c16',
+              border:       '1px solid rgba(255,255,255,0.07)',
+              borderRadius: '12px',
               padding:      '10px 14px',
             }}>
               <div style={{ fontSize: '0.64rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-muted)', marginBottom: '4px' }}>
