@@ -207,15 +207,14 @@ export default function BrowsePage() {
                     flexShrink:   0,
                     fontSize:     '0.8125rem',
                     fontWeight:   600,
-                    padding:      '7px 14px',
+                    padding:      '6px 13px',
                     borderRadius: '9px',
-                    border:       'none',
                     cursor:       isDone || isAdopting ? 'default' : 'pointer',
                     transition:   'opacity 0.15s ease',
                     opacity:      isAdopting ? 0.6 : 1,
                     ...(isDone
-                      ? { background: 'rgba(34,197,94,0.12)', color: 'var(--color-easy)' }
-                      : { background: '#7c3aed', color: '#fff' }
+                      ? { background: 'rgba(34,197,94,0.1)', color: 'var(--color-easy)', border: '1px solid rgba(34,197,94,0.2)' }
+                      : { background: 'rgba(124,58,237,0.18)', color: '#c4b5fd', border: '1px solid rgba(124,58,237,0.32)' }
                     ),
                   }}
                 >
