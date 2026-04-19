@@ -59,6 +59,8 @@ Routes not yet implemented return `{ message: "Not implemented yet" }` with stat
 
 Grades are `easy`, `hard`, or `forgot`. In `queries.js`: `easy` and `hard` both increment `correct_count`; `forgot` increments `incorrect_count`. Interval math lives in `POST /api/questions/grade`.
 
+`next_review_at` is always snapped to **midnight UTC** of the target calendar day (via `midnightUtcPlus(days)` in the grade route). This means all questions due on the same day become available together at 00:00:00 UTC — do not revert to `now + interval * DAY`.
+
 ---
 
 ## Visual Design System
