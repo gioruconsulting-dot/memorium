@@ -120,6 +120,7 @@ export async function POST(request) {
       questionId,
       userAttempt: userAttempt ? String(userAttempt).slice(0, 2000) : null,
       grade,
+      intervalDays: newIntervalDays,  // null for skipped; stored for easy/hard/forgot
     });
 
     return NextResponse.json({ success: true, nextReviewAt, newIntervalDays });

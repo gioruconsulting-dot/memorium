@@ -291,11 +291,11 @@ function IntervalChart({ weeks, currentAvgInterval, startingAvgInterval, hasEnou
       {/* Bar rows */}
       <div>
         {displayWeeks.map((week, idx) => {
-          const targetPct = week.avgInterval !== null
+          const isCurrentWeek = idx === 0;
+          const hasData = week.avgInterval !== null;
+          const targetPct = hasData
             ? Math.round((week.avgInterval / maxInterval) * 100)
             : 0;
-          // Only the top bar (current week) animates; all others render at full width immediately
-          const isCurrentWeek = idx === 0;
           const barWidth = (isCurrentWeek && !barReady) ? '0%' : `${targetPct}%`;
 
           return (
@@ -307,7 +307,7 @@ function IntervalChart({ weeks, currentAvgInterval, startingAvgInterval, hasEnou
                 {week.label}
               </span>
               <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,0.07)', borderRadius: 4, overflow: 'hidden' }}>
-                {week.avgInterval !== null && (
+                {hasData ? (
                   <div
                     style={{
                       width: barWidth,
@@ -317,10 +317,16 @@ function IntervalChart({ weeks, currentAvgInterval, startingAvgInterval, hasEnou
                       transition: isCurrentWeek ? 'width 1s ease-out' : 'none',
                     }}
                   />
-                )}
+                ) : isCurrentWeek ? (
+                  /* Faint pulsing placeholder — week started but no reviews yet */
+                  <div
+                    className="animate-pulse"
+                    style={{ width: '18%', height: '100%', background: 'rgba(255,255,255,0.18)', borderRadius: 4 }}
+                  />
+                ) : null}
               </div>
               <span style={{ width: 26, fontSize: 10, color: 'var(--color-muted)', flexShrink: 0, textAlign: 'left' }}>
-                {week.avgInterval !== null ? `${week.avgInterval}d` : ''}
+                {hasData ? `${week.avgInterval}d` : isCurrentWeek ? '–' : ''}
               </span>
             </div>
           );

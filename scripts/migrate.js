@@ -12,9 +12,14 @@ async function migrate() {
       await db.execute(sql);
       console.log(`✓ ${preview}`);
     } catch (err) {
-      console.error(`✗ ${preview}`);
-      console.error(`  ${err.message}`);
-      hasError = true;
+      // ALTER TABLE ADD COLUMN fails with "duplicate column" if already applied — not an error
+      if (err.message?.toLowerCase().includes('duplicate column')) {
+        console.log(`⚠ ${preview} (column already exists, skipping)`);
+      } else {
+        console.error(`✗ ${preview}`);
+        console.error(`  ${err.message}`);
+        hasError = true;
+      }
     }
   }
 

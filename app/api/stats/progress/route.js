@@ -2,14 +2,24 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getProgressPageData } from "@/lib/db/queries";
 
-// Return the ISO date (YYYY-MM-DD) for the Monday of the week containing a unix timestamp
-function weekMonday(unixSeconds) {
-  const d = new Date(Number(unixSeconds) * 1000);
-  const day = d.getUTCDay(); // 0 = Sun
+// ── London calendar helpers (Europe/London = GMT in winter, BST UTC+1 in summer) ──
+
+function londonDateStr(unixSec) {
+  return new Date(unixSec * 1000).toLocaleDateString('en-CA', { timeZone: 'Europe/London' });
+}
+
+// Return the YYYY-MM-DD of the Monday starting the London calendar week for a unix timestamp
+function londonWeekMonday(unixSec) {
+  const dateStr = londonDateStr(unixSec);         // e.g. '2026-04-14'
+  const d = new Date(dateStr + 'T00:00:00Z');     // parse as UTC to avoid host-tz noise
+  const day = d.getUTCDay();                      // 0 = Sun
   const diff = day === 0 ? -6 : 1 - day;
   d.setUTCDate(d.getUTCDate() + diff);
-  d.setUTCHours(0, 0, 0, 0);
   return d.toISOString().split('T')[0];
+}
+
+function londonThisMonday() {
+  return londonWeekMonday(Math.floor(Date.now() / 1000));
 }
 
 export async function GET() {
@@ -38,16 +48,11 @@ export async function GET() {
       topicCount:  allThemes.size,
     };
 
-    // ── Interval trend ────────────────────────────────────────────────────────
-    // Compute the Monday of the current week and build 8 week slots
-    const now = new Date();
-    const todayDay = now.getUTCDay();
-    const daysToMonday = todayDay === 0 ? 6 : todayDay - 1;
-    const thisMonday = new Date(now);
-    thisMonday.setUTCDate(thisMonday.getUTCDate() - daysToMonday);
-    thisMonday.setUTCHours(0, 0, 0, 0);
+    // ── Interval trend (London calendar weeks) ────────────────────────────────
+    const thisMondayStr = londonThisMonday();
+    const thisMonday = new Date(thisMondayStr + 'T00:00:00Z');
 
-    // weekStarts[0] = 7 weeks ago, weekStarts[7] = this week
+    // weekStarts[0] = 7 weeks ago Monday, weekStarts[7] = this Monday
     const weekStarts = [];
     for (let i = 7; i >= 0; i--) {
       const m = new Date(thisMonday);
@@ -55,12 +60,14 @@ export async function GET() {
       weekStarts.push(m.toISOString().split('T')[0]);
     }
 
-    // Bucket each question's current interval into the week it was last reviewed
+    // Bucket each review event by its London calendar week.
+    // intervalRows has one row per review (not per question) → past weeks are immutable.
     const weekBuckets = {};
     for (const row of intervalRows) {
-      const wk = weekMonday(Number(row.last_answered_at));
+      if (row.interval_days == null) continue;
+      const wk = londonWeekMonday(Number(row.answered_at));
       if (!weekBuckets[wk]) weekBuckets[wk] = [];
-      weekBuckets[wk].push(Number(row.current_interval_days));
+      weekBuckets[wk].push(Number(row.interval_days));
     }
 
     const weeks = weekStarts.map((weekStart, i) => {
@@ -84,7 +91,7 @@ export async function GET() {
     const firstTwo = weeksWithData.slice(0, 2);
 
     const currentAvgInterval  = lastTwo.length  > 0
-      ? Math.round(lastTwo.reduce((s, w)  => s + w.avgInterval, 0) / lastTwo.length)
+      ? Math.round(lastTwo.reduce((s, w) => s + w.avgInterval, 0) / lastTwo.length)
       : null;
     const startingAvgInterval = firstTwo.length > 0
       ? Math.round(firstTwo.reduce((s, w) => s + w.avgInterval, 0) / firstTwo.length)
@@ -98,13 +105,15 @@ export async function GET() {
       hasEnoughData: weeksWithData.length >= 2,
     };
 
-    // ── Activity calendar (63 days = 9 weeks) ─────────────────────────────────
+    // ── Activity calendar (London dates, 49 days = 7 weeks) ───────────────────
     const calStart = new Date(thisMonday);
-    calStart.setUTCDate(calStart.getUTCDate() - 6 * 7); // Monday 6 weeks ago (7 weeks total)
+    calStart.setUTCDate(calStart.getUTCDate() - 6 * 7); // Monday 6 weeks ago
 
+    // Aggregate raw answered_at timestamps into London calendar days
     const dayMap = {};
     for (const row of activityDays) {
-      dayMap[row.day] = Number(row.count);
+      const day = londonDateStr(Number(row.answered_at));
+      dayMap[day] = (dayMap[day] || 0) + 1;
     }
 
     const calDays = [];
