@@ -106,6 +106,7 @@ export default function UploadPage() {
   const canSubmit =
     status !== 'loading' &&
     title.trim().length > 0 &&
+    themes.trim().length > 0 &&
     charCount >= MIN_CHARS &&
     charCount <= MAX_CHARS;
 
@@ -182,7 +183,7 @@ export default function UploadPage() {
         body:    JSON.stringify({
           content: content.trim(),
           title:   title.trim(),
-          themes:  themes.trim() || null,
+          themes:  themes.trim(),
         }),
       });
       const data = await response.json();
@@ -374,7 +375,7 @@ export default function UploadPage() {
         <div>
           <label htmlFor="themes" style={labelStyle}>
             Themes{' '}
-            <span style={{ color: 'var(--color-muted)', fontWeight: 400, textTransform: 'none', letterSpacing: 0, fontSize: '0.72rem' }}>(optional)</span>
+            <span style={{ color: 'rgba(238,255,153,0.75)', textTransform: 'none', letterSpacing: 0 }}>*</span>
           </label>
           <input
             id="themes"
