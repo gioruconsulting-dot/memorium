@@ -13,12 +13,21 @@ const VALID_GRADES = new Set(["easy", "hard", "forgot", "skipped"]);
 const INTERVALS = [1, 3, 7, 14, 30, 60, 90, 180];
 const DAY = 86400;
 
-// Returns the Unix timestamp (seconds) for midnight UTC at the start of the
-// calendar day that is `days` days from today. This groups all questions due
-// on the same calendar day so they unlock together at 00:00:00 UTC.
-function midnightUtcPlus(days) {
-  const todayMidnight = Math.floor(Date.now() / 86400000) * 86400;
-  return todayMidnight + days * DAY;
+// Returns the Unix timestamp (seconds) for midnight Europe/London at the start
+// of the calendar day that is `days` days from today (London date). This groups
+// all questions due on the same London calendar day together.
+function midnightLondonPlus(days) {
+  const todayLondon = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/London' });
+  const base = new Date(todayLondon + 'T00:00:00Z');
+  base.setUTCDate(base.getUTCDate() + days);
+  const targetDate = base.toISOString().split('T')[0];
+  // Probe UTC midnight of target date to find how far ahead London is (0h GMT, 1h BST)
+  const utcMidnight = new Date(targetDate + 'T00:00:00Z');
+  const londonHour = parseInt(
+    new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hour12: false, timeZone: 'Europe/London' }).format(utcMidnight),
+    10
+  );
+  return Math.floor(utcMidnight.getTime() / 1000) - londonHour * 3600;
 }
 
 function calcNewState(q, grade) {
@@ -40,7 +49,7 @@ function calcNewState(q, grade) {
       correctStreak: newStreak,
       hardCount,
       currentIntervalDays: newInterval,
-      nextReviewAt: midnightUtcPlus(newInterval),
+      nextReviewAt: midnightLondonPlus(newInterval),
     };
   }
 
@@ -53,7 +62,7 @@ function calcNewState(q, grade) {
       correctStreak, // unchanged
       hardCount: hardCount + 1,
       currentIntervalDays: currentInterval, // unchanged
-      nextReviewAt: midnightUtcPlus(nextInterval),
+      nextReviewAt: midnightLondonPlus(nextInterval),
     };
   }
 
@@ -65,7 +74,7 @@ function calcNewState(q, grade) {
     correctStreak: 0,
     hardCount,
     currentIntervalDays: 1,
-    nextReviewAt: midnightUtcPlus(1),
+    nextReviewAt: midnightLondonPlus(1),
   };
 }
 
