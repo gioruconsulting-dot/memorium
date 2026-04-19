@@ -68,11 +68,11 @@ const overline = {
 
 const labelStyle = {
   display:       'block',
-  fontSize:      '0.72rem',
+  fontSize:      '0.792rem',
   fontWeight:    600,
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
-  color:         '#a09e9a',
+  color:         '#ffffff',
   marginBottom:  '8px',
 };
 
