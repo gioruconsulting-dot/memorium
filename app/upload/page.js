@@ -16,8 +16,8 @@ const STYLES = `
     width: 100%;
     padding: 10px 14px;
     border-radius: 10px;
-    border: 1px solid rgba(255,255,255,0.08);
-    background: #0c0c18;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: #0f0f22;
     color: #e8e6e1;
     font-size: 0.9375rem;
     line-height: 1.5;
@@ -26,19 +26,19 @@ const STYLES = `
     transition: border-color 0.15s, box-shadow 0.15s;
   }
   .u-field:focus {
-    border-color: rgba(124,58,237,0.65);
-    box-shadow: 0 0 0 3px rgba(124,58,237,0.11);
+    border-color: rgba(124,58,237,0.75);
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
   }
   .u-field::placeholder {
-    color: rgba(138,136,128,0.5);
+    color: rgba(155,153,148,0.65);
   }
   .u-field:disabled {
     opacity: 0.4;
     cursor: not-allowed;
   }
   .u-upload-btn:hover:not(:disabled) {
-    background: rgba(124,58,237,0.2);
-    border-color: rgba(124,58,237,0.5);
+    background: rgba(124,58,237,0.38);
+    border-color: rgba(124,58,237,0.75);
   }
   .u-ghost-btn:hover {
     background: rgba(255,255,255,0.06);
@@ -72,7 +72,7 @@ const labelStyle = {
   fontWeight:    600,
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
-  color:         'var(--color-muted)',
+  color:         '#a09e9a',
   marginBottom:  '8px',
 };
 
@@ -329,16 +329,17 @@ export default function UploadPage() {
               alignItems:     'center',
               justifyContent: 'center',
               gap:            '8px',
-              background:     'rgba(124,58,237,0.12)',
-              border:         '1px solid rgba(124,58,237,0.28)',
+              background:     'rgba(124,58,237,0.28)',
+              border:         '1.5px solid rgba(124,58,237,0.6)',
               borderRadius:   '10px',
               padding:        '10px 16px',
-              color:          '#c4b5fd',
+              color:          '#ddd6fe',
               fontSize:       '0.875rem',
-              fontWeight:     500,
+              fontWeight:     600,
               cursor:         status === 'loading' ? 'not-allowed' : 'pointer',
               opacity:        status === 'loading' ? 0.4 : 1,
-              transition:     'background 0.15s, border-color 0.15s',
+              boxShadow:      '0 0 14px rgba(124,58,237,0.22)',
+              transition:     'background 0.15s, border-color 0.15s, box-shadow 0.15s',
             }}
           >
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -496,14 +497,14 @@ export default function UploadPage() {
             width:        '100%',
             padding:      '12px 24px',
             borderRadius: '10px',
-            border:       canSubmit ? 'none' : '1px solid rgba(124,58,237,0.18)',
+            border:       canSubmit ? 'none' : '1px solid rgba(124,58,237,0.28)',
             fontWeight:   600,
             fontSize:     '0.9375rem',
             cursor:       canSubmit ? 'pointer' : 'not-allowed',
             transition:   'background 0.15s, box-shadow 0.15s',
-            background:   canSubmit ? '#7c3aed' : 'rgba(124,58,237,0.1)',
-            color:        canSubmit ? '#ffffff'  : 'rgba(196,181,253,0.35)',
-            boxShadow:    canSubmit ? '0 0 16px rgba(124,58,237,0.35)' : 'none',
+            background:   canSubmit ? '#7c3aed' : 'rgba(124,58,237,0.16)',
+            color:        canSubmit ? '#ffffff'  : 'rgba(196,181,253,0.5)',
+            boxShadow:    canSubmit ? '0 0 20px rgba(124,58,237,0.55), 0 0 44px rgba(124,58,237,0.2)' : 'none',
           }}
         >
           {status === 'loading' ? (
