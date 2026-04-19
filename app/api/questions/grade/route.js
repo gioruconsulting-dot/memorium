@@ -13,8 +13,15 @@ const VALID_GRADES = new Set(["easy", "hard", "forgot", "skipped"]);
 const INTERVALS = [1, 3, 7, 14, 30, 60, 90, 180];
 const DAY = 86400;
 
+// Returns the Unix timestamp (seconds) for midnight UTC at the start of the
+// calendar day that is `days` days from today. This groups all questions due
+// on the same calendar day so they unlock together at 00:00:00 UTC.
+function midnightUtcPlus(days) {
+  const todayMidnight = Math.floor(Date.now() / 86400000) * 86400;
+  return todayMidnight + days * DAY;
+}
+
 function calcNewState(q, grade) {
-  const now = Math.floor(Date.now() / 1000);
   const reviewCount = Number(q.review_count) + 1;
   const correctCount = Number(q.correct_count);
   const incorrectCount = Number(q.incorrect_count);
@@ -33,7 +40,7 @@ function calcNewState(q, grade) {
       correctStreak: newStreak,
       hardCount,
       currentIntervalDays: newInterval,
-      nextReviewAt: now + newInterval * DAY,
+      nextReviewAt: midnightUtcPlus(newInterval),
     };
   }
 
@@ -46,7 +53,7 @@ function calcNewState(q, grade) {
       correctStreak, // unchanged
       hardCount: hardCount + 1,
       currentIntervalDays: currentInterval, // unchanged
-      nextReviewAt: now + nextInterval * DAY,
+      nextReviewAt: midnightUtcPlus(nextInterval),
     };
   }
 
@@ -58,7 +65,7 @@ function calcNewState(q, grade) {
     correctStreak: 0,
     hardCount,
     currentIntervalDays: 1,
-    nextReviewAt: now + DAY,
+    nextReviewAt: midnightUtcPlus(1),
   };
 }
 
