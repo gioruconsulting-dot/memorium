@@ -59,7 +59,9 @@ Routes not yet implemented return `{ message: "Not implemented yet" }` with stat
 
 Grades are `easy`, `hard`, or `forgot`. In `queries.js`: `easy` and `hard` both increment `correct_count`; `forgot` increments `incorrect_count`. Interval math lives in `POST /api/questions/grade`.
 
-`next_review_at` is always snapped to **midnight UTC** of the target calendar day (via `midnightUtcPlus(days)` in the grade route). This means all questions due on the same day become available together at 00:00:00 UTC — do not revert to `now + interval * DAY`.
+`next_review_at` is always snapped to **midnight Europe/London** of the target calendar day (via `midnightLondonPlus(days)` in the grade route). Questions due on the same London calendar day all unlock together. Do not revert to `now + interval * DAY` or UTC midnight.
+
+All date/calendar calculations use **Europe/London** timezone throughout — streak counting (`getUserStreak`), progress stats (`getProgressStats`), and the progress chart (`stats/progress/route.js`). Use `toLocaleDateString('en-CA', { timeZone: 'Europe/London' })` for any new date string conversions.
 
 ---
 
