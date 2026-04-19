@@ -144,13 +144,14 @@ const actionRows = (
     borderRadius: '16px',
     overflow:     'hidden',
     marginBottom: '24px',
+    boxShadow:    '0 0 18px rgba(96,165,250,0.18), 0 0 40px rgba(96,165,250,0.07)',
   }}>
     <Link
       href="/upload"
       className="flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.04] transition-colors"
       style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
     >
-      <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-foreground)' }}>
+      <span style={{ fontSize: '1.05rem', fontWeight: 500, color: 'var(--color-foreground)' }}>
         Upload your own
       </span>
       <span style={{ color: '#8a8880' }}>→</span>
@@ -159,7 +160,7 @@ const actionRows = (
       href="/browse"
       className="flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.04] transition-colors"
     >
-      <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-foreground)' }}>
+      <span style={{ fontSize: '1.05rem', fontWeight: 500, color: 'var(--color-foreground)' }}>
         Browse shared content
       </span>
       <span style={{ color: '#8a8880' }}>→</span>
