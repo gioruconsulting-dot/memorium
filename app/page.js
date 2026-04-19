@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getUserContentCounts, getAllDueQuestions, getUserStreak, getCompletedSessionCount, getUpNextDocumentTitles } from "@/lib/db/queries";
 import OnboardingCard from "@/components/OnboardingCard";
 import StarryBackground from "@/components/StarryBackground";
+import StreakCard from "@/components/StreakCard";
 
 const LEVELS = [
   { number: 1, min: 0,   max: 0,        emoji: '🐣', label: 'Baby'        },
@@ -120,49 +121,14 @@ export default async function Home() {
       </div>
 
       {/* ── STREAK CARD ──────────────────────────────────────────────────── */}
-      <div style={{
-        background: '#0e0e18',
-        border: '1px solid #1e1e2a',
-        borderRadius: '14px',
-        padding: '14px 16px',
-        marginBottom: '20px',
-        boxShadow: '0 0 16px rgba(124, 58, 237, 0.22), 0 0 32px rgba(124, 58, 237, 0.08)',
-      }}>
-        {/* Row 1: streak label + level pill */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-          <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-foreground)' }}>
-            🔥 <span style={{ color: 'rgba(238, 255, 153, 0.8)' }}>{currentStreak}</span> day streak
-          </span>
-          <span style={{
-            fontSize: '0.77rem',
-            fontWeight: 500,
-            color: 'var(--color-muted)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '999px',
-            padding: '2px 10px',
-          }}>
-            {level.emoji} {level.label} Lv.
-          </span>
-        </div>
-        {/* Progress bar */}
-        <div style={{ height: '6px', borderRadius: '999px', background: 'var(--color-border)', marginBottom: '8px' }}>
-          <div style={{
-            height: '100%',
-            borderRadius: '999px',
-            background: '#4ADE80',
-            width: `${Math.round((0.30 + progressPct * 0.70) * 100)}%`,
-          }} />
-        </div>
-        {/* Row 2: best + level up */}
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '0.825rem', color: 'var(--color-muted)' }}>
-            {maxStreak > 0 ? `Best: ${maxStreak} day${maxStreak !== 1 ? 's' : ''}` : ''}
-          </span>
-          <span style={{ fontSize: '0.825rem', color: 'var(--color-muted)' }}>
-            {isMaxLevel ? 'Best Streak EVER 🏆' : `Level up in ${daysToLevelUp} day${daysToLevelUp !== 1 ? 's' : ''}`}
-          </span>
-        </div>
-      </div>
+      <StreakCard
+        currentStreak={currentStreak}
+        maxStreak={maxStreak}
+        level={level}
+        isMaxLevel={isMaxLevel}
+        progressPct={progressPct}
+        daysToLevelUp={daysToLevelUp}
+      />
 
       {/* ── HERO CARD — START STUDYING ───────────────────────────────────── */}
       <Link href="/study" style={{ display: 'block', textDecoration: 'none', marginBottom: '10px' }}>
