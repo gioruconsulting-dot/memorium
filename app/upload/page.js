@@ -306,12 +306,9 @@ export default function UploadPage() {
       <StarryBackground />
 
       {/* Page header */}
-      <div style={{ marginBottom: '20px', paddingLeft: '20px' }}>
-        <span style={overline}>Upload</span>
-        <h1 style={{ fontSize: '1.84rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.1 }}>
-          Add Content
-        </h1>
-      </div>
+      <h1 style={{ fontSize: '1.84rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.1, marginBottom: '20px', paddingLeft: '20px' }}>
+        Add Content
+      </h1>
 
       {/* Form card */}
       <div style={{ ...card, padding: '20px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
