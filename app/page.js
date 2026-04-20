@@ -26,11 +26,12 @@ export default async function Home() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  const [user, { documentCount, questionCount }, { currentStreak, maxStreak }] = await Promise.all([
+  const [user, { documentCount, questionCount }, streakData] = await Promise.all([
     currentUser(),
     getUserContentCounts(userId),
     getUserStreak(userId),
   ]);
+  const { currentStreak, maxStreak, streakCards, cardUsedAt, cardEarnedAt } = streakData;
 
   const isNewUser = documentCount === 0 && questionCount === 0;
   const firstName = user?.firstName || null;
@@ -128,6 +129,9 @@ export default async function Home() {
         isMaxLevel={isMaxLevel}
         progressPct={progressPct}
         daysToLevelUp={daysToLevelUp}
+        streakCards={streakCards ?? 0}
+        cardUsedAt={cardUsedAt ?? null}
+        cardEarnedAt={cardEarnedAt ?? null}
       />
 
       {/* ── HERO CARD — START STUDYING ───────────────────────────────────── */}

@@ -656,6 +656,9 @@ export default function StudyPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to complete session');
       setSummary(data.summary);
+      if (data.summary?.monthlyCardEarned) {
+        localStorage.setItem('pendingCardEarned', String(Date.now()));
+      }
       setFading(false);
       setPhase('complete');
     } catch (err) {

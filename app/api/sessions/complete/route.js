@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { completeStudySession, getStudySession, getUserStreak, getAllDueQuestions } from "@/lib/db/queries";
+import { completeStudySession, getStudySession, getUserStreak, getAllDueQuestions, awardMonthlyStreakCard } from "@/lib/db/queries";
 
 export async function POST(request) {
   const { userId } = await auth();
@@ -18,7 +18,7 @@ export async function POST(request) {
 
     await completeStudySession(sessionId, userId);
 
-    const [session, { currentStreak }, remainingDue] = await Promise.all([
+    const [session, streakData, remainingDue] = await Promise.all([
       getStudySession(sessionId, userId),
       getUserStreak(userId),
       getAllDueQuestions(userId),
@@ -28,6 +28,13 @@ export async function POST(request) {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
+    // Check if this session pushed the user to exactly 15 active study days this month
+    // (monthly card earn is also handled in getUserStreak for home-page detection,
+    //  but we surface it here so the celebration screen can notify via localStorage)
+    const now = new Date();
+    const currentMonth = now.toLocaleDateString('en-CA', { timeZone: 'Europe/London' }).slice(0, 7);
+    const monthlyCardEarned = await awardMonthlyStreakCard(userId, currentMonth);
+
     return NextResponse.json({
       summary: {
         questionsShown: Number(session.questions_shown),
@@ -36,8 +43,9 @@ export async function POST(request) {
         incorrectCount: Number(session.incorrect_count),
         skippedCount: Number(session.skipped_count),
         durationSeconds: Number(session.duration_seconds),
-        currentStreak,
+        currentStreak: streakData.currentStreak,
         remainingDueCount: remainingDue.length,
+        monthlyCardEarned,
       },
     });
   } catch (error) {
