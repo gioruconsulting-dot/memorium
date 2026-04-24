@@ -369,114 +369,108 @@ export default function LibraryPage() {
               boxShadow:    '0 0 16px rgba(124,58,237,0.278), 0 0 32px rgba(124,58,237,0.101)',
             }}
           >
-            {/* Top row: overline label + action column */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '7px' }}>
-              {/* Overline */}
+            {/* Top row: overline + secondary action pills only */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '7px' }}>
               <span style={{
                 fontSize:      '0.64rem',
                 fontWeight:    600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
                 color:         doc.adopted ? '#60A5FA' : 'rgba(238, 255, 153, 0.85)',
-                paddingTop:    '3px',
               }}>
                 {doc.adopted ? 'Adopted' : 'Uploaded'}
               </span>
 
-              {/* Action column — secondary pills on top, primary CTA below */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px', flexShrink: 0 }}>
-
-                {/* Row: Share + Delete */}
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  {!doc.adopted && (
-                    <button
-                      onClick={() => handleToggleShare(doc)}
-                      disabled={togglingShare === doc.id}
-                      style={{
-                        fontSize:     '0.725rem',
-                        fontWeight:   500,
-                        color:        'var(--color-muted)',
-                        background:   'rgba(255,255,255,0.06)',
-                        border:       'none',
-                        borderRadius: '6px',
-                        padding:      '3px 9px',
-                        cursor:       'pointer',
-                        opacity:      togglingShare === doc.id ? 0.4 : 1,
-                        transition:   'opacity 0.15s ease',
-                      }}
-                    >
-                      {togglingShare === doc.id ? '…' : doc.is_public ? 'Stop Sharing' : 'Share'}
-                    </button>
-                  )}
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                {!doc.adopted && (
                   <button
-                    onClick={() => handleDelete(doc)}
-                    disabled={deleting === doc.id}
+                    onClick={() => handleToggleShare(doc)}
+                    disabled={togglingShare === doc.id}
                     style={{
                       fontSize:     '0.725rem',
                       fontWeight:   500,
-                      color:        'var(--color-forgot)',
-                      background:   'rgba(212,86,74,0.1)',
+                      color:        'var(--color-muted)',
+                      background:   'rgba(255,255,255,0.06)',
                       border:       'none',
                       borderRadius: '6px',
                       padding:      '3px 9px',
                       cursor:       'pointer',
-                      opacity:      deleting === doc.id ? 0.4 : 1,
+                      opacity:      togglingShare === doc.id ? 0.4 : 1,
                       transition:   'opacity 0.15s ease',
                     }}
                   >
-                    {deleting === doc.id ? 'Removing…' : doc.adopted ? 'Remove' : 'Delete'}
+                    {togglingShare === doc.id ? '…' : doc.is_public ? 'Stop Sharing' : 'Share'}
                   </button>
-                </div>
-
-                {/* Review THIS FIRST — same width as above row, violet, no glow */}
+                )}
                 <button
-                  onClick={() => handleReviewFirst(doc.id)}
-                  disabled={prioritizeState[doc.id] === 'loading'}
+                  onClick={() => handleDelete(doc)}
+                  disabled={deleting === doc.id}
                   style={{
-                    fontSize:     '0.906rem',
-                    fontWeight:   600,
-                    color:        prioritizeState[doc.id] === 'done' ? 'rgba(196,181,253,0.5)' : '#c4b5fd',
-                    background:   'rgba(124,58,237,0.12)',
-                    border:       '1px solid rgba(124,58,237,0.28)',
+                    fontSize:     '0.725rem',
+                    fontWeight:   500,
+                    color:        'var(--color-forgot)',
+                    background:   'rgba(212,86,74,0.1)',
+                    border:       'none',
                     borderRadius: '6px',
-                    padding:      '4px 9px',
-                    cursor:       prioritizeState[doc.id] === 'loading' ? 'not-allowed' : 'pointer',
-                    opacity:      prioritizeState[doc.id] === 'loading' ? 0.5 : 1,
+                    padding:      '3px 9px',
+                    cursor:       'pointer',
+                    opacity:      deleting === doc.id ? 0.4 : 1,
                     transition:   'opacity 0.15s ease',
-                    width:        '100%',
-                    textAlign:    'center',
-                    whiteSpace:   'nowrap',
                   }}
                 >
-                  {prioritizeState[doc.id] === 'loading' ? '…'
-                   : prioritizeState[doc.id] === 'done'   ? 'Queued ✓'
-                   : 'Review THIS FIRST'}
+                  {deleting === doc.id ? 'Removing…' : doc.adopted ? 'Remove' : 'Delete'}
                 </button>
-
               </div>
             </div>
 
-            {/* Title */}
-            <p style={{ fontWeight: 700, fontSize: '1rem', color: '#e8e6e1', lineHeight: 1.35, marginBottom: '2.5px' }}>
-              {doc.title}
-            </p>
+            {/* Body row: content left, Review This First button right (vertically centred) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
 
-            {/* Theme */}
-            {doc.themes && (
-              <p style={{ fontSize: '0.867rem', color: '#8a8880' }}>
-                {doc.themes}
-              </p>
-            )}
+              {/* Left: title, theme, dots, effort */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontWeight: 700, fontSize: '1rem', color: '#e8e6e1', lineHeight: 1.35, marginBottom: '2.5px' }}>
+                  {doc.title}
+                </p>
+                {doc.themes && (
+                  <p style={{ fontSize: '0.867rem', color: '#8a8880' }}>
+                    {doc.themes}
+                  </p>
+                )}
+                <MasteryDots
+                  mastered={doc.mastered}
+                  progressing={doc.progressing}
+                  newCount={doc.new_count}
+                />
+                <EffortMeter totalReps={doc.total_reps} total={doc.total} />
+              </div>
 
-            {/* Mastery dots — colors unchanged */}
-            <MasteryDots
-              mastered={doc.mastered}
-              progressing={doc.progressing}
-              newCount={doc.new_count}
-            />
+              {/* Right: Review This First — vertically centred by parent alignItems:center */}
+              <button
+                onClick={() => handleReviewFirst(doc.id)}
+                disabled={prioritizeState[doc.id] === 'loading'}
+                style={{
+                  flexShrink:   0,
+                  width:        '82px',
+                  fontSize:     '0.906rem',
+                  fontWeight:   600,
+                  lineHeight:   1.25,
+                  color:        prioritizeState[doc.id] === 'done' ? 'rgba(255,255,255,0.4)' : '#ffffff',
+                  background:   'rgba(124,58,237,0.15)',
+                  border:       '1px solid rgba(124,58,237,0.3)',
+                  borderRadius: '6px',
+                  padding:      '8px 6px',
+                  cursor:       prioritizeState[doc.id] === 'loading' ? 'not-allowed' : 'pointer',
+                  opacity:      prioritizeState[doc.id] === 'loading' ? 0.5 : 1,
+                  transition:   'opacity 0.15s ease',
+                  textAlign:    'center',
+                }}
+              >
+                {prioritizeState[doc.id] === 'loading' ? '…'
+                 : prioritizeState[doc.id] === 'done'   ? 'Queued ✓'
+                 : <><span>Review</span><br /><span>This First</span></>}
+              </button>
 
-            {/* Effort meter — segments unchanged */}
-            <EffortMeter totalReps={doc.total_reps} total={doc.total} />
+            </div>
           </div>
         ))}
       </div>
