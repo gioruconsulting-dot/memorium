@@ -79,25 +79,27 @@ function NoSessions() {
 // ─── Section 1: Knowledge Map ─────────────────────────────────────────────────
 
 const MAX_DOTS = 400;
-const DOT_BG = { m: '#5db152', p: '#d4a832', n: 'rgba(255,255,255,0.1)' };
+const DOT_BG = { m: '#5db152', p: '#d4a832', r: 'rgba(255,255,255,0.26)', n: 'rgba(255,255,255,0.1)' };
 
-function computeDisplayCounts(mastered, progressing, newCount) {
-  const total = mastered + progressing + newCount;
+function computeDisplayCounts(mastered, progressing, reviewed, newCount) {
+  const total = mastered + progressing + reviewed + newCount;
   if (total <= MAX_DOTS) {
-    return { dMastered: mastered, dProgressing: progressing, dNew: newCount, displayTotal: total };
+    return { dMastered: mastered, dProgressing: progressing, dReviewed: reviewed, dNew: newCount, displayTotal: total };
   }
   const dMastered = Math.round(mastered * MAX_DOTS / total);
   const dProgressing = Math.round(progressing * MAX_DOTS / total);
-  return { dMastered, dProgressing, dNew: MAX_DOTS - dMastered - dProgressing, displayTotal: MAX_DOTS };
+  const dReviewed = Math.round(reviewed * MAX_DOTS / total);
+  return { dMastered, dProgressing, dReviewed, dNew: MAX_DOTS - dMastered - dProgressing - dReviewed, displayTotal: MAX_DOTS };
 }
 
-function dotTypeAtPos(i, dMastered, dProgressing) {
+function dotTypeAtPos(i, dMastered, dProgressing, dReviewed) {
   if (i < dMastered) return 'm';
   if (i < dMastered + dProgressing) return 'p';
+  if (i < dMastered + dProgressing + dReviewed) return 'r';
   return 'n';
 }
 
-function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicCount }) {
+function KnowledgeMap({ mastered, progressing, reviewed, newCount, total, docCount, topicCount }) {
   // Read previous state once at first render (before useLayoutEffect saves new state)
   // so we can compute the mastered delta for the insight line
   const [prevData] = useState(() => lsGet('repetita-progress-dots'));
@@ -108,28 +110,28 @@ function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicC
 
   useLayoutEffect(() => {
     const prev = lsGet('repetita-progress-dots');
-    const current = { mastered, progressing, new: newCount };
+    const current = { mastered, progressing, reviewed, new: newCount };
 
     if (
       !prev ||
-      (prev.mastered === mastered && prev.progressing === progressing && prev.new === newCount)
+      (prev.mastered === mastered && prev.progressing === progressing && prev.reviewed === reviewed && prev.new === newCount)
     ) {
       lsSet('repetita-progress-dots', { ...current, timestamp: Date.now() });
       return;
     }
 
-    const oldD = computeDisplayCounts(prev.mastered || 0, prev.progressing || 0, prev.new || 0);
-    const newD = computeDisplayCounts(mastered, progressing, newCount);
+    const oldD = computeDisplayCounts(prev.mastered || 0, prev.progressing || 0, prev.reviewed || 0, prev.new || 0);
+    const newD = computeDisplayCounts(mastered, progressing, reviewed, newCount);
 
     // Initial colors per position based on OLD layout
     const initColors = Array.from({ length: newD.displayTotal }, (_, i) =>
-      dotTypeAtPos(i, oldD.dMastered, oldD.dProgressing)
+      dotTypeAtPos(i, oldD.dMastered, oldD.dProgressing, oldD.dReviewed)
     );
 
     // Find which positions change type
     const changing = [];
     for (let i = 0; i < newD.displayTotal; i++) {
-      if (initColors[i] !== dotTypeAtPos(i, newD.dMastered, newD.dProgressing)) {
+      if (initColors[i] !== dotTypeAtPos(i, newD.dMastered, newD.dProgressing, newD.dReviewed)) {
         changing.push(i);
       }
     }
@@ -139,12 +141,12 @@ function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicC
       return;
     }
 
-    // Sort: dots becoming green (m) first, then yellow (p), then dark (n)
-    // This ensures "improving" signals (mastered, then progressing) animate in the right order
-    const typeOrder = { m: 0, p: 1, n: 2 };
+    // Sort: mastered first, then progressing, then reviewed, then new
+    // This ensures "improving" signals animate in the right order
+    const typeOrder = { m: 0, p: 1, r: 2, n: 3 };
     changing.sort((a, b) =>
-      typeOrder[dotTypeAtPos(a, newD.dMastered, newD.dProgressing)] -
-      typeOrder[dotTypeAtPos(b, newD.dMastered, newD.dProgressing)]
+      typeOrder[dotTypeAtPos(a, newD.dMastered, newD.dProgressing, newD.dReviewed)] -
+      typeOrder[dotTypeAtPos(b, newD.dMastered, newD.dProgressing, newD.dReviewed)]
     );
 
     // Always 2.5s total: fewer dots → slower individual transitions, more dots → faster
@@ -184,8 +186,8 @@ function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicC
     ? mastered - (prevData.mastered || 0)
     : null;
 
-  const newD = computeDisplayCounts(mastered, progressing, newCount);
-  const { dMastered, dProgressing, displayTotal } = newD;
+  const newD = computeDisplayCounts(mastered, progressing, reviewed, newCount);
+  const { dMastered, dProgressing, dReviewed, displayTotal } = newD;
   const cols = Math.min(20, Math.max(3, Math.ceil(Math.sqrt(displayTotal))));
   const maxGridPx = Math.min(500, cols * 22 + (cols - 1) * 4);
 
@@ -201,7 +203,7 @@ function KnowledgeMap({ mastered, progressing, newCount, total, docCount, topicC
           }}
         >
           {Array.from({ length: displayTotal }, (_, i) => {
-            const finalType = dotTypeAtPos(i, dMastered, dProgressing);
+            const finalType = dotTypeAtPos(i, dMastered, dProgressing, dReviewed);
             const isChanging = animState !== null && animState.delays[i] !== undefined;
             const delay = isChanging ? animState.delays[i] : 0;
             const tMs = animState?.transitionMs ?? 800;
@@ -654,6 +656,7 @@ export default function ProgressPage() {
         <KnowledgeMap
           mastered={knowledgeMap.mastered}
           progressing={knowledgeMap.progressing}
+          reviewed={knowledgeMap.reviewed}
           newCount={knowledgeMap.new}
           total={knowledgeMap.total}
           docCount={knowledgeMap.docCount}

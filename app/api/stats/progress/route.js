@@ -42,6 +42,7 @@ export async function GET() {
     const knowledgeMap = {
       mastered:    Number(knowledge.mastered),
       progressing: Number(knowledge.progressing),
+      reviewed:    Number(knowledge.reviewed_count),
       new:         Number(knowledge.new_count),
       total:       Number(knowledge.total),
       docCount:    Number(knowledge.doc_count),
