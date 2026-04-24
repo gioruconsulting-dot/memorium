@@ -454,7 +454,7 @@ export default function LibraryPage() {
                   fontSize:     '0.770rem',
                   fontWeight:   600,
                   lineHeight:   1.25,
-                  color:        prioritizeState[doc.id] === 'done' ? 'rgba(255,255,255,0.4)' : '#ffffff',
+                  color:        prioritizeState[doc.id] === 'done' ? 'var(--color-easy)' : '#ffffff',
                   background:   'rgba(124,58,237,0.15)',
                   border:       '1px solid rgba(124,58,237,0.3)',
                   borderRadius: '6px',
