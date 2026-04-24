@@ -1210,7 +1210,7 @@ export default function StudyPage() {
                   <div style={typeOverlineStyle}>
                     {question.question_type}
                     {question.document_title && (
-                      <span style={{ textTransform: 'none', fontWeight: 500, letterSpacing: '0.04em' }}>
+                      <span style={{ fontWeight: 500, letterSpacing: '0.04em' }}>
                         {' - '}{shortenTitle(question.document_title)}
                       </span>
                     )}
