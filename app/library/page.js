@@ -12,32 +12,35 @@ const SORT_OPTIONS = [
 
 // ── Mastery dots ─────────────────────────────────────────────────────────────
 
-function buildMasteryDots(mastered, progressing, newCount) {
-  const total = mastered + progressing + newCount;
+function buildMasteryDots(mastered, progressing, reviewed, newCount) {
+  const total = mastered + progressing + reviewed + newCount;
   if (total === 0) return [];
 
   const displayCount = Math.min(total, 20);
-  let dMastered, dProgressing, dNew;
+  let dMastered, dProgressing, dReviewed, dNew;
 
   if (total <= 20) {
     dMastered    = mastered;
     dProgressing = progressing;
+    dReviewed    = reviewed;
     dNew         = newCount;
   } else {
     dMastered    = Math.round(mastered    * 20 / total);
     dProgressing = Math.round(progressing * 20 / total);
-    dNew         = displayCount - dMastered - dProgressing;
+    dReviewed    = Math.round(reviewed    * 20 / total);
+    dNew         = displayCount - dMastered - dProgressing - dReviewed;
   }
 
   return [
     ...Array(dMastered).fill('mastered'),
     ...Array(dProgressing).fill('progressing'),
+    ...Array(Math.max(0, dReviewed)).fill('reviewed'),
     ...Array(Math.max(0, dNew)).fill('new'),
   ];
 }
 
-function MasteryDots({ mastered, progressing, newCount }) {
-  const dots = buildMasteryDots(mastered, progressing, newCount);
+function MasteryDots({ mastered, progressing, reviewed, newCount }) {
+  const dots = buildMasteryDots(mastered, progressing, reviewed, newCount);
   if (dots.length === 0) return null;
 
   const DOT  = 7;
@@ -48,6 +51,7 @@ function MasteryDots({ mastered, progressing, newCount }) {
   const dotColor = {
     mastered:    'var(--color-easy)',
     progressing: '#f59e0b',
+    reviewed:    'rgba(255,255,255,0.26)',
     new:         'rgba(255,255,255,0.12)',
   };
 
@@ -439,6 +443,7 @@ export default function LibraryPage() {
                 <MasteryDots
                   mastered={doc.mastered}
                   progressing={doc.progressing}
+                  reviewed={doc.reviewed_count}
                   newCount={doc.new_count}
                 />
                 <EffortMeter totalReps={doc.total_reps} total={doc.total} />

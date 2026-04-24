@@ -21,6 +21,7 @@ export async function GET() {
       is_public: Number(d.is_public) === 1,
       mastered: Number(d.mastered),
       progressing: Number(d.progressing),
+      reviewed_count: Number(d.reviewed_count),
       new_count: Number(d.new_count),
       total: Number(d.total),
       total_reps: Number(d.total_reps),
