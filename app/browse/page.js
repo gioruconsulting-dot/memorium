@@ -40,8 +40,9 @@ export default function BrowsePage() {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [adoptState, setAdoptState] = useState({});
-  const [adoptMessage, setAdoptMessage] = useState({});
+  const [adoptState,     setAdoptState]     = useState({});
+  const [adoptMessage,   setAdoptMessage]   = useState({});
+  const [prioritizeState, setPrioritizeState] = useState({});
 
   async function fetchDocuments() {
     setLoading(true);
@@ -75,6 +76,20 @@ export default function BrowsePage() {
     } catch (err) {
       setAdoptState((prev) => ({ ...prev, [doc.id]: null }));
       setAdoptMessage((prev) => ({ ...prev, [doc.id]: err.message }));
+    }
+  }
+
+  async function handleStudyThis(documentId) {
+    if (prioritizeState[documentId] === 'loading') return;
+    setPrioritizeState((prev) => ({ ...prev, [documentId]: 'loading' }));
+    try {
+      await fetch('/api/questions/prioritize', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ documentId }),
+      });
+    } finally {
+      window.location.href = '/study';
     }
   }
 
@@ -231,6 +246,46 @@ export default function BrowsePage() {
                 }}>
                   {message}
                 </p>
+              )}
+
+              {/* Study THIS — appears only after successful adoption */}
+              {isDone && (
+                <button
+                  onClick={() => handleStudyThis(doc.id)}
+                  disabled={prioritizeState[doc.id] === 'loading'}
+                  style={{
+                    marginTop:    '10px',
+                    width:        '100%',
+                    padding:      '9px 16px',
+                    background:   prioritizeState[doc.id] === 'loading' ? 'rgba(124,58,237,0.5)' : '#7c3aed',
+                    color:        '#ffffff',
+                    fontWeight:   600,
+                    fontSize:     '0.875rem',
+                    borderRadius: '9px',
+                    border:       'none',
+                    cursor:       prioritizeState[doc.id] === 'loading' ? 'not-allowed' : 'pointer',
+                    boxShadow:    '0 0 16px rgba(124,58,237,0.45)',
+                    transition:   'background 0.15s',
+                    display:      'flex',
+                    alignItems:   'center',
+                    justifyContent: 'center',
+                    gap:          '7px',
+                  }}
+                >
+                  {prioritizeState[doc.id] === 'loading' ? (
+                    <>
+                      <svg
+                        className="animate-spin"
+                        style={{ width: '14px', height: '14px', flexShrink: 0 }}
+                        viewBox="0 0 24 24" fill="none"
+                      >
+                        <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Starting…
+                    </>
+                  ) : 'Study THIS'}
+                </button>
               )}
 
             </div>
