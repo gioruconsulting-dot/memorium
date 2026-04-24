@@ -4,6 +4,30 @@ import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import CelebrationScene from '@/components/CelebrationScene';
 import StarryBackground from '@/components/StarryBackground';
 
+// ── title shortener ───────────────────────────────────────────────────────────
+// Keeps titles short enough to sit on one overline alongside the question type.
+// Strips structural filler (Part/Chapter/Foundations…), colons, commas, dashes,
+// then truncates at the last whole word within 20 characters.
+function shortenTitle(title) {
+  if (!title) return '';
+  if (title.length <= 20) return title;
+  let s = title
+    .replace(/[:—–]/g, ' ')
+    .replace(/,/g, ' ')
+    .replace(/\b(Part|Ch(apter)?|Section|Volume|Book|Foundations?|Introduction|Basics?|Advanced|Complete|Guide|Course|Overview)\b\s*/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (s.length <= 20) return s;
+  const words = s.split(' ');
+  let out = '';
+  for (const w of words) {
+    const next = out ? `${out} ${w}` : w;
+    if (next.length > 20) break;
+    out = next;
+  }
+  return out || s.slice(0, 20);
+}
+
 // ── motivational messages ─────────────────────────────────────────────────────
 
 const MOTIVATIONAL_MESSAGES = [
@@ -1183,7 +1207,14 @@ export default function StudyPage() {
                 )}
 
                 <div ref={cardRef} style={questionCardStyle}>
-                  <div style={typeOverlineStyle}>{question.question_type}</div>
+                  <div style={typeOverlineStyle}>
+                    {question.question_type}
+                    {question.document_title && (
+                      <span style={{ textTransform: 'none', fontWeight: 500, letterSpacing: '0.04em' }}>
+                        {' - '}{shortenTitle(question.document_title)}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-base sm:text-xl font-semibold leading-snug">
                     {question.question_text}
                   </p>
@@ -1254,7 +1285,14 @@ export default function StudyPage() {
               <ProgressBar current={index} total={questions.length} />
 
               <div ref={cardRef} style={questionCardStyle}>
-                <div style={typeOverlineStyle}>{question.question_type}</div>
+                <div style={typeOverlineStyle}>
+                  {question.question_type}
+                  {question.document_title && (
+                    <span style={{ textTransform: 'none', fontWeight: 500, letterSpacing: '0.04em' }}>
+                      {' - '}{shortenTitle(question.document_title)}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm sm:text-lg font-semibold leading-snug">
                   {question.question_text}
                 </p>
