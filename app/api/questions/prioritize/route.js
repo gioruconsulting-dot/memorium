@@ -6,9 +6,9 @@ export async function POST(request) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { documentId } = await request.json();
+  const { documentId, mode } = await request.json();
   if (!documentId) return NextResponse.json({ error: 'documentId required' }, { status: 400 });
 
-  await prioritizeDocumentQuestions(userId, documentId);
+  await prioritizeDocumentQuestions(userId, documentId, mode || 'immediate');
   return NextResponse.json({ success: true });
 }
