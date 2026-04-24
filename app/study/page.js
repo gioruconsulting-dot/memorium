@@ -1083,7 +1083,7 @@ export default function StudyPage() {
                   >
                     <div style={{ ...cardOverline, color: 'rgba(251,146,60,0.8)' }}>Challenge</div>
                     <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e8e6e1', marginBottom: '4px' }}>🔥 Heroic Session</p>
-                    <p style={{ fontSize: '0.8125rem', color: 'var(--color-muted)' }}>All {dueCount} — as many as you can handle</p>
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--color-muted)' }}>As many questions as you can handle</p>
                   </button>
                 )}
               </>
