@@ -451,7 +451,7 @@ export default function LibraryPage() {
                 style={{
                   flexShrink:   0,
                   width:        '82px',
-                  fontSize:     '0.906rem',
+                  fontSize:     '0.770rem',
                   fontWeight:   600,
                   lineHeight:   1.25,
                   color:        prioritizeState[doc.id] === 'done' ? 'rgba(255,255,255,0.4)' : '#ffffff',
