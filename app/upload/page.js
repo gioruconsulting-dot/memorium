@@ -77,14 +77,15 @@ const labelStyle = {
 };
 
 export default function UploadPage() {
-  const [content,      setContent]      = useState('');
-  const [title,        setTitle]        = useState('');
-  const [themes,       setThemes]       = useState('');
-  const [status,       setStatus]       = useState('idle'); // idle | loading | success | error
-  const [result,       setResult]       = useState(null);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [isDragging,   setIsDragging]   = useState(false);
-  const [progress,     setProgress]     = useState(0);
+  const [content,        setContent]        = useState('');
+  const [title,          setTitle]          = useState('');
+  const [themes,         setThemes]         = useState('');
+  const [status,         setStatus]         = useState('idle'); // idle | loading | success | error
+  const [result,         setResult]         = useState(null);
+  const [errorMessage,   setErrorMessage]   = useState('');
+  const [isDragging,     setIsDragging]     = useState(false);
+  const [progress,       setProgress]       = useState(0);
+  const [isPrioritizing, setIsPrioritizing] = useState(false);
   const fileInputRef  = useRef(null);
   const dragCounterRef = useRef(0);
 
@@ -205,6 +206,20 @@ export default function UploadPage() {
     setErrorMessage('');
   }
 
+  async function handleStudyThis() {
+    if (!result?.documentId || isPrioritizing) return;
+    setIsPrioritizing(true);
+    try {
+      await fetch('/api/questions/prioritize', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ documentId: result.documentId }),
+      });
+    } finally {
+      window.location.href = '/study';
+    }
+  }
+
   // ── Success state ─────────────────────────────────────────────────────────
   if (status === 'success' && result) {
     return (
@@ -257,36 +272,75 @@ export default function UploadPage() {
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {/* Primary CTA — study just these new questions first */}
+            <button
+              onClick={handleStudyThis}
+              disabled={isPrioritizing}
+              className="u-cta"
+              style={{
+                width:        '100%',
+                padding:      '12px 24px',
+                background:   isPrioritizing ? 'rgba(124,58,237,0.5)' : '#7c3aed',
+                color:        '#ffffff',
+                fontWeight:   600,
+                fontSize:     '0.9375rem',
+                borderRadius: '10px',
+                border:       'none',
+                cursor:       isPrioritizing ? 'not-allowed' : 'pointer',
+                boxShadow:    '0 0 20px rgba(124,58,237,0.55), 0 0 44px rgba(124,58,237,0.2)',
+                transition:   'background 0.15s',
+              }}
+            >
+              {isPrioritizing ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <svg
+                    style={{ animation: 'spin 1s linear infinite', width: '16px', height: '16px', flexShrink: 0 }}
+                    viewBox="0 0 24 24" fill="none"
+                  >
+                    <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Starting…
+                </span>
+              ) : 'Study THIS Now'}
+            </button>
+
+            {/* Secondary — go to normal study queue */}
             <a
               href="/study"
+              className="u-ghost-btn"
               style={{
                 display:        'block',
                 width:          '100%',
                 padding:        '11px 24px',
-                background:     '#7c3aed',
-                color:          '#ffffff',
-                fontWeight:     600,
-                fontSize:       '0.9375rem',
+                background:     'rgba(255,255,255,0.04)',
+                border:         '1px solid rgba(255,255,255,0.08)',
                 borderRadius:   '10px',
+                color:          'var(--color-muted)',
+                fontWeight:     500,
+                fontSize:       '0.9375rem',
                 textDecoration: 'none',
                 textAlign:      'center',
-                boxShadow:      '0 0 16px rgba(124,58,237,0.4)',
+                boxShadow:      'none',
+                transition:     'background 0.15s',
               }}
             >
-              Study Now
+              Start a Study Session
             </a>
+
+            {/* Tertiary — upload more */}
             <button
               onClick={handleReset}
               className="u-ghost-btn"
               style={{
                 width:        '100%',
                 padding:      '11px 24px',
-                background:   'rgba(255,255,255,0.04)',
-                border:       '1px solid rgba(255,255,255,0.08)',
+                background:   'transparent',
+                border:       'none',
                 borderRadius: '10px',
-                color:        'var(--color-muted)',
+                color:        'rgba(138,136,128,0.6)',
                 fontWeight:   500,
-                fontSize:     '0.9375rem',
+                fontSize:     '0.875rem',
                 cursor:       'pointer',
                 transition:   'background 0.15s',
               }}
