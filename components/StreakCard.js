@@ -77,9 +77,11 @@ export default function StreakCard({
   level, isMaxLevel, progressPct, daysToLevelUp,
   streakCards, cardUsedAt, cardEarnedAt,
 }) {
-  const targetPct = isMaxLevel
-    ? 100
-    : Math.min(100, Math.round(55 + progressPct * 45));
+  const targetPct = currentStreak === 0
+    ? 0
+    : isMaxLevel
+      ? 100
+      : Math.min(100, Math.round(55 + progressPct * 45));
 
   const isLevelUpDay = !isMaxLevel && currentStreak === level.min && level.number > 1;
 
