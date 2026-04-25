@@ -86,7 +86,7 @@ export default function BrowsePage() {
       await fetch('/api/questions/prioritize', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ documentId }),
+        body:    JSON.stringify({ documentId, mode: 'queue-front' }),
       });
     } finally {
       window.location.href = '/study';
