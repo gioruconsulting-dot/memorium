@@ -18,17 +18,20 @@ const VALID_TYPES = new Set(["recall", "application", "connection"]);
 async function run() {
   console.log("Calling Claude API...\n");
 
-  let questions;
+  let questions, description, topic;
   try {
-    questions = await generateQuestions(
+    ({ questions, description, topic } = await generateQuestions(
       SAMPLE_CONTENT,
       "Spaced Repetition Basics",
       "Learning, Memory, Study Techniques"
-    );
+    ));
   } catch (err) {
     console.error("FAILED:", err.message);
     process.exit(1);
   }
+
+  console.log(`Description: ${description}`);
+  console.log(`Topic:       ${topic}\n`);
 
   // Count types
   const typeCounts = { recall: 0, application: 0, connection: 0 };

@@ -62,9 +62,9 @@ export async function POST(request) {
       : null;
 
     // --- Generate questions via Claude API ---
-    let questions;
+    let questions, description, topic;
     try {
-      questions = await generateQuestions(trimmedContent, title.trim(), cleanThemes || "");
+      ({ questions, description, topic } = await generateQuestions(trimmedContent, title.trim(), cleanThemes || ""));
     } catch (aiError) {
       console.error("[API] Question generation failed:", aiError.message);
       return NextResponse.json(
@@ -82,6 +82,8 @@ export async function POST(request) {
       title: title.trim(),
       content: trimmedContent,
       themes: cleanThemes,
+      description,
+      topic,
       questionCount: questions.length,
     });
 
