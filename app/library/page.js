@@ -435,9 +435,9 @@ export default function LibraryPage() {
                 <p style={{ fontWeight: 700, fontSize: '1rem', color: '#e8e6e1', lineHeight: 1.35, marginBottom: '2.5px' }}>
                   {doc.title}
                 </p>
-                {doc.themes && (
+                {doc.topic && (
                   <p style={{ fontSize: '0.867rem', color: '#8a8880' }}>
-                    {doc.themes}
+                    {doc.topic}
                   </p>
                 )}
                 <MasteryDots

@@ -16,7 +16,7 @@ export async function POST(request) {
   ]);
 
   try {
-    const { content, title, themes } = body;
+    const { content, title } = body;
 
     // --- Input Validation ---
 
@@ -57,14 +57,10 @@ export async function POST(request) {
       );
     }
 
-    const cleanThemes = themes
-      ? String(themes).trim().substring(0, 500)
-      : null;
-
     // --- Generate questions via Claude API ---
     let questions, description, topic;
     try {
-      ({ questions, description, topic } = await generateQuestions(trimmedContent, title.trim(), cleanThemes || ""));
+      ({ questions, description, topic } = await generateQuestions(trimmedContent, title.trim()));
     } catch (aiError) {
       console.error("[API] Question generation failed:", aiError.message);
       return NextResponse.json(
@@ -81,7 +77,6 @@ export async function POST(request) {
       userId,
       title: title.trim(),
       content: trimmedContent,
-      themes: cleanThemes,
       description,
       topic,
       questionCount: questions.length,
@@ -116,6 +111,7 @@ export async function POST(request) {
       documentId,
       title: title.trim(),
       questionCount: questions.length,
+      topic,
     });
 
   } catch (error) {

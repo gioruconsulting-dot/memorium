@@ -203,9 +203,9 @@ export default function BrowsePage() {
                   <p style={{ fontWeight: 700, fontSize: '1rem', color: '#e8e6e1', lineHeight: 1.35, marginBottom: '3px' }}>
                     {doc.title}
                   </p>
-                  {doc.themes && (
+                  {doc.topic && (
                     <p style={{ fontSize: '0.8125rem', color: '#8a8880', marginBottom: '2px' }}>
-                      {doc.themes}
+                      {doc.topic}
                     </p>
                   )}
                   <p style={{ fontSize: '0.8rem', color: '#8a8880' }}>

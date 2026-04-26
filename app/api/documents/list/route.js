@@ -15,6 +15,7 @@ export async function GET() {
       id: d.id,
       title: d.title,
       themes: d.themes,
+      topic: d.topic || null,
       question_count: d.question_count,
       created_at: d.created_at,
       adopted: d.document_owner_id !== userId,

@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import StarryBackground from '@/components/StarryBackground';
+import { cleanFilename } from '@/lib/utils/clean-filename';
 
 const MAX_CHARS = 50000;
 const MIN_CHARS = 100;
+
+const TOPIC_OPTIONS = ['Tech', 'Business', 'Science', 'Humanities', 'Personal Growth', 'Other'];
 
 // ── CSS for pseudo-states that can't be done with inline styles ──────────────
 const STYLES = `
@@ -35,6 +38,16 @@ const STYLES = `
   .u-field:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+  }
+  select.u-field {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%238a8880' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 18px;
+    padding-right: 36px;
+    cursor: pointer;
   }
   .u-upload-btn:hover:not(:disabled) {
     background: rgba(124,58,237,0.38);
@@ -79,13 +92,13 @@ const labelStyle = {
 export default function UploadPage() {
   const [content,        setContent]        = useState('');
   const [title,          setTitle]          = useState('');
-  const [themes,         setThemes]         = useState('');
   const [status,         setStatus]         = useState('idle'); // idle | loading | success | error
   const [result,         setResult]         = useState(null);
   const [errorMessage,   setErrorMessage]   = useState('');
   const [isDragging,     setIsDragging]     = useState(false);
   const [progress,       setProgress]       = useState(0);
-  const [isPrioritizing, setIsPrioritizing] = useState(false);
+  const [selectedTopic,  setSelectedTopic]  = useState('');
+  const [isDoneLoading,  setIsDoneLoading]  = useState(false);
   const fileInputRef  = useRef(null);
   const dragCounterRef = useRef(0);
 
@@ -107,16 +120,15 @@ export default function UploadPage() {
   const canSubmit =
     status !== 'loading' &&
     title.trim().length > 0 &&
-    themes.trim().length > 0 &&
     charCount >= MIN_CHARS &&
     charCount <= MAX_CHARS;
 
   function processFile(file) {
     if (!file) return;
-    const validExtensions = ['.txt', '.md'];
+    const validExtensions = ['.txt', '.md', '.markdown'];
     const extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     if (!validExtensions.includes(extension)) {
-      setErrorMessage('Only .txt and .md files are supported');
+      setErrorMessage('Only .txt, .md, and .markdown files are supported');
       setStatus('error');
       return;
     }
@@ -124,10 +136,7 @@ export default function UploadPage() {
     reader.onload = (event) => {
       const text = event.target.result;
       setContent(text);
-      if (!title.trim()) {
-        const nameWithoutExt = file.name.replace(/\.(txt|md)$/i, '');
-        setTitle(nameWithoutExt);
-      }
+      setTitle(cleanFilename(file.name));
       setStatus('idle');
       setErrorMessage('');
     };
@@ -184,13 +193,13 @@ export default function UploadPage() {
         body:    JSON.stringify({
           content: content.trim(),
           title:   title.trim(),
-          themes:  themes.trim(),
         }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `Server error (${response.status})`);
-      setStatus('success');
       setResult(data);
+      setSelectedTopic(data.topic || 'Other');
+      setStatus('success');
     } catch (err) {
       setStatus('error');
       setErrorMessage(err.message || 'Something went wrong');
@@ -200,27 +209,32 @@ export default function UploadPage() {
   function handleReset() {
     setContent('');
     setTitle('');
-    setThemes('');
     setStatus('idle');
     setResult(null);
     setErrorMessage('');
+    setSelectedTopic('');
+    setIsDoneLoading(false);
   }
 
-  async function handleStudyThis() {
-    if (!result?.documentId || isPrioritizing) return;
-    setIsPrioritizing(true);
-    try {
-      await fetch('/api/questions/prioritize', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ documentId: result.documentId }),
-      });
-    } finally {
-      window.location.href = '/study';
+  async function handleDone() {
+    if (!result || isDoneLoading) return;
+    const topicChanged = selectedTopic !== result.topic;
+    if (topicChanged) {
+      setIsDoneLoading(true);
+      try {
+        await fetch(`/api/documents/${result.documentId}`, {
+          method:  'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ topic: selectedTopic }),
+        });
+      } catch {
+        // navigate anyway — don't block the user on a non-critical update
+      }
     }
+    window.location.href = '/library';
   }
 
-  // ── Success state ─────────────────────────────────────────────────────────
+  // ── Review state (shown after successful generation) ──────────────────────
   if (status === 'success' && result) {
     return (
       <div style={{
@@ -236,7 +250,7 @@ export default function UploadPage() {
         <style suppressHydrationWarning>{STYLES}</style>
         <StarryBackground />
 
-        <div style={{ ...card, padding: '32px 24px', textAlign: 'center' }}>
+        <div style={{ ...card, padding: '32px 24px' }}>
 
           {/* Check icon */}
           <div style={{
@@ -257,41 +271,48 @@ export default function UploadPage() {
 
           <span style={overline}>Done</span>
 
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.2, marginBottom: '10px' }}>
-            Questions Generated
-          </h1>
-
-          <p style={{ color: 'var(--color-muted)', fontSize: '0.9rem', marginBottom: '4px' }}>
-            <span style={{ color: '#e8e6e1', fontWeight: 600 }}>{result.questionCount} questions</span> created from
+          <p style={{ color: 'var(--color-muted)', fontSize: '0.9rem', marginBottom: '2px' }}>
+            <span style={{ color: '#e8e6e1', fontWeight: 600 }}>{result.questionCount} questions</span> generated from
           </p>
-          <p style={{ color: '#e8e6e1', fontWeight: 500, fontSize: '0.9rem', marginBottom: '6px' }}>
+          <p style={{ color: '#e8e6e1', fontWeight: 500, fontSize: '0.9rem', marginBottom: '28px' }}>
             &ldquo;{result.title}&rdquo;
           </p>
-          <p style={{ color: 'var(--color-muted)', fontSize: '0.8rem', marginBottom: '28px' }}>
-            Ready for review in your study queue.
-          </p>
+
+          {/* Topic override */}
+          <div style={{ marginBottom: '28px', textAlign: 'left' }}>
+            <label style={labelStyle}>Topic</label>
+            <select
+              value={selectedTopic}
+              onChange={(e) => setSelectedTopic(e.target.value)}
+              className="u-field"
+            >
+              {TOPIC_OPTIONS.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {/* Primary CTA — study just these new questions first */}
+            {/* Primary CTA */}
             <button
-              onClick={handleStudyThis}
-              disabled={isPrioritizing}
+              onClick={handleDone}
+              disabled={isDoneLoading}
               className="u-cta"
               style={{
                 width:        '100%',
                 padding:      '12px 24px',
-                background:   isPrioritizing ? 'rgba(124,58,237,0.5)' : '#7c3aed',
+                background:   isDoneLoading ? 'rgba(124,58,237,0.5)' : '#7c3aed',
                 color:        '#ffffff',
                 fontWeight:   600,
                 fontSize:     '0.9375rem',
                 borderRadius: '10px',
                 border:       'none',
-                cursor:       isPrioritizing ? 'not-allowed' : 'pointer',
+                cursor:       isDoneLoading ? 'not-allowed' : 'pointer',
                 boxShadow:    '0 0 20px rgba(124,58,237,0.55), 0 0 44px rgba(124,58,237,0.2)',
                 transition:   'background 0.15s',
               }}
             >
-              {isPrioritizing ? (
+              {isDoneLoading ? (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                   <svg
                     style={{ animation: 'spin 1s linear infinite', width: '16px', height: '16px', flexShrink: 0 }}
@@ -300,33 +321,10 @@ export default function UploadPage() {
                     <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Starting…
+                  Saving…
                 </span>
-              ) : 'Study THIS Now'}
+              ) : 'Done'}
             </button>
-
-            {/* Secondary — go to normal study queue */}
-            <a
-              href="/study"
-              className="u-ghost-btn"
-              style={{
-                display:        'block',
-                width:          '100%',
-                padding:        '11px 24px',
-                background:     'rgba(255,255,255,0.04)',
-                border:         '1px solid rgba(255,255,255,0.08)',
-                borderRadius:   '10px',
-                color:          'var(--color-muted)',
-                fontWeight:     500,
-                fontSize:       '0.9375rem',
-                textDecoration: 'none',
-                textAlign:      'center',
-                boxShadow:      'none',
-                transition:     'background 0.15s',
-              }}
-            >
-              Start a Study Session
-            </a>
 
             {/* Tertiary — upload more */}
             <button
@@ -402,7 +400,7 @@ export default function UploadPage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".txt,.md,text/plain,text/markdown"
+            accept=".txt,.md,.markdown,text/plain,text/markdown"
             onChange={handleFileUpload}
             className="hidden"
           />
@@ -420,23 +418,6 @@ export default function UploadPage() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g., Meditations — Book 2"
-            disabled={status === 'loading'}
-            className="u-field"
-          />
-        </div>
-
-        {/* ── Themes ── */}
-        <div>
-          <label htmlFor="themes" style={labelStyle}>
-            Themes{' '}
-            <span style={{ color: 'rgba(238,255,153,0.75)', textTransform: 'none', letterSpacing: 0 }}>*</span>
-          </label>
-          <input
-            id="themes"
-            type="text"
-            value={themes}
-            onChange={(e) => setThemes(e.target.value)}
-            placeholder="e.g., Philosophy, Stoicism, Self-Reflection"
             disabled={status === 'loading'}
             className="u-field"
           />
