@@ -13,13 +13,15 @@ const browseCardStyle = {
   boxShadow:    '0 0 16px rgba(96,165,250,0.18), 0 0 32px rgba(96,165,250,0.07)',
 };
 
+const TOPICS = ['All', 'Tech', 'Business', 'Science', 'Humanities', 'Personal Growth', 'Other'];
+
 function formatDate(unixSeconds) {
   const date = new Date(Number(unixSeconds) * 1000);
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 const pageHeader = (
-  <div style={{ marginBottom: '24px' }}>
+  <div style={{ marginBottom: '20px' }}>
     <h1 style={{
       fontSize:     '1.84rem',
       fontWeight:   700,
@@ -37,12 +39,16 @@ const pageHeader = (
 );
 
 export default function BrowsePage() {
-  const [documents, setDocuments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [adoptState,     setAdoptState]     = useState({});
-  const [adoptMessage,   setAdoptMessage]   = useState({});
+  const [documents, setDocuments]             = useState([]);
+  const [loading, setLoading]                 = useState(true);
+  const [error, setError]                     = useState('');
+  const [adoptState, setAdoptState]           = useState({});
+  const [adoptMessage, setAdoptMessage]       = useState({});
   const [prioritizeState, setPrioritizeState] = useState({});
+  const [searchQuery, setSearchQuery]         = useState('');
+  const [activeTopic, setActiveTopic]         = useState('all');
+  const [expandedDocId, setExpandedDocId]     = useState(null);
+  const [searchFocused, setSearchFocused]     = useState(false);
 
   async function fetchDocuments() {
     setLoading(true);
@@ -65,9 +71,9 @@ export default function BrowsePage() {
     setAdoptState((prev) => ({ ...prev, [doc.id]: 'loading' }));
     try {
       const res = await fetch('/api/documents/adopt', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentId: doc.id }),
+        body:    JSON.stringify({ documentId: doc.id }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to adopt document');
@@ -93,18 +99,28 @@ export default function BrowsePage() {
     }
   }
 
+  function toggleExpand(docId) {
+    setExpandedDocId((prev) => (prev === docId ? null : docId));
+  }
+
+  const filteredDocs = documents.filter(doc => {
+    const matchesTopic = activeTopic === 'all' || doc.topic === activeTopic;
+    const q = searchQuery.trim().toLowerCase();
+    const matchesSearch = !q ||
+      doc.title?.toLowerCase().includes(q) ||
+      doc.topic?.toLowerCase().includes(q) ||
+      doc.description?.toLowerCase().includes(q);
+    return matchesTopic && matchesSearch;
+  });
+
   if (loading) {
     return (
       <div style={wrapperStyle}>
         <StarryBackground />
         {pageHeader}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingLeft: '20px', paddingRight: '20px' }}>
           {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="animate-pulse"
-              style={{ ...browseCardStyle, height: 88 }}
-            />
+            <div key={i} className="animate-pulse" style={{ ...browseCardStyle, height: 88 }} />
           ))}
         </div>
       </div>
@@ -116,24 +132,26 @@ export default function BrowsePage() {
       <div style={wrapperStyle}>
         <StarryBackground />
         {pageHeader}
-        <p style={{ color: 'var(--color-forgot)', marginBottom: '16px', fontSize: '0.875rem' }}>
-          {error}
-        </p>
-        <button
-          onClick={fetchDocuments}
-          style={{
-            padding:      '10px 20px',
-            borderRadius: '8px',
-            fontWeight:   500,
-            fontSize:     '0.875rem',
-            background:   'var(--color-foreground)',
-            color:        'var(--color-background)',
-            border:       'none',
-            cursor:       'pointer',
-          }}
-        >
-          Try Again
-        </button>
+        <div style={{ paddingLeft: '20px', paddingRight: '20px' }}>
+          <p style={{ color: 'var(--color-forgot)', marginBottom: '16px', fontSize: '0.875rem' }}>
+            {error}
+          </p>
+          <button
+            onClick={fetchDocuments}
+            style={{
+              padding:      '10px 20px',
+              borderRadius: '8px',
+              fontWeight:   500,
+              fontSize:     '0.875rem',
+              background:   'var(--color-foreground)',
+              color:        'var(--color-background)',
+              border:       'none',
+              cursor:       'pointer',
+            }}
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
@@ -143,7 +161,7 @@ export default function BrowsePage() {
       <div style={wrapperStyle}>
         <StarryBackground />
         {pageHeader}
-        <div style={browseCardStyle}>
+        <div style={{ ...browseCardStyle, marginLeft: '20px', marginRight: '20px' }}>
           <p style={{ fontWeight: 600, fontSize: '0.9375rem', color: '#e8e6e1', marginBottom: '4px' }}>
             Nothing here yet
           </p>
@@ -173,124 +191,299 @@ export default function BrowsePage() {
   return (
     <div style={wrapperStyle}>
       <StarryBackground />
+
+      <style suppressHydrationWarning>{`
+        .browse-pills-row::-webkit-scrollbar { display: none; }
+        .browse-search-input::placeholder { color: rgba(148,163,184,0.45); }
+      `}</style>
+
       {pageHeader}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {documents.map((doc) => {
-          const state   = adoptState[doc.id]   || null;
-          const message = adoptMessage[doc.id] || null;
-          const isDone  = state === 'done';
-          const isAdopting = state === 'loading';
+      {/* Search bar */}
+      <div style={{ paddingLeft: '20px', paddingRight: '20px', marginBottom: '12px' }}>
+        <div style={{
+          display:      'flex',
+          alignItems:   'center',
+          gap:          '10px',
+          background:   '#161622',
+          border:       searchFocused
+            ? '1px solid rgba(124,58,237,0.55)'
+            : '1px solid rgba(96,165,250,0.18)',
+          borderRadius: '10px',
+          padding:      '9px 14px',
+          transition:   'border-color 0.18s ease',
+        }}>
+          {/* Magnifying glass */}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+            strokeLinecap="round" strokeLinejoin="round"
+            style={{ width: '16px', height: '16px', flexShrink: 0, color: 'rgba(148,163,184,0.55)' }}>
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
+            placeholder="Search documents"
+            className="browse-search-input"
+            style={{
+              flex:       1,
+              background: 'transparent',
+              border:     'none',
+              outline:    'none',
+              color:      '#e8e6e1',
+              fontSize:   '0.875rem',
+              lineHeight: 1.4,
+            }}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              style={{
+                background: 'none',
+                border:     'none',
+                cursor:     'pointer',
+                color:      'rgba(148,163,184,0.55)',
+                padding:    0,
+                lineHeight: 1,
+                fontSize:   '0.875rem',
+                flexShrink: 0,
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
 
-          return (
-            <div key={doc.id} style={browseCardStyle}>
+      {/* Topic pills */}
+      <div
+        className="browse-pills-row"
+        style={{
+          paddingLeft:     '20px',
+          paddingRight:    '20px',
+          marginBottom:    '16px',
+          overflowX:       'auto',
+          scrollbarWidth:  'none',
+          msOverflowStyle: 'none',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '8px', width: 'max-content' }}>
+          {TOPICS.map((topic) => {
+            const topicKey = topic === 'All' ? 'all' : topic;
+            const isActive = activeTopic === topicKey;
+            return (
+              <button
+                key={topic}
+                onClick={() => setActiveTopic(topicKey)}
+                style={{
+                  padding:      '7px 15px',
+                  borderRadius: '999px',
+                  fontSize:     '0.8125rem',
+                  fontWeight:   isActive ? 600 : 500,
+                  cursor:       'pointer',
+                  border:       isActive
+                    ? '1px solid rgba(124,58,237,0.5)'
+                    : '1px solid rgba(96,165,250,0.14)',
+                  background:   isActive ? 'rgba(124,58,237,0.18)' : '#161622',
+                  color:        isActive ? '#c4b5fd' : 'rgba(200,200,220,0.7)',
+                  transition:   'all 0.15s ease',
+                  whiteSpace:   'nowrap',
+                }}
+              >
+                {topic}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-              {/* Overline */}
-              <div style={{
-                fontSize:      '0.64rem',
-                fontWeight:    600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                color:         'rgba(96,165,250,0.75)',
-                marginBottom:  '6px',
-              }}>
-                Shared
-              </div>
+      {/* Card list */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingLeft: '20px', paddingRight: '20px' }}>
+        {filteredDocs.length === 0 ? (
+          <div style={{ textAlign: 'center', color: '#8a8880', fontSize: '0.875rem', padding: '40px 0' }}>
+            No documents match.
+          </div>
+        ) : (
+          filteredDocs.map((doc) => {
+            const isOpen     = expandedDocId === doc.id;
+            const state      = adoptState[doc.id]   || null;
+            const message    = adoptMessage[doc.id] || null;
+            const isDone     = state === 'done';
+            const isAdopting = state === 'loading';
 
-              {/* Title + CTA row */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <p style={{ fontWeight: 700, fontSize: '1rem', color: '#e8e6e1', lineHeight: 1.35, marginBottom: '3px' }}>
-                    {doc.title}
-                  </p>
-                  {doc.topic && (
-                    <p style={{ fontSize: '0.8125rem', color: '#8a8880', marginBottom: '2px' }}>
-                      {doc.topic}
-                    </p>
-                  )}
-                  <p style={{ fontSize: '0.8rem', color: '#8a8880' }}>
-                    {Number(doc.question_count)} question{Number(doc.question_count) !== 1 ? 's' : ''}
-                    {' · '}
-                    {formatDate(doc.created_at)}
-                  </p>
+            return (
+              <div
+                key={doc.id}
+                style={{ ...browseCardStyle, cursor: 'pointer' }}
+                onClick={() => toggleExpand(doc.id)}
+              >
+                {/* Overline + chevron */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <div style={{
+                    fontSize:      '0.64rem',
+                    fontWeight:    600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    color:         'rgba(96,165,250,0.75)',
+                  }}>
+                    Shared
+                  </div>
+                  <svg
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                    style={{
+                      width:      '16px',
+                      height:     '16px',
+                      flexShrink: 0,
+                      color:      'rgba(96,165,250,0.5)',
+                      transition: 'transform 0.28s ease',
+                      transform:  isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    }}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
                 </div>
 
-                <button
-                  onClick={() => handleAdopt(doc)}
-                  disabled={isDone || isAdopting}
-                  style={{
-                    flexShrink:   0,
-                    fontSize:     '0.8125rem',
-                    fontWeight:   600,
-                    padding:      '6px 13px',
-                    borderRadius: '9px',
-                    cursor:       isDone || isAdopting ? 'default' : 'pointer',
-                    transition:   'opacity 0.15s ease',
-                    opacity:      isAdopting ? 0.6 : 1,
-                    ...(isDone
-                      ? { background: 'rgba(34,197,94,0.1)', color: 'var(--color-easy)', border: '1px solid rgba(34,197,94,0.2)' }
-                      : { background: 'rgba(124,58,237,0.18)', color: '#c4b5fd', border: '1px solid rgba(124,58,237,0.32)' }
-                    ),
-                  }}
-                >
-                  {isDone ? 'Added ✓' : isAdopting ? 'Adding…' : 'Add to Library'}
-                </button>
-              </div>
-
-              {/* Feedback */}
-              {message && (
-                <p style={{
-                  marginTop: '8px',
-                  fontSize:  '0.8rem',
-                  color:     isDone ? 'var(--color-easy)' : 'var(--color-forgot)',
-                }}>
-                  {message}
+                {/* Title + meta */}
+                <p style={{ fontWeight: 700, fontSize: '1rem', color: '#e8e6e1', lineHeight: 1.35, marginBottom: '3px' }}>
+                  {doc.title}
                 </p>
-              )}
+                {doc.topic && (
+                  <p style={{ fontSize: '0.8125rem', color: '#8a8880', marginBottom: '2px' }}>
+                    {doc.topic}
+                  </p>
+                )}
+                <p style={{ fontSize: '0.8rem', color: '#8a8880' }}>
+                  {Number(doc.question_count)} question{Number(doc.question_count) !== 1 ? 's' : ''}
+                  {' · '}
+                  {formatDate(doc.created_at)}
+                </p>
 
-              {/* Study THIS — appears only after successful adoption */}
-              {isDone && (
-                <button
-                  onClick={() => handleStudyThis(doc.id)}
-                  disabled={prioritizeState[doc.id] === 'loading'}
+                {/* Expandable panel — stopPropagation so button clicks don't toggle the card */}
+                <div
                   style={{
-                    marginTop:    '10px',
-                    width:        '100%',
-                    padding:      '9px 16px',
-                    background:   prioritizeState[doc.id] === 'loading' ? 'rgba(124,58,237,0.5)' : '#7c3aed',
-                    color:        '#ffffff',
-                    fontWeight:   600,
-                    fontSize:     '0.875rem',
-                    borderRadius: '9px',
-                    border:       'none',
-                    cursor:       prioritizeState[doc.id] === 'loading' ? 'not-allowed' : 'pointer',
-                    boxShadow:    '0 0 16px rgba(124,58,237,0.45)',
-                    transition:   'background 0.15s',
-                    display:      'flex',
-                    alignItems:   'center',
-                    justifyContent: 'center',
-                    gap:          '7px',
+                    overflow:   'hidden',
+                    maxHeight:  isOpen ? '480px' : '0',
+                    opacity:    isOpen ? 1 : 0,
+                    marginTop:  isOpen ? '14px' : '0',
+                    transition: 'max-height 0.32s ease, opacity 0.28s ease, margin-top 0.28s ease',
                   }}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  {prioritizeState[doc.id] === 'loading' ? (
-                    <>
-                      <svg
-                        className="animate-spin"
-                        style={{ width: '14px', height: '14px', flexShrink: 0 }}
-                        viewBox="0 0 24 24" fill="none"
-                      >
-                        <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
-                      Starting…
-                    </>
-                  ) : 'Study THIS'}
-                </button>
-              )}
+                  {/* Divider */}
+                  <div style={{ borderTop: '1px solid rgba(96,165,250,0.12)', marginBottom: '12px' }} />
 
-            </div>
-          );
-        })}
+                  {/* Description */}
+                  {doc.description && (
+                    <p style={{
+                      fontSize:     '0.84375rem',
+                      lineHeight:   1.55,
+                      color:        'rgba(200,200,220,0.75)',
+                      marginBottom: '14px',
+                    }}>
+                      {doc.description}
+                    </p>
+                  )}
+
+                  {/* Sample question */}
+                  {doc.sample_question_text && (
+                    <div style={{ marginBottom: '16px' }}>
+                      <div style={{
+                        fontSize:      '0.625rem',
+                        fontWeight:    600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em',
+                        color:         'rgba(148,163,184,0.6)',
+                        marginBottom:  '5px',
+                      }}>
+                        Sample Question
+                      </div>
+                      <p style={{ fontSize: '0.90625rem', lineHeight: 1.5, color: '#dddddd' }}>
+                        {doc.sample_question_text}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Add to Library */}
+                  <button
+                    onClick={() => handleAdopt(doc)}
+                    disabled={isDone || isAdopting}
+                    style={{
+                      width:        '100%',
+                      fontSize:     '0.875rem',
+                      fontWeight:   600,
+                      padding:      '9px 16px',
+                      borderRadius: '9px',
+                      cursor:       isDone || isAdopting ? 'default' : 'pointer',
+                      transition:   'opacity 0.15s ease',
+                      opacity:      isAdopting ? 0.6 : 1,
+                      ...(isDone
+                        ? { background: 'rgba(34,197,94,0.1)', color: 'var(--color-easy)', border: '1px solid rgba(34,197,94,0.2)' }
+                        : { background: 'rgba(124,58,237,0.18)', color: '#c4b5fd', border: '1px solid rgba(124,58,237,0.32)' }
+                      ),
+                    }}
+                  >
+                    {isDone ? 'Added ✓' : isAdopting ? 'Adding…' : 'Add to Library'}
+                  </button>
+
+                  {/* Feedback */}
+                  {message && (
+                    <p style={{
+                      marginTop: '8px',
+                      fontSize:  '0.8rem',
+                      color:     isDone ? 'var(--color-easy)' : 'var(--color-forgot)',
+                    }}>
+                      {message}
+                    </p>
+                  )}
+
+                  {/* Study THIS — appears only after successful adoption */}
+                  {isDone && (
+                    <button
+                      onClick={() => handleStudyThis(doc.id)}
+                      disabled={prioritizeState[doc.id] === 'loading'}
+                      style={{
+                        marginTop:      '10px',
+                        width:          '100%',
+                        padding:        '9px 16px',
+                        background:     prioritizeState[doc.id] === 'loading' ? 'rgba(124,58,237,0.5)' : '#7c3aed',
+                        color:          '#ffffff',
+                        fontWeight:     600,
+                        fontSize:       '0.875rem',
+                        borderRadius:   '9px',
+                        border:         'none',
+                        cursor:         prioritizeState[doc.id] === 'loading' ? 'not-allowed' : 'pointer',
+                        boxShadow:      '0 0 16px rgba(124,58,237,0.45)',
+                        transition:     'background 0.15s',
+                        display:        'flex',
+                        alignItems:     'center',
+                        justifyContent: 'center',
+                        gap:            '7px',
+                      }}
+                    >
+                      {prioritizeState[doc.id] === 'loading' ? (
+                        <>
+                          <svg
+                            className="animate-spin"
+                            style={{ width: '14px', height: '14px', flexShrink: 0 }}
+                            viewBox="0 0 24 24" fill="none"
+                          >
+                            <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          Starting…
+                        </>
+                      ) : 'Study THIS'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );
