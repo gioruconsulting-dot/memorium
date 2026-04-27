@@ -203,10 +203,10 @@ export default function BrowsePage() {
           display:      'flex',
           alignItems:   'center',
           gap:          '10px',
-          background:   '#1a1a28',
+          background:   '#1e1e30',
           border:       searchFocused
-            ? '1px solid rgba(160,130,255,0.55)'
-            : '1px solid rgba(120,100,200,0.35)',
+            ? '1px solid rgba(160,130,255,0.66)'
+            : '1px solid rgba(120,100,200,0.42)',
           borderRadius: '10px',
           padding:      '9px 14px',
           transition:   'border-color 0.18s ease',
@@ -281,9 +281,9 @@ export default function BrowsePage() {
                   fontWeight:   isActive ? 600 : 500,
                   cursor:       'pointer',
                   border:       isActive
-                    ? '1px solid rgba(124,58,237,0.5)'
+                    ? '1px solid rgba(124,58,237,0.6)'
                     : '1px solid rgba(120,100,200,0.32)',
-                  background:   isActive ? 'rgba(124,58,237,0.18)' : '#1a1a28',
+                  background:   isActive ? 'rgba(124,58,237,0.22)' : '#1a1a28',
                   color:        isActive ? '#c4b5fd' : '#bbbbcc',
                   transition:   'all 0.15s ease',
                   whiteSpace:   'nowrap',
@@ -420,7 +420,7 @@ export default function BrowsePage() {
                       opacity:      isAdopting ? 0.6 : 1,
                       ...(isDone
                         ? { background: 'rgba(34,197,94,0.1)', color: 'var(--color-easy)', border: '1px solid rgba(34,197,94,0.2)' }
-                        : { background: 'rgba(124,58,237,0.18)', color: '#c4b5fd', border: '1px solid rgba(124,58,237,0.32)' }
+                        : { background: 'rgba(124,58,237,0.24)', color: '#d0c4ff', border: '1px solid rgba(124,58,237,0.42)' }
                       ),
                     }}
                   >
