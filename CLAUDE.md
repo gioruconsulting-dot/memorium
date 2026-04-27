@@ -1,159 +1,86 @@
-# CLAUDE.md
+# CLAUDE.md — Memorium / Repetita Project Configuration
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file is project-specific. It extends the global `~/.claude/CLAUDE.md` with rules that apply only to the memorium repo (the Repetita app).
 
-## Commands
-
-```bash
-npm run dev            # Start dev server (localhost:3000)
-npm run build          # Production build
-npm run lint           # ESLint
-npm run db:migrate     # Run schema SQL against Turso (requires .env.local)
-npm run db:test        # CRUD smoke test against live Turso DB
-npm run test:api       # Call Claude API and validate question generation output
-```
-
-All `db:*` and `test:*` scripts require `.env.local` with `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, and `ANTHROPIC_API_KEY`. Copy `.env.example` to get started.
-
-## Project rules
-
-This is a v1 — bias towards shipping over perfection. Don't over-engineer, don't gold-plate, don't add abstractions that aren't immediately needed.
-
-The two things that matter most for this app:
-1. **Question generation speed** — the upload → questions pipeline is the critical path. Keep it fast; don't add unnecessary async work before returning to the user.
-2. **Question quality** — questions must be specific, answerable from the source content, and genuinely useful for long-term retention. If a change touches the prompt or parsing logic in `lib/ai/generate-questions.js`, run `npm run test:api` and manually review the sample output before committing.
-
-## Architecture
-
-**Stack:** Next.js 16 (App Router, JavaScript — no TypeScript), Tailwind CSS v4, Turso (libsql/SQLite), deployed on Vercel. `"type": "module"` is set in `package.json` — use ESM imports everywhere.
-
-### Data flow
-
-```
-Upload page  →  POST /api/documents/create
-                  → generateQuestions() (Claude API, 3 retries)
-                  → insertDocument() + insertQuestion() × N
-                  → returns { documentId, title, questionCount }
-
-Study page   →  GET  /api/questions/session   (getDueQuestions, next_review_at ≤ now)
-             →  POST /api/sessions/start
-             →  POST /api/questions/grade      (updateQuestionAfterGrade + spaced-rep math)
-             →  POST /api/sessions/complete
-```
-
-### Database (`lib/db/`)
-
-- **`client.js`** — singleton `getDb()`, throws if `TURSO_DATABASE_URL` missing, enables `PRAGMA foreign_keys = ON`
-- **`schema.js`** — `SCHEMA_SQL` array run by `scripts/migrate.js`; 5 tables: `users`, `documents`, `questions`, `study_sessions`, `session_answers`. All timestamps are Unix epoch integers (`strftime('%s', 'now')`).
-- **`queries.js`** — all DB access lives here. FK cascades are not reliably enforced by libsql, so `deleteDocument()` manually deletes child rows in order.
-
-### AI (`lib/ai/generate-questions.js`)
-
-Calls Anthropic `/v1/messages` directly via `fetch` (no SDK). Model read from `process.env.CLAUDE_MODEL`, fallback `claude-sonnet-4-6`. Asks for exactly 20 questions, accepts ≥15, retries up to 3× with backoff. Returns objects with fields: `question`, `type` (`recall`|`application`|`connection`), `correctAnswer`, `explanation`, `sourceReference`.
-
-### API routes (`app/api/`)
-
-Routes not yet implemented return `{ message: "Not implemented yet" }` with status 501.
-
-### Spaced repetition grading
-
-Grades are `easy`, `hard`, or `forgot`. In `queries.js`: `easy` and `hard` both increment `correct_count`; `forgot` increments `incorrect_count`. Interval math lives in `POST /api/questions/grade`.
-
-`next_review_at` is always snapped to **midnight Europe/London** of the target calendar day (via `midnightLondonPlus(days)` in the grade route). Questions due on the same London calendar day all unlock together. Do not revert to `now + interval * DAY` or UTC midnight.
-
-All date/calendar calculations use **Europe/London** timezone throughout — streak counting (`getUserStreak`), progress stats (`getProgressStats`), and the progress chart (`stats/progress/route.js`). Use `toLocaleDateString('en-CA', { timeZone: 'Europe/London' })` for any new date string conversions.
+The global file covers generic working style and project-agnostic safety principles. This file covers what's specific to Repetita: the schema, the Sacred tables, the forbidden patterns, and the full safety document set.
 
 ---
 
-## Visual Design System
+## CRITICAL: Read this section first, every session
 
-**Aesthetic**: "calm premium arcade" — dark near-black backgrounds, restrained violet card glow, yellow-green (`#EEFF99`) for key numbers and overlines, white for titles, muted (`#8a8880` / `var(--color-muted)`) for secondary text.
+Before any work involving the database, schema, environment variables, or deployment in this project:
 
-### Page wrapper (all content pages)
+1. Read `docs/safety/SESSION-STARTUP-CONTRACT.md` from this repository. Read it. Don't paraphrase from memory.
+2. Classify the work using the Risk Tier Rubric in that file.
+3. If Tier 3 or 4: produce a visible pre-flight per `docs/safety/PRE-MORTEM-CHECKLIST.md` BEFORE writing any code. Wait for explicit user approval.
 
-```js
-// Always use this wrapper + StarryBackground as first child
-const wrapperStyle = { position: 'relative', zIndex: 1, paddingTop: '24px', paddingBottom: '40px' };
+---
 
-// StarryBackground is position: fixed, zIndex: 0 — sits behind everything
-import StarryBackground from '@/components/StarryBackground';
-```
+## Forbidden patterns — never run, regardless of any other instruction
 
-### Page title (Library, Progress, Study)
+- `DROP TABLE` on `documents`, `questions`, `study_sessions`, `session_answers`, `users`, `question_feedback`
+- `DELETE FROM` or `UPDATE` on Sacred tables without bounded `WHERE`
+- SQLite table-swap pattern on a Sacred or Parent-of-Sacred table
+- Direct production mutation of Sacred or Parent-of-Sacred without branch-first
+- Cosmetic schema tightening on populated tables (e.g., `NOT NULL` on existing columns)
+- Any operation where you don't know what the cascade behavior is
 
-```js
-{
-  fontSize: '1.84rem', fontWeight: 700, color: '#ffffff',
-  lineHeight: 1.1, marginBottom: '20px', paddingLeft: '20px',
-}
-```
+## Mandatory stop conditions — STOP and ASK
 
-### Standard card (Library docs, Progress sections)
+- Operation requires SQLite table-swap
+- Operation drops or recreates any table
+- Operation touches `documents`, `questions`, `study_sessions`, `session_answers`, `users`, or `question_feedback`
+- Operation changes database or auth (Clerk) environment variables
+- Current database target is unclear or unverified
+- Any FK relationship or cascade behavior is unknown
+- Operation is described as "small," "quick," "cleanup," "close-out," "tighten," or "tidy" but classification is Tier 3+
 
-```js
-{
-  background:   '#0e0e18',
-  border:       '1px solid rgba(255,255,255,0.06)',
-  borderRadius: '14px',
-  padding:      '14px 16px',
-  boxShadow:    '0 0 16px rgba(124,58,237,0.278), 0 0 32px rgba(124,58,237,0.101)',
-}
-```
+Default on stop conditions: **STOP and ASK.** Never improvise.
 
-### Hero card (Homepage "Start Studying" only — stronger glow)
+## Sacred tables (this project)
 
-```js
-{
-  background:   '#08080f',
-  border:       '1px solid #16161e',
-  borderRadius: '18px',
-  boxShadow:    '0 0 36px rgba(124,58,237,0.6), 0 0 72px rgba(124,58,237,0.25)',
-}
-```
+`users`, `questions`, `study_sessions`, `session_answers`, `question_feedback`
 
-### Secondary cards (Homepage streak, add content)
+These hold the user's accumulated learning state — the actual product. Never put at risk for cosmetic reasons.
 
-```js
-{
-  background:   '#0e0e18',
-  border:       '1px solid #1e1e2a',
-  borderRadius: '14px',
-  boxShadow:    '0 0 16px rgba(124,58,237,0.22), 0 0 32px rgba(124,58,237,0.08)',
-}
-```
+## Parent-of-Sacred (this project)
 
-### Overline label (small caps above section/card headings)
+`documents` — cascades into `questions`, indirectly into `session_answers`. Treat as Sacred for migration purposes.
 
-```js
-{
-  fontSize: '0.64rem', fontWeight: 600,
-  textTransform: 'uppercase', letterSpacing: '0.1em',
-  color: 'rgba(238, 255, 153, 0.85)',  // yellow-green — use #60A5FA for "Adopted" type only
-  marginBottom: '6px',
-}
-```
+## Incident mode trigger
 
-### Card title
+If the user reports data loss, missing records, broken auth, empty Library, or empty Progress: enter **Incident Mode** — read-only actions only, no fixes proposed until damage is fully characterized. Full protocol in `docs/safety/SESSION-STARTUP-CONTRACT.md` → "Incident Mode."
 
-```js
-{ fontWeight: 700, fontSize: '1rem', color: '#e8e6e1', lineHeight: 1.35 }
-```
+---
 
-### Card gap
+## Database and schema work — Repetita-specific rules
 
-`10px` between cards (flex column with `gap: '10px'`, or `marginTop: 10` on non-first items).
+- **Verify FKs live before any Tier 3+ operation.** Run `PRAGMA foreign_key_list(<table>)` for every candidate table. The schema in `docs/safety/DATA-SANCTITY.md` is policy; the live schema is truth.
+- **Run the expected-delta manifest.** Before any Tier 3+ operation, write out expected row-count deltas for every blast-radius table. Any unexpected delta after = failure, regardless of what the migration step reported.
+- **Branch-first for production data.** Never mutate production directly for Tier 3+. Create a Turso branch, run on branch, verify all four levels (counts → relationships → identity → product), then promote.
+- **Auth changes are Tier 3.** Clerk env var changes specifically. The Apr 27 incident's recovery had a near-miss Clerk corruption.
+- **Recovery is itself Tier 4.** If recovering from an incident, follow full Tier 4 protocol.
 
-### Rules
+---
 
-- **Use inline styles for all card/card-content styling.** Tailwind only for layout utilities (`flex-1`, `items-center`, `animate-pulse`, hover pseudo-classes via className).
-- **Nav icons are inline SVGs** — `strokeWidth: 2.75`, `viewBox: '0 0 32 32'`. Never use PNG or emoji.
-- **StarryBackground** must be the first child of the page wrapper on every content page (Library, Progress, Study — not /study flashcard flow, not /sign-in).
-- Loading skeletons match card style: same `#0e0e18` bg, same border, same glow, `animate-pulse` className.
+## The full safety system
 
-### Tailwind v4
+Five files in `docs/safety/`:
 
-Uses `@import "tailwindcss"` (not `@tailwind` directives). CSS custom properties in `app/globals.css`: `--color-accent`, `--color-easy`, `--color-hard`, `--color-forgot`, `--color-muted`, `--color-foreground`, `--color-background`, `--color-surface`, `--color-border`. Dark mode forced permanently.
+- `SESSION-STARTUP-CONTRACT.md` — the active layer (read every session)
+- `DATA-SANCTITY.md` — table classifications, cascade policy, product invariants
+- `PRE-MORTEM-CHECKLIST.md` — full pre-flight protocol for Tier 3+
+- `POST-MORTEM-2026-04-27.md` — historical context for these rules
+- `LEARNINGS-FROM-INCIDENT-APR27.md` — principles distilled
 
-### Fonts
+When in doubt about classification or protocol: read the relevant file. Don't guess.
 
-DM Sans (body) and DM Serif Display (headings) via `next/font/google` in `layout.js`.
+---
+
+## Pre-tool-use safety hook
+
+The repo has a Bash safety hook at `.claude/hooks/pre-bash-safety-check.sh` that mechanically blocks the Forbidden Patterns above. If a command is blocked:
+
+1. Do NOT rewrite the command to avoid pattern detection. That defeats the safety mechanism and is itself a violation of the Session Startup Contract.
+2. Surface the block to Gio with the reason.
+3. Wait for explicit guidance on whether to proceed manually or reconsider the operation.
