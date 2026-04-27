@@ -118,7 +118,7 @@ export default function BrowsePage() {
       <div style={wrapperStyle}>
         <StarryBackground />
         {pageHeader}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingLeft: '20px', paddingRight: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {[0, 1, 2].map((i) => (
             <div key={i} className="animate-pulse" style={{ ...browseCardStyle, height: 88 }} />
           ))}
@@ -132,26 +132,24 @@ export default function BrowsePage() {
       <div style={wrapperStyle}>
         <StarryBackground />
         {pageHeader}
-        <div style={{ paddingLeft: '20px', paddingRight: '20px' }}>
-          <p style={{ color: 'var(--color-forgot)', marginBottom: '16px', fontSize: '0.875rem' }}>
-            {error}
-          </p>
-          <button
-            onClick={fetchDocuments}
-            style={{
-              padding:      '10px 20px',
-              borderRadius: '8px',
-              fontWeight:   500,
-              fontSize:     '0.875rem',
-              background:   'var(--color-foreground)',
-              color:        'var(--color-background)',
-              border:       'none',
-              cursor:       'pointer',
-            }}
-          >
-            Try Again
-          </button>
-        </div>
+        <p style={{ color: 'var(--color-forgot)', marginBottom: '16px', fontSize: '0.875rem' }}>
+          {error}
+        </p>
+        <button
+          onClick={fetchDocuments}
+          style={{
+            padding:      '10px 20px',
+            borderRadius: '8px',
+            fontWeight:   500,
+            fontSize:     '0.875rem',
+            background:   'var(--color-foreground)',
+            color:        'var(--color-background)',
+            border:       'none',
+            cursor:       'pointer',
+          }}
+        >
+          Try Again
+        </button>
       </div>
     );
   }
@@ -161,7 +159,7 @@ export default function BrowsePage() {
       <div style={wrapperStyle}>
         <StarryBackground />
         {pageHeader}
-        <div style={{ ...browseCardStyle, marginLeft: '20px', marginRight: '20px' }}>
+        <div style={browseCardStyle}>
           <p style={{ fontWeight: 600, fontSize: '0.9375rem', color: '#e8e6e1', marginBottom: '4px' }}>
             Nothing here yet
           </p>
@@ -199,16 +197,16 @@ export default function BrowsePage() {
 
       {pageHeader}
 
-      {/* Search bar */}
-      <div style={{ paddingLeft: '20px', paddingRight: '20px', marginBottom: '12px' }}>
+      {/* Search bar — Tweak 1: no extra horizontal padding; Tweak 4: stronger border + lighter fill */}
+      <div style={{ marginBottom: '12px' }}>
         <div style={{
           display:      'flex',
           alignItems:   'center',
           gap:          '10px',
-          background:   '#161622',
+          background:   '#1a1a28',
           border:       searchFocused
-            ? '1px solid rgba(124,58,237,0.55)'
-            : '1px solid rgba(96,165,250,0.18)',
+            ? '1px solid rgba(160,130,255,0.55)'
+            : '1px solid rgba(120,100,200,0.35)',
           borderRadius: '10px',
           padding:      '9px 14px',
           transition:   'border-color 0.18s ease',
@@ -258,12 +256,10 @@ export default function BrowsePage() {
         </div>
       </div>
 
-      {/* Topic pills */}
+      {/* Topic pills — Tweak 1: no extra horizontal padding; Tweak 4: stronger border + lighter fill */}
       <div
         className="browse-pills-row"
         style={{
-          paddingLeft:     '20px',
-          paddingRight:    '20px',
           marginBottom:    '16px',
           overflowX:       'auto',
           scrollbarWidth:  'none',
@@ -286,9 +282,9 @@ export default function BrowsePage() {
                   cursor:       'pointer',
                   border:       isActive
                     ? '1px solid rgba(124,58,237,0.5)'
-                    : '1px solid rgba(96,165,250,0.14)',
-                  background:   isActive ? 'rgba(124,58,237,0.18)' : '#161622',
-                  color:        isActive ? '#c4b5fd' : 'rgba(200,200,220,0.7)',
+                    : '1px solid rgba(120,100,200,0.32)',
+                  background:   isActive ? 'rgba(124,58,237,0.18)' : '#1a1a28',
+                  color:        isActive ? '#c4b5fd' : '#bbbbcc',
                   transition:   'all 0.15s ease',
                   whiteSpace:   'nowrap',
                 }}
@@ -300,8 +296,8 @@ export default function BrowsePage() {
         </div>
       </div>
 
-      {/* Card list */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingLeft: '20px', paddingRight: '20px' }}>
+      {/* Card list — Tweak 1: no extra horizontal padding */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {filteredDocs.length === 0 ? (
           <div style={{ textAlign: 'center', color: '#8a8880', fontSize: '0.875rem', padding: '40px 0' }}>
             No documents match.
@@ -376,32 +372,34 @@ export default function BrowsePage() {
                   {/* Divider */}
                   <div style={{ borderTop: '1px solid rgba(96,165,250,0.12)', marginBottom: '12px' }} />
 
-                  {/* Description */}
+                  {/* Description — Tweak 2: primary text, larger and brighter */}
                   {doc.description && (
                     <p style={{
-                      fontSize:     '0.84375rem',
+                      fontSize:     '0.9375rem',
+                      fontWeight:   400,
                       lineHeight:   1.55,
-                      color:        'rgba(200,200,220,0.75)',
+                      color:        '#e8e6e1',
                       marginBottom: '14px',
                     }}>
                       {doc.description}
                     </p>
                   )}
 
-                  {/* Sample question */}
+                  {/* Sample question — Tweak 2: secondary text, smaller and muted */}
                   {doc.sample_question_text && (
                     <div style={{ marginBottom: '16px' }}>
+                      {/* Tweak 3: yellow label */}
                       <div style={{
                         fontSize:      '0.625rem',
                         fontWeight:    600,
                         textTransform: 'uppercase',
                         letterSpacing: '0.1em',
-                        color:         'rgba(148,163,184,0.6)',
+                        color:         '#EEFF99',
                         marginBottom:  '5px',
                       }}>
                         Sample Question
                       </div>
-                      <p style={{ fontSize: '0.90625rem', lineHeight: 1.5, color: '#dddddd' }}>
+                      <p style={{ fontSize: '0.8125rem', lineHeight: 1.5, color: '#a8a8b8', fontWeight: 400 }}>
                         {doc.sample_question_text}
                       </p>
                     </div>
