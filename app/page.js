@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { getUserContentCounts, getAllDueQuestions, getUserStreak, getCompletedSessionCount, getUpNextDocumentTitles } from "@/lib/db/queries";
+import { autoAdoptStarterDocIfFirstTime } from "@/lib/auto-adopt-starter";
 import OnboardingCard from "@/components/OnboardingCard";
 import StarryBackground from "@/components/StarryBackground";
 import StreakCard from "@/components/StreakCard";
@@ -25,6 +26,14 @@ function getLevel(streak) {
 export default async function Home() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
+
+  // FTUE: copy starter doc to new user before counting their content.
+  // Fail-soft — never throws. Gated by AUTO_ADOPT_ENABLED=1.
+  try {
+    await autoAdoptStarterDocIfFirstTime(userId);
+  } catch (err) {
+    console.error('[home] auto-adopt unexpected throw:', err);
+  }
 
   const [user, { documentCount, questionCount }, streakData] = await Promise.all([
     currentUser(),

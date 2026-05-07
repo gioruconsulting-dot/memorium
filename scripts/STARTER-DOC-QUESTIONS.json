@@ -1,0 +1,159 @@
+{
+  "doc": {
+    "slug": "how-memory-actually-works",
+    "title": "How Memory Actually Works",
+    "topic": "Personal Growth",
+    "description": "The science of remembering — and why this app works the way it does. A 20-question primer on memory, learning, and the techniques that make information stick. This is the starter doc auto-adopted for every new Repetita user.",
+    "is_starter_doc": true,
+    "is_shared": true,
+    "question_count": 20,
+    "notes_for_seeding": [
+      "This doc must be seeded ONCE in the production database with a stable slug.",
+      "The auto-adopt logic looks up the doc by slug 'how-memory-actually-works', NOT by title.",
+      "Questions must preserve the order field below — it controls session 1 ramp.",
+      "If the slug already exists, do not duplicate. Update in place if needed."
+    ]
+  },
+  "questions": [
+    {
+      "order": 1,
+      "session_target": 1,
+      "type": "recall",
+      "question": "Roughly what % of new information do most people forget within 24 hours if they don't review it?",
+      "answer": "Around 70%. This is one of the most replicated findings in memory research. Without active review, the vast majority of what you read or hear today is gone by tomorrow."
+    },
+    {
+      "order": 2,
+      "session_target": 1,
+      "type": "application",
+      "question": "Is it better to study for 1 hour the night before an exam or 10 minutes a day during the 4 days prior? Why?",
+      "answer": "The 4 distributed sessions. The gaps between sessions let your brain consolidate the information and partially forget it. The act of pulling it back from that partially-forgotten state is what strengthens the memory. Cramming feels effective in the moment but it fades within days (and we have all experienced that...)."
+    },
+    {
+      "order": 3,
+      "session_target": 1,
+      "type": "elaborative_interrogation",
+      "question": "Why does reviewing information at increasing intervals work better for consolidating memories compared to reviewing it at fixed or decreasing intervals?",
+      "answer": "Because each successful recall right before you'd forget creates a stronger memory trace. Easy recalls don't do that. By stretching the gap each time, you train your brain to hold the information longer with less effort. This technique is called \"spaced repetition\", and it's the core mechanism Repetita uses to schedule your reviews."
+    },
+    {
+      "order": 4,
+      "session_target": 1,
+      "type": "recall",
+      "question": "Which 19th-century scientist first documented how quickly we forget information if we don't review it?",
+      "answer": "Hermann Ebbinghaus, in 1885. He spent years memorising nonsense syllables and testing himself at intervals to map exactly how memory fades over time. His \"forgetting curve\" is still one of the most replicated findings in psychology, and it's the foundation of every modern spaced repetition system."
+    },
+    {
+      "order": 5,
+      "session_target": 1,
+      "type": "inversion",
+      "question": "Is it a good or a bad thing if you struggle to recall something and eventually get it even partially right?",
+      "answer": "It's a very good thing. The mental effort of retrieval is the mechanism that actually consolidates memories. Hard-won recalls lock information in for the long term. Like in any workout: it's the difficult reps that create the biggest gains."
+    },
+    {
+      "order": 6,
+      "session_target": 2,
+      "type": "inversion",
+      "question": "Is the \"feeling of knowing\" the material after you re-read a chapter reliable evidence that you've really learned it?",
+      "answer": "No. This is one of the biggest traps in self-study. Familiarity feels like knowledge, but it isn't. This is called the \"illusion of fluency\": you \"recognise\" the content but you have never actually recalled it nor used it. Active retrieval is what shows you what you really know."
+    },
+    {
+      "order": 7,
+      "session_target": 2,
+      "type": "application",
+      "question": "If you're studying 3 different topics, is it better to finish all of topic A, then all of B, then all of C or to mix them up each session?",
+      "answer": "Mix them up. This technique is called \"interleaving\", and it consistently beats \"blocked practice\" even if it feels harder and slower in the moment. Mixing topics forces your brain to actively discriminate between concepts, which builds stronger and more flexible knowledge."
+    },
+    {
+      "order": 8,
+      "session_target": 2,
+      "type": "recall",
+      "question": "What happens to the things you study today while you sleep tonight?",
+      "answer": "Your brain consolidates them. During deep sleep and REM, the day's memories get replayed and strengthened, particularly the ones considered effortful or emotionally salient. This is why studying before bed, then reviewing the next day, is one of the most effective patterns you can adopt."
+    },
+    {
+      "order": 9,
+      "session_target": 2,
+      "type": "application",
+      "question": "You have 30 minutes to study. Is it more effective to re-read the material 3 times, or to read it once and quiz yourself twice?",
+      "answer": "Quiz yourself. This is the \"testing effect\": retrieval practice produces roughly 2 to 3 times better long-term retention than re-reading. Re-reading may feel \"productive\" but answering questions is much better."
+    },
+    {
+      "order": 10,
+      "session_target": 2,
+      "type": "recall",
+      "question": "When you successfully recall a memory, what's physically happening inside your brain?",
+      "answer": "The synaptic connections for that memory are literally getting stronger, a process called \"long-term potentiation\". Each successful recall is actually a \"physical rewiring event\" that makes the next recall easier. Memory is biology, and you're shaping your brain one question at a time."
+    },
+    {
+      "order": 11,
+      "session_target": 3,
+      "type": "inversion",
+      "question": "Are highlighting passages and taking detailed notes effective ways to learn and memorise new material?",
+      "answer": "Surprisingly, not so much! They feel productive, but you're mostly recognising content, and not retrieving it. Highlighting is particularly \"ineffective\". The simplest and more effective method: active retrival."
+    },
+    {
+      "order": 12,
+      "session_target": 3,
+      "type": "elaborative_interrogation",
+      "question": "Why is it easier to remember a phone number in chunks, e.g. \"335-pause-1234\", than as a continuous string of digits, e.g. \"3351234\"?",
+      "answer": "Because your working memory can only hold about 4 to 7 items at once. But a \"chunk\" counts as one item, regardless of how much information it contains. Grouping related pieces into meaningful chunks lets you \"compress\" far more into the same mental space. This is why expert chess players don't see 32 pieces on a board; they see a handful of familiar patterns."
+    },
+    {
+      "order": 13,
+      "session_target": 3,
+      "type": "elaborative_interrogation",
+      "question": "Why does explaining a concept to someone else (or even just out loud to yourself) makes you understand it better?",
+      "answer": "Explaining forces you to retrieve, organise, and translate the concept into your own words, and that process exposes gaps you didn't know you had. It's called the \"protégé effect\", and it's one of the most reliable ways to convert shallow understanding into real knowledge. If you can't explain it clearly, you don't actually understand it yet."
+    },
+    {
+      "order": 14,
+      "session_target": 3,
+      "type": "elaborative_interrogation",
+      "question": "Why do champion memorisers \"place\" facts in imaginary rooms or along familiar streets?",
+      "answer": "Because \"spatial memory\", the kind our ancestors used to navigate the world, is far stronger than \"abstract memory\". By linking facts to vivid mental locations, you \"supercharge\" your abstract memory using your spatial memory. This is called the \"method of loci\", and it's been used since ancient Greece to memorise extraordinary amounts of information."
+    },
+    {
+      "order": 15,
+      "session_target": 3,
+      "type": "elaborative_interrogation",
+      "question": "Why does thinking about the actual meaning of something lead to better recall than simply trying to memorise the words themselves?",
+      "answer": "Because your brain encodes meaning far more durably than surface features. This is called the \"depth of processing\": shallow encoding (memorising letters or sounds) creates fragile traces, while deep encoding (understanding the concept) creates rich, interconnected ones. The more you connect new information to what you already know, the more you will remember."
+    },
+    {
+      "order": 16,
+      "session_target": 4,
+      "type": "inversion",
+      "question": "If a study technique feels easy and smooth, is it likely to be very effective?",
+      "answer": "Most likely not. Research on \"desirable difficulties\" shows that techniques which feel harder during practice (spacing, interleaving, retrieval) produce the strongest long-term learning. Effort is non negotiable. But we can be smart about it."
+    },
+    {
+      "order": 17,
+      "session_target": 4,
+      "type": "elaborative_interrogation",
+      "question": "Why is filling in a blank or generating an answer yourself more effective than multiple choice?",
+      "answer": "Because the act of generating forces your brain to figure out and commit to an answer, and even when wrong, that effort strengthens the eventual correct memory. This is called the \"generation effect\". And this is exactly what you have in Repetita."
+    },
+    {
+      "order": 18,
+      "session_target": 4,
+      "type": "application",
+      "question": "When you encounter a new fact, what's a simple question you can ask yourself to dramatically improve your retention of it?",
+      "answer": "Ask \"why is this true?\" or \"why does this make sense?\". This technique is called \"elaborative interrogation\", and it works by forcing you to connect the new information to your existing knowledge."
+    },
+    {
+      "order": 19,
+      "session_target": 4,
+      "type": "elaborative_interrogation",
+      "question": "Why do diagrams, sketches, and visualisations make abstract concepts much easier to remember?",
+      "answer": "Our brain encodes verbal and visual information through separate channels, using both creates two retrieval paths instead of one. This is called \"dual coding\". Even rough sketches you make yourself outperform polished diagrams made by someone else, because the act of drawing IS the encoding."
+    },
+    {
+      "order": 20,
+      "session_target": 4,
+      "type": "synthesis",
+      "question": "What's the single principle that ties spaced repetition, retrieval, interleaving, and elaboration all together?",
+      "answer": "Effort. Every technique that works has some version of \"make it harder now to make it easier later\". Your brain consolidates what feels effortful and lets the easy stuff fade. The discomfort is real, and it's also the most useful indicator that you are improving."
+    }
+  ]
+}
