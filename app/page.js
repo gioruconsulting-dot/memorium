@@ -97,9 +97,6 @@ export default async function Home() {
       <div style={{ position: 'relative', zIndex: 1, padding: '24px 0 16px' }}>
         <StarryBackground />
         <div style={{ marginBottom: '24px' }}>
-          <p style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--color-muted)', marginBottom: '6px' }}>
-            HOME
-          </p>
           <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.15, marginBottom: '4px' }}>
             {firstName ? `Welcome, ${firstName}` : 'Welcome!'}
           </h1>

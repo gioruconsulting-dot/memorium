@@ -83,24 +83,13 @@ function NewUserCard() {
     >
       <div
         style={{
-          border: '1px solid #7c3aed',
-          borderRadius: '1rem',
+          background: '#0e0e18',
+          border: '1px solid #1e1e2a',
+          borderRadius: '14px',
           padding: '1.25rem',
-          background: 'var(--color-surface)',
+          boxShadow: '0 0 16px rgba(124,58,237,0.22), 0 0 32px rgba(124,58,237,0.08)',
         }}
       >
-        {/* Title */}
-        <p
-          style={{
-            fontSize: '1.05rem',
-            fontWeight: 700,
-            color: 'var(--color-foreground)',
-            marginBottom: '1rem',
-          }}
-        >
-          Welcome to Repetita!
-        </p>
-
         {/* THE IDEA. */}
         <p
           style={{
@@ -108,7 +97,7 @@ function NewUserCard() {
             fontWeight: 600,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
-            color: 'var(--color-accent)',
+            color: '#FACC15',
             marginBottom: '0.35rem',
           }}
         >
@@ -136,13 +125,13 @@ function NewUserCard() {
           }}
         >
           <span>
-            <span style={{ color: '#60A5FA', fontWeight: 600 }}>1)</span> Add content (your own or what's shared).
+            <span style={{ color: 'var(--color-foreground)', opacity: 0.7, fontWeight: 600 }}>1)</span> Add content (your own or what's shared).
           </span>
           <span>
-            <span style={{ color: '#60A5FA', fontWeight: 600 }}>2)</span> Answer relevant questions.
+            <span style={{ color: 'var(--color-foreground)', opacity: 0.7, fontWeight: 600 }}>2)</span> Answer relevant questions.
           </span>
           <span>
-            <span style={{ color: '#60A5FA', fontWeight: 600 }}>3)</span> Remember much more efficiently.
+            <span style={{ color: 'var(--color-foreground)', opacity: 0.7, fontWeight: 600 }}>3)</span> Remember much more efficiently.
           </span>
         </div>
         <p
@@ -150,7 +139,7 @@ function NewUserCard() {
             fontSize: '0.875rem',
             lineHeight: '1.6',
             color: 'rgba(232, 230, 225, 0.85)',
-            marginBottom: '1rem',
+            marginBottom: '1.5rem',
           }}
         >
           The algorithm will test you right before you'd forget.
