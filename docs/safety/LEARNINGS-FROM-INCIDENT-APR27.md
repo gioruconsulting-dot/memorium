@@ -142,3 +142,11 @@ Generic "did the operation finish" verification is theater. Specific "did the de
 ## The summary, in one paragraph
 
 The Apr 27 incident was not caused by a single bad decision but by a stack of small ones that compounded: a cosmetic operation framed as cleanup, a migration script that didn't handle cascades, verification scoped to the wrong table, plain-language risk communication missing, and a pre-existing safety warning that was visible but inert. Defense in depth was zero. Recovery worked only because Turso's free-tier PITR happened to be available. The lessons here translate into mechanical controls (specified in `PRE-MORTEM-CHECKLIST.md`) and active rules (specified in `SESSION-STARTUP-CONTRACT.md`) that together break the failure chain at multiple independent points. The single most important takeaway: never trade catastrophic-irreversible against cosmetic-reversible.
+
+-------
+
+## Additional Learnings from following sessions 
+
+- "Hot reload doesn't reliably pick up changes to lib/* files imported by Server Components in Next.js — restart the dev server explicitly after touching them."
+
+- "Repetita's timestamp convention is seconds since epoch (matches strftime('%s', 'now')), not milliseconds. Anything new must use seconds."
