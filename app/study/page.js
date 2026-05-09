@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import CelebrationScene from '@/components/CelebrationScene';
 import StarryBackground from '@/components/StarryBackground';
 
@@ -447,6 +448,7 @@ function FarewellScreen({ insightData, documentStats }) {
 // ── main component ────────────────────────────────────────────────────────────
 
 export default function StudyPage() {
+  const router = useRouter();
   const [phase, setPhase] = useState('loading'); // loading | picker | empty | studying | complete | error
   const [dueCount, setDueCount] = useState(0);
   const [sessionId, setSessionId] = useState(null);
@@ -683,6 +685,11 @@ export default function StudyPage() {
       if (data.summary?.monthlyCardEarned) {
         localStorage.setItem('pendingCardEarned', String(Date.now()));
       }
+      // FTUE: first ever completed session → unified post-celebration screen
+      if (data.summary?.isFirstSession) {
+        router.push('/post-celebration');
+        return;
+      }
       setFading(false);
       setPhase('complete');
     } catch (err) {
@@ -779,6 +786,7 @@ export default function StudyPage() {
     );
   }
 
+  // Existing complete-screen render — unchanged
   if (phase === 'complete' && summary) {
     const remembered = summary.correctCount;
     const headline = pickHeadline(summary.currentStreak, remembered, summary.incorrectCount);

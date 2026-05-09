@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { completeStudySession, getStudySession, getUserStreak, getAllDueQuestions, awardMonthlyStreakCard } from "@/lib/db/queries";
+import { completeStudySession, getStudySession, getUserStreak, getAllDueQuestions, awardMonthlyStreakCard, getCompletedSessionCount } from "@/lib/db/queries";
 
 export async function POST(request) {
   const { userId } = await auth();
@@ -18,10 +18,11 @@ export async function POST(request) {
 
     await completeStudySession(sessionId, userId);
 
-    const [session, streakData, remainingDue] = await Promise.all([
+    const [session, streakData, remainingDue, completedCount] = await Promise.all([
       getStudySession(sessionId, userId),
       getUserStreak(userId),
       getAllDueQuestions(userId),
+      getCompletedSessionCount(userId),
     ]);
 
     if (!session) {
@@ -46,6 +47,7 @@ export async function POST(request) {
         currentStreak: streakData.currentStreak,
         remainingDueCount: remainingDue.length,
         monthlyCardEarned,
+        isFirstSession: completedCount === 1,
       },
     });
   } catch (error) {
