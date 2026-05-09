@@ -35,10 +35,11 @@ export default async function Home() {
     console.error('[home] auto-adopt unexpected throw:', err);
   }
 
-  const [user, { documentCount, questionCount }, streakData] = await Promise.all([
+  const [user, { documentCount, questionCount }, streakData, completedSessions] = await Promise.all([
     currentUser(),
     getUserContentCounts(userId),
     getUserStreak(userId),
+    getCompletedSessionCount(userId),
   ]);
   const { currentStreak, maxStreak, streakCards, cardUsedAt, cardEarnedAt } = streakData;
 
@@ -89,10 +90,64 @@ export default async function Home() {
     );
   }
 
+  // ── First-time user (has content, no completed sessions yet) ───────────────
+  // Hits this branch after auto-adopt seeds the starter doc on first /home load.
+  if (completedSessions === 0) {
+    return (
+      <div style={{ position: 'relative', zIndex: 1, padding: '24px 0 16px' }}>
+        <StarryBackground />
+        <div style={{ marginBottom: '24px' }}>
+          <p style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--color-muted)', marginBottom: '6px' }}>
+            HOME
+          </p>
+          <h1 style={{ fontSize: '2.25rem', fontWeight: 700, color: '#ffffff', lineHeight: 1.15, marginBottom: '4px' }}>
+            {firstName ? `Welcome, ${firstName}` : 'Welcome!'}
+          </h1>
+        </div>
+        <OnboardingCard completedSessions={0} />
+        <Link href="/study" style={{ display: 'block', textDecoration: 'none' }}>
+          <div style={{
+            background: '#08080f',
+            border: '1px solid #16161e',
+            borderRadius: '18px',
+            padding: '16px',
+            boxShadow: '0 0 36px rgba(124, 58, 237, 0.6), 0 0 72px rgba(124, 58, 237, 0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
+            <div>
+              <p style={{ fontSize: '1rem', fontWeight: 600, color: '#ffffff', marginBottom: '2px' }}>
+                Start now
+              </p>
+              <p style={{ fontSize: '0.875rem', color: '#9a9896' }}>
+                5 questions on how memory works
+              </p>
+            </div>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: '#7c3aed',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </div>
+          </div>
+        </Link>
+      </div>
+    );
+  }
+
   // ── Returning user ─────────────────────────────────────────────────────────
-  const [dueQuestions, completedSessions, upNextTitles] = await Promise.all([
+  const [dueQuestions, upNextTitles] = await Promise.all([
     getAllDueQuestions(userId),
-    getCompletedSessionCount(userId),
     getUpNextDocumentTitles(userId),
   ]);
 

@@ -101,7 +101,7 @@ function NewUserCard() {
           Welcome to Repetita!
         </p>
 
-        {/* The Idea */}
+        {/* THE IDEA. */}
         <p
           style={{
             fontSize: '0.7rem',
@@ -112,53 +112,39 @@ function NewUserCard() {
             marginBottom: '0.35rem',
           }}
         >
-          The Idea.
+          THE IDEA.
         </p>
         <p
           style={{
             fontSize: '0.875rem',
             lineHeight: '1.6',
             color: 'rgba(232, 230, 225, 0.85)',
-            marginBottom: '0.5rem',
+            marginBottom: '0.75rem',
           }}
         >
-          You already read tons of things you want to remember — but the reality is you'll forget most of it within days. With Repetita you can:
+          Do you read tons of things that you invariably forget within days? Do you have exams, lectures, notes, facts, concepts that you need to remember? How about NOT forgetting them?!!
         </p>
         <div
           style={{
             fontSize: '0.875rem',
             lineHeight: '1.6',
             color: 'rgba(232, 230, 225, 0.85)',
-            marginBottom: '1rem',
+            marginBottom: '0.75rem',
             display: 'flex',
             flexDirection: 'column',
             gap: '0.15rem',
           }}
         >
           <span>
-            <span style={{ color: '#60A5FA', fontWeight: 600 }}>1)</span> Add content — browse shared docs or upload your own.
+            <span style={{ color: '#60A5FA', fontWeight: 600 }}>1)</span> Add content (your own or what's shared).
           </span>
           <span>
-            <span style={{ color: '#60A5FA', fontWeight: 600 }}>2)</span> Answer high-quality questions about it.
+            <span style={{ color: '#60A5FA', fontWeight: 600 }}>2)</span> Answer relevant questions.
           </span>
           <span>
-            <span style={{ color: '#60A5FA', fontWeight: 600 }}>3)</span> Remember much more efficiently. Let the algorithm decide when to test you again — right before you'd forget.
+            <span style={{ color: '#60A5FA', fontWeight: 600 }}>3)</span> Remember much more efficiently.
           </span>
         </div>
-
-        {/* Why This Works */}
-        <p
-          style={{
-            fontSize: '0.7rem',
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            color: 'var(--color-accent)',
-            marginBottom: '0.35rem',
-          }}
-        >
-          Why This Works.
-        </p>
         <p
           style={{
             fontSize: '0.875rem',
@@ -167,10 +153,10 @@ function NewUserCard() {
             marginBottom: '1rem',
           }}
         >
-          Without review, you lose most of what you encounter after only a few hours. But every successful recall makes that memory stronger and longer-lasting. After a few cycles, something that used to fade in 24 hours sticks for months. This is backed by 140+ years of research, and it's how medical students memorise thousands of facts, how polyglots learn languages, and how experts keep knowledge sharp.
+          The algorithm will test you right before you'd forget.
         </p>
 
-        {/* One Very Important Rule */}
+        {/* ONLY ONE, FUNDAMENTAL RULE: SHOW UP DAILY. */}
         <p
           style={{
             fontSize: '0.7rem',
@@ -181,20 +167,10 @@ function NewUserCard() {
             marginBottom: '0.35rem',
           }}
         >
-          One Very Important Rule: SHOW UP DAILY.
+          ONLY ONE, FUNDAMENTAL RULE:
+          <br />
+          SHOW UP DAILY.
         </p>
-        <p
-          style={{
-            fontSize: '0.875rem',
-            lineHeight: '1.6',
-            color: 'rgba(232, 230, 225, 0.85)',
-            marginBottom: '1rem',
-          }}
-        >
-          Even 5 minutes. Consistency is what makes this method work — if you skip days it will not work. Stay consistent and you'll remember what you read for years, not days.
-        </p>
-
-        {/* CTA line */}
         <p
           style={{
             fontSize: '0.875rem',
@@ -202,9 +178,7 @@ function NewUserCard() {
             color: 'rgba(232, 230, 225, 0.85)',
           }}
         >
-          Head to your{' '}
-          <span style={{ color: '#7c3aed', fontWeight: 600 }}>Library</span>
-          {' '}to browse shared content or upload your own.
+          Even 5 minutes. Consistency is what makes this method work. If you skip multiple days in a row it will not work. Stay consistent and you'll remember for years, not days.
         </p>
       </div>
     </div>
