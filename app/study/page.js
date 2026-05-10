@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import CelebrationScene from '@/components/CelebrationScene';
 import StarryBackground from '@/components/StarryBackground';
 
@@ -449,6 +449,7 @@ function FarewellScreen({ insightData, documentStats }) {
 
 export default function StudyPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [phase, setPhase] = useState('loading'); // loading | picker | empty | studying | complete | error
   const [dueCount, setDueCount] = useState(0);
   const [sessionId, setSessionId] = useState(null);
@@ -480,9 +481,17 @@ export default function StudyPage() {
   const insightDataRef = useRef({ recovered: [], intervalGrowthCount: 0, intervalGrowthDocTitle: null, masteryGained: {}, totalAnswered: 0 });
   const documentStatsRef = useRef({});
 
-  // On mount: fetch due count only, then show picker
+  // On mount: handle FTUE continue-memory entry, otherwise fetch due count + show picker
   useEffect(() => {
+    if (searchParams.get('source') === 'continue-memory') {
+      // Skip picker; pull 5 unreviewed starter-doc questions directly.
+      // Clear the param so a back/refresh shows the normal picker instead of looping.
+      router.replace('/study');
+      startSession(5, 'continue-memory');
+      return;
+    }
     fetchDueCount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -517,7 +526,7 @@ export default function StudyPage() {
     }
   }
 
-  async function startSession(limit) {
+  async function startSession(limit, mode = null) {
     setPhase('loading');
     setErrorMsg('');
     setForgotCount(0);
@@ -534,7 +543,7 @@ export default function StudyPage() {
       const res = await fetch('/api/sessions/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ limit: limit ?? null }),
+        body: JSON.stringify({ limit: limit ?? null, mode }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to start session');

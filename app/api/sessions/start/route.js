@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import {
   getAllDueQuestions,
+  getUnreviewedQuestionsByDocument,
   completeAbandonedSessions,
   createStudySession,
   generateId,
@@ -44,34 +45,53 @@ export async function POST(request) {
   await ensureUser(userId);
 
   // limit: number = cap questions; capped at 100 max
+  // mode: optional string — 'continue-memory' bypasses SR scheduling and pulls
+  //   5 unreviewed questions from the user's starter doc (used by the FTUE
+  //   post-celebration "Continue with memory" CTA).
   const MAX_SESSION_LIMIT = 100;
   let limit = 15;
+  let mode = null;
   try {
     const body = await request.json().catch(() => ({}));
     if (typeof body.limit === 'number' && body.limit > 0) {
       limit = Math.min(Math.floor(body.limit), MAX_SESSION_LIMIT);
+    }
+    if (body.mode === 'continue-memory') {
+      mode = 'continue-memory';
     }
   } catch {}
 
   try {
     await completeAbandonedSessions(userId);
 
-    const allDue = await getAllDueQuestions(userId);
+    let selected;
+    if (mode === 'continue-memory') {
+      // Match the deterministic id from lib/auto-adopt-starter.js
+      const userIdSuffix = userId.startsWith('user_') ? userId.slice(5) : userId;
+      const starterDocId = `starter_${userIdSuffix}`;
+      selected = await getUnreviewedQuestionsByDocument(userId, starterDocId, 5);
+      // Single doc → no interleave needed; rows are already created_at-ordered.
+    } else {
+      const allDue = await getAllDueQuestions(userId);
+      if (allDue.length === 0) {
+        return NextResponse.json({ sessionId: null, questions: [] });
+      }
 
-    if (allDue.length === 0) {
-      return NextResponse.json({ sessionId: null, questions: [] });
+      // Sort: (1) earliest due first, (2) highest risk score, (3) oldest created
+      const sorted = [...allDue].sort((a, b) => {
+        const byDue = Number(a.next_review_at) - Number(b.next_review_at);
+        if (byDue !== 0) return byDue;
+        const byRisk = riskScore(b) - riskScore(a);
+        if (byRisk !== 0) return byRisk;
+        return Number(a.created_at) - Number(b.created_at);
+      });
+
+      selected = interleaveByDocument(sorted.slice(0, limit));
     }
 
-    // Sort: (1) earliest due first, (2) highest risk score, (3) oldest created
-    const sorted = [...allDue].sort((a, b) => {
-      const byDue = Number(a.next_review_at) - Number(b.next_review_at);
-      if (byDue !== 0) return byDue;
-      const byRisk = riskScore(b) - riskScore(a);
-      if (byRisk !== 0) return byRisk;
-      return Number(a.created_at) - Number(b.created_at);
-    });
-
-    const selected = interleaveByDocument(sorted.slice(0, limit));
+    if (selected.length === 0) {
+      return NextResponse.json({ sessionId: null, questions: [] });
+    }
 
     const sessionId = generateId("sess");
     await createStudySession({ id: sessionId, userId, questionsShown: selected.length });

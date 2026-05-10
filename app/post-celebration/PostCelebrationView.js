@@ -35,14 +35,15 @@ export default function PostCelebrationView() {
   return (
     <MainView
       onContinue={() => router.push('/library')}
+      onContinueMemory={() => router.push('/study?source=continue-memory')}
       onDone={() => setView('farewell')}
     />
   );
 }
 
-// ── main view: dancer + locked framing copy + two CTAs ──
+// ── main view: dancer + locked framing copy + three CTAs ──
 
-function MainView({ onContinue, onDone }) {
+function MainView({ onContinue, onContinueMemory, onDone }) {
   return (
     <>
       <style suppressHydrationWarning>{`
@@ -121,7 +122,7 @@ function MainView({ onContinue, onDone }) {
               gap: '10px',
               animation: 'pcRise 0.5s ease 0.7s both',
             }}>
-              {/* Primary */}
+              {/* Primary — violet, the page's focal point */}
               <button
                 onClick={onContinue}
                 style={{
@@ -139,12 +140,35 @@ function MainView({ onContinue, onDone }) {
                 }}
               >
                 <span style={{ fontSize: '1rem', fontWeight: 600, color: '#e8e6e1' }}>
-                  Ready to try it with something else
+                  Study something else
                 </span>
                 <span style={{ color: '#7c3aed', fontSize: '1.5rem', flexShrink: 0, marginLeft: '12px' }}>→</span>
               </button>
 
-              {/* Secondary */}
+              {/* Secondary — cyan/blue, matches Quick Session pattern in study picker */}
+              <button
+                onClick={onContinueMemory}
+                style={{
+                  width: '100%',
+                  background: '#0e0e18',
+                  border: '1px solid rgba(96,165,250,0.25)',
+                  borderRadius: '14px',
+                  padding: '18px 20px',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 0 22px rgba(96,165,250,0.28), 0 0 44px rgba(96,165,250,0.11)',
+                }}
+              >
+                <span style={{ fontSize: '1rem', fontWeight: 600, color: '#e8e6e1' }}>
+                  Continue with memory
+                </span>
+                <span style={{ color: 'rgba(96,165,250,0.85)', fontSize: '1.5rem', flexShrink: 0, marginLeft: '12px' }}>→</span>
+              </button>
+
+              {/* Tertiary — muted */}
               <button
                 onClick={onDone}
                 style={{
