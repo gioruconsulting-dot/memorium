@@ -80,20 +80,6 @@ function MainView({ onContinue, onDone }) {
         }}>
           <div style={{ maxWidth: '430px', margin: '0 auto', width: '100%' }}>
 
-            {/* Breadcrumb */}
-            <p style={{
-              fontSize: '0.65rem',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.18em',
-              color: 'var(--color-muted)',
-              marginBottom: '12px',
-              paddingLeft: '24px',
-              animation: 'pcRise 0.5s ease 0.05s both',
-            }}>
-              SESSION COMPLETE
-            </p>
-
             {/* Headline */}
             <h1 style={{
               fontSize: '2rem',
@@ -101,7 +87,7 @@ function MainView({ onContinue, onDone }) {
               color: '#ffffff',
               lineHeight: 1.15,
               letterSpacing: '-0.02em',
-              marginBottom: '20px',
+              marginBottom: '10px',
               paddingLeft: '24px',
               animation: 'pcRise 0.5s ease 0.2s both',
             }}>
@@ -110,12 +96,11 @@ function MainView({ onContinue, onDone }) {
 
             {/* Card with locked framing copy */}
             <div style={{
-              background: 'rgba(20, 18, 30, 0.55)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              borderRadius: '20px',
+              background: '#0e0e18',
+              border: '1px solid #1e1e2a',
+              borderRadius: '14px',
               padding: '24px',
               marginBottom: '20px',
-              boxShadow: '0 0 16px rgba(124,58,237,0.278), 0 0 32px rgba(124,58,237,0.101)',
               animation: 'pcRise 0.5s ease 0.45s both',
             }}>
               <p style={{ fontSize: '0.9375rem', lineHeight: 1.55, color: '#e8e6e1', marginBottom: '16px' }}>
