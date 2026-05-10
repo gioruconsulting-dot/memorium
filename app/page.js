@@ -102,7 +102,7 @@ export default async function Home() {
           </h1>
         </div>
         <OnboardingCard completedSessions={0} />
-        <Link href="/study" style={{ display: 'block', textDecoration: 'none' }}>
+        <Link href="/study?source=starter" style={{ display: 'block', textDecoration: 'none' }}>
           <div style={{
             background: '#08080f',
             border: '1px solid #16161e',

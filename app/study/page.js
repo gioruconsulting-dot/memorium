@@ -481,13 +481,14 @@ export default function StudyPage() {
   const insightDataRef = useRef({ recovered: [], intervalGrowthCount: 0, intervalGrowthDocTitle: null, masteryGained: {}, totalAnswered: 0 });
   const documentStatsRef = useRef({});
 
-  // On mount: handle FTUE continue-memory entry, otherwise fetch due count + show picker
+  // On mount: handle FTUE starter entry (welcome CTA / post-celebration continue),
+  // otherwise fetch due count + show picker
   useEffect(() => {
-    if (searchParams.get('source') === 'continue-memory') {
+    if (searchParams.get('source') === 'starter') {
       // Skip picker; pull 5 unreviewed starter-doc questions directly.
       // Clear the param so a back/refresh shows the normal picker instead of looping.
       router.replace('/study');
-      startSession(5, 'continue-memory');
+      startSession(5, 'starter');
       return;
     }
     fetchDueCount();

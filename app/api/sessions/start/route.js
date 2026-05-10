@@ -45,9 +45,9 @@ export async function POST(request) {
   await ensureUser(userId);
 
   // limit: number = cap questions; capped at 100 max
-  // mode: optional string — 'continue-memory' bypasses SR scheduling and pulls
-  //   5 unreviewed questions from the user's starter doc (used by the FTUE
-  //   post-celebration "Continue with memory" CTA).
+  // mode: optional string — 'starter' bypasses SR scheduling and pulls 5
+  //   unreviewed questions from the user's starter doc (used by the FTUE
+  //   welcome CTA and the post-celebration "Continue with memory" CTA).
   const MAX_SESSION_LIMIT = 100;
   let limit = 15;
   let mode = null;
@@ -56,8 +56,8 @@ export async function POST(request) {
     if (typeof body.limit === 'number' && body.limit > 0) {
       limit = Math.min(Math.floor(body.limit), MAX_SESSION_LIMIT);
     }
-    if (body.mode === 'continue-memory') {
-      mode = 'continue-memory';
+    if (body.mode === 'starter') {
+      mode = 'starter';
     }
   } catch {}
 
@@ -65,7 +65,7 @@ export async function POST(request) {
     await completeAbandonedSessions(userId);
 
     let selected;
-    if (mode === 'continue-memory') {
+    if (mode === 'starter') {
       // Match the deterministic id from lib/auto-adopt-starter.js
       const userIdSuffix = userId.startsWith('user_') ? userId.slice(5) : userId;
       const starterDocId = `starter_${userIdSuffix}`;

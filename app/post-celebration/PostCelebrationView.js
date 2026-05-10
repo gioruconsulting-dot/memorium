@@ -35,7 +35,7 @@ export default function PostCelebrationView() {
   return (
     <MainView
       onContinue={() => router.push('/library')}
-      onContinueMemory={() => router.push('/study?source=continue-memory')}
+      onContinueMemory={() => router.push('/study?source=starter')}
       onDone={() => setView('farewell')}
     />
   );
