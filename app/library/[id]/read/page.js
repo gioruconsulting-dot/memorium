@@ -3,13 +3,41 @@ import { auth } from '@clerk/nextjs/server';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeSlug from 'rehype-slug';
+import GithubSlugger from 'github-slugger';
 import { getAccessibleDocumentByIdForUser } from '@/lib/db/queries';
+import { maybeAutoParagraph } from '@/lib/utils/auto-paragraph';
+import TOCNav from './TOCNav';
 
 const markdownComponents = {
   a: ({ node, ...props }) => (
     <a {...props} target="_blank" rel="noopener noreferrer" />
   ),
 };
+
+function extractHeadings(content) {
+  const lines = content.split('\n');
+  const headings = [];
+  let inCodeBlock = false;
+  const slugger = new GithubSlugger();
+  for (const line of lines) {
+    if (/^```/.test(line.trim())) {
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
+    if (inCodeBlock) continue;
+    const match = line.match(/^(#{1,3})\s+(.+)$/);
+    if (match) {
+      const text = match[2].trim();
+      headings.push({
+        level: match[1].length,
+        text,
+        id:    slugger.slug(text),
+      });
+    }
+  }
+  return headings;
+}
 
 export default async function LibraryReadPage({ params }) {
   const { userId } = await auth();
@@ -25,6 +53,12 @@ export default async function LibraryReadPage({ params }) {
     year:  'numeric',
   });
   const questionCount = Number(doc.question_count);
+
+  const wordCount = (doc.content || '').trim().split(/\s+/).filter(Boolean).length;
+  const readingMinutes = wordCount > 0 ? Math.max(1, Math.ceil(wordCount / 250)) : 0;
+
+  const renderedContent = maybeAutoParagraph(doc.content || '');
+  const headings = extractHeadings(renderedContent);
 
   return (
     <div>
@@ -77,6 +111,7 @@ export default async function LibraryReadPage({ params }) {
           marginBottom: '20px',
         }}>
           {questionCount} question{questionCount !== 1 ? 's' : ''} · added {formattedDate}
+          {readingMinutes > 0 && <> · ~{readingMinutes} min read</>}
         </p>
       </div>
 
@@ -87,13 +122,16 @@ export default async function LibraryReadPage({ params }) {
         margin:     '0 24px 20px',
       }} />
 
-      {/* Body */}
-      <div style={{ padding: '0 24px 40px' }}>
+      {/* Body: centered 640px column. TOC (if shown) sits on top, body below. */}
+      <div style={{
+        maxWidth: '640px',
+        margin:   '0 auto',
+        padding:  '0 24px 40px',
+      }}>
+        <TOCNav headings={headings} />
         <div
           className="repetita-md"
           style={{
-            maxWidth:   '640px',
-            margin:     '0 auto',
             fontSize:   '16px',
             lineHeight: 1.75,
             color:      'var(--color-foreground)',
@@ -101,14 +139,17 @@ export default async function LibraryReadPage({ params }) {
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeSlug]}
             components={markdownComponents}
           >
-            {doc.content}
+            {renderedContent}
           </ReactMarkdown>
         </div>
       </div>
 
       <style>{`
+        html { scroll-behavior: smooth; }
+
         .repetita-md > :first-child { margin-top: 0; }
         .repetita-md h1 { font-size: 26px; font-weight: 700; line-height: 1.2; margin: 32px 0 12px; }
         .repetita-md h2 { font-size: 21px; font-weight: 700; line-height: 1.25; margin: 28px 0 10px; }
@@ -156,6 +197,17 @@ export default async function LibraryReadPage({ params }) {
           border: 0;
           border-top: 1px solid var(--color-border);
           margin: 24px 0;
+        }
+        .repetita-md h1, .repetita-md h2, .repetita-md h3 {
+          scroll-margin-top: 80px;
+        }
+        .repetita-md h1:hover::after,
+        .repetita-md h2:hover::after,
+        .repetita-md h3:hover::after {
+          content: " #";
+          color: var(--color-muted);
+          font-weight: 400;
+          opacity: 0.5;
         }
       `}</style>
     </div>
