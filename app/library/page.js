@@ -206,7 +206,9 @@ export default function LibraryPage() {
 
   useEffect(() => { fetchDocuments(); }, []);
 
-  async function handleDelete(doc) {
+  async function handleDelete(e, doc) {
+    e.preventDefault();
+    e.stopPropagation();
     const confirmMessage = doc.adopted
       ? `Remove "${doc.title}" from your library? This will delete your study progress for this document.`
       : `Are you sure you want to delete "${doc.title}"? This will also delete all its questions.`;
@@ -230,7 +232,9 @@ export default function LibraryPage() {
     }
   }
 
-  async function handleReviewFirst(documentId) {
+  async function handleReviewFirst(e, documentId) {
+    e.preventDefault();
+    e.stopPropagation();
     if (prioritizeState[documentId] === 'loading') return;
     setPrioritizeState((prev) => ({ ...prev, [documentId]: 'loading' }));
     try {
@@ -245,7 +249,9 @@ export default function LibraryPage() {
     }
   }
 
-  async function handleToggleShare(doc) {
+  async function handleToggleShare(e, doc) {
+    e.preventDefault();
+    e.stopPropagation();
     const nextPublic = !doc.is_public;
     setTogglingShare(doc.id);
     try {
@@ -363,14 +369,18 @@ export default function LibraryPage() {
       {/* Document cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {sortedDocs.map((doc) => (
-          <div
+          <Link
             key={doc.id}
+            href={`/library/${doc.id}/read`}
             style={{
-              background:   '#0e0e18',
-              border:       '1px solid rgba(255,255,255,0.06)',
-              borderRadius: '14px',
-              padding:      '14px 16px',
-              boxShadow:    '0 0 16px rgba(124,58,237,0.278), 0 0 32px rgba(124,58,237,0.101)',
+              display:        'block',
+              textDecoration: 'none',
+              color:          'inherit',
+              background:     '#0e0e18',
+              border:         '1px solid rgba(255,255,255,0.06)',
+              borderRadius:   '14px',
+              padding:        '14px 16px',
+              boxShadow:      '0 0 16px rgba(124,58,237,0.278), 0 0 32px rgba(124,58,237,0.101)',
             }}
           >
             {/* Top row: overline + secondary action pills only */}
@@ -388,7 +398,7 @@ export default function LibraryPage() {
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 {!doc.adopted && (
                   <button
-                    onClick={() => handleToggleShare(doc)}
+                    onClick={(e) => handleToggleShare(e, doc)}
                     disabled={togglingShare === doc.id}
                     style={{
                       fontSize:     '0.725rem',
@@ -407,7 +417,7 @@ export default function LibraryPage() {
                   </button>
                 )}
                 <button
-                  onClick={() => handleDelete(doc)}
+                  onClick={(e) => handleDelete(e, doc)}
                   disabled={deleting === doc.id}
                   style={{
                     fontSize:     '0.725rem',
@@ -451,7 +461,7 @@ export default function LibraryPage() {
 
               {/* Right: Review This First — vertically centred by parent alignItems:center */}
               <button
-                onClick={() => handleReviewFirst(doc.id)}
+                onClick={(e) => handleReviewFirst(e, doc.id)}
                 disabled={prioritizeState[doc.id] === 'loading'}
                 style={{
                   flexShrink:   0,
@@ -476,7 +486,7 @@ export default function LibraryPage() {
               </button>
 
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

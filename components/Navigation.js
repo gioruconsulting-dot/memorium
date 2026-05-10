@@ -84,7 +84,7 @@ const INACTIVE_COLOR = 'var(--color-muted)';
 export default function Navigation() {
   const pathname = usePathname();
 
-  if (pathname === '/study' || pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up')) return null;
+  if (pathname === '/study' || pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up') || /^\/library\/[^/]+\/read$/.test(pathname)) return null;
 
   return (
     <>
