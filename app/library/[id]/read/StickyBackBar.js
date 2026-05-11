@@ -39,8 +39,9 @@ export default function StickyBackBar() {
           display:        'inline-flex',
           alignItems:     'center',
           gap:            '4px',
-          fontSize:       '14px',
-          color:          'var(--color-muted)',
+          fontSize:       '16px',
+          fontWeight:     500,
+          color:          'var(--color-foreground)',
           textDecoration: 'none',
         }}
       >

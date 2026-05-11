@@ -65,7 +65,7 @@ export default async function LibraryReadPage({ params }) {
       <StickyBackBar />
 
       {/* Meta block */}
-      <div className="reading-block" style={{ padding: '24px 0 0' }}>
+      <div className="reading-block" style={{ paddingTop: '24px' }}>
         {doc.themes && (
           <div style={{
             textTransform: 'uppercase',
