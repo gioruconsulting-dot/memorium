@@ -1,6 +1,5 @@
 import { redirect, notFound } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
-import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
@@ -8,6 +7,7 @@ import GithubSlugger from 'github-slugger';
 import { getAccessibleDocumentByIdForUser } from '@/lib/db/queries';
 import { maybeAutoParagraph } from '@/lib/utils/auto-paragraph';
 import TOCNav from './TOCNav';
+import StickyBackBar from './StickyBackBar';
 
 const markdownComponents = {
   a: ({ node, ...props }) => (
@@ -62,29 +62,10 @@ export default async function LibraryReadPage({ params }) {
 
   return (
     <div>
-      {/* Top bar */}
-      <div style={{
-        borderBottom: '1px solid var(--color-border)',
-        padding:      '8px 12px',
-      }}>
-        <Link
-          href="/library"
-          style={{
-            display:        'inline-flex',
-            alignItems:     'center',
-            gap:            '4px',
-            fontSize:       '14px',
-            color:          'var(--color-muted)',
-            textDecoration: 'none',
-          }}
-        >
-          <span style={{ fontSize: '18px', lineHeight: 1 }}>‹</span>
-          <span>Library</span>
-        </Link>
-      </div>
+      <StickyBackBar />
 
       {/* Meta block */}
-      <div style={{ padding: '24px 24px 0' }}>
+      <div className="reading-block" style={{ padding: '24px 0 0' }}>
         {doc.themes && (
           <div style={{
             textTransform: 'uppercase',
@@ -116,18 +97,24 @@ export default async function LibraryReadPage({ params }) {
       </div>
 
       {/* Divider */}
-      <div style={{
-        height:     '1px',
-        background: 'var(--color-border)',
-        margin:     '0 24px 20px',
-      }} />
+      <div
+        className="reading-divider"
+        style={{
+          height:     '1px',
+          background: 'var(--color-border)',
+          marginBottom: '20px',
+        }}
+      />
 
       {/* Body: centered 640px column. TOC (if shown) sits on top, body below. */}
-      <div style={{
-        maxWidth: '640px',
-        margin:   '0 auto',
-        padding:  '0 24px 40px',
-      }}>
+      <div
+        className="reading-block"
+        style={{
+          maxWidth: '640px',
+          margin:   '0 auto',
+          paddingBottom: '40px',
+        }}
+      >
         <TOCNav headings={headings} />
         <div
           className="repetita-md"
@@ -149,6 +136,13 @@ export default async function LibraryReadPage({ params }) {
 
       <style>{`
         html { scroll-behavior: smooth; }
+
+        .reading-block   { padding-left: 16px; padding-right: 16px; }
+        .reading-divider { margin-left:  16px; margin-right:  16px; }
+        @media (min-width: 768px) {
+          .reading-block   { padding-left: 24px; padding-right: 24px; }
+          .reading-divider { margin-left:  24px; margin-right:  24px; }
+        }
 
         .repetita-md > :first-child { margin-top: 0; }
         .repetita-md h1 { font-size: 26px; font-weight: 700; line-height: 1.2; margin: 32px 0 12px; }
