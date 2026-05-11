@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { generateQuestions } from "@/lib/ai/generate-questions";
 import { generateId, insertDocument, insertQuestion, ensureUser } from "@/lib/db/queries";
+import { getDb } from "@/lib/db/client";
+
+const DAILY_DOC_LIMIT = 25;
 
 export async function POST(request) {
   const { userId } = await auth();
@@ -16,7 +19,7 @@ export async function POST(request) {
   ]);
 
   try {
-    const { content, title } = body;
+    const { content, title, isPublic } = body;
 
     // --- Input Validation ---
 
@@ -57,6 +60,27 @@ export async function POST(request) {
       );
     }
 
+    // --- Rate limit: 25 documents per 24h per user (runs before the Claude call) ---
+    const db = getDb();
+    const countResult = await db.execute({
+      sql: `SELECT COUNT(*) AS c FROM documents
+            WHERE user_id = ?
+              AND created_at > strftime('%s','now','-1 day')`,
+      args: [userId],
+    });
+    if (Number(countResult.rows[0].c) >= DAILY_DOC_LIMIT) {
+      return NextResponse.json(
+        {
+          error: "rate_limited",
+          message: "Daily limit reached (25 documents per 24 hours). Try again tomorrow.",
+        },
+        { status: 429 }
+      );
+    }
+
+    // Default to public if the client didn't send the field at all.
+    const isPublicNormalized = isPublic === undefined ? true : Boolean(isPublic);
+
     // --- Generate questions via Claude API ---
     let questions, description, topic;
     try {
@@ -80,6 +104,7 @@ export async function POST(request) {
       description,
       topic,
       questionCount: questions.length,
+      isPublic: isPublicNormalized,
     });
 
     // --- Insert all questions in parallel ---

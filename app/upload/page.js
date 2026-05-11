@@ -99,6 +99,7 @@ export default function UploadPage() {
   const [progress,       setProgress]       = useState(0);
   const [selectedTopic,  setSelectedTopic]  = useState('');
   const [isDoneLoading,  setIsDoneLoading]  = useState(false);
+  const [isPublic,       setIsPublic]       = useState(true);
   const fileInputRef  = useRef(null);
   const dragCounterRef = useRef(0);
 
@@ -191,8 +192,9 @@ export default function UploadPage() {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({
-          content: content.trim(),
-          title:   title.trim(),
+          content:  content.trim(),
+          title:    title.trim(),
+          isPublic,
         }),
       });
       const data = await response.json();
@@ -214,6 +216,7 @@ export default function UploadPage() {
     setErrorMessage('');
     setSelectedTopic('');
     setIsDoneLoading(false);
+    setIsPublic(true);
   }
 
   async function handleDone() {
@@ -520,6 +523,51 @@ export default function UploadPage() {
             <p style={{ color: '#d4564a', fontSize: '0.8rem', lineHeight: 1.55 }}>{errorMessage}</p>
           </div>
         )}
+
+        {/* ── Share with community toggle ── */}
+        <label
+          style={{
+            display:    'flex',
+            alignItems: 'flex-start',
+            gap:        '10px',
+            cursor:     status === 'loading' ? 'not-allowed' : 'pointer',
+            opacity:    status === 'loading' ? 0.5 : 1,
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={isPublic}
+            onChange={(e) => setIsPublic(e.target.checked)}
+            disabled={status === 'loading'}
+            style={{
+              marginTop:   '3px',
+              width:       '16px',
+              height:      '16px',
+              accentColor: '#7c3aed',
+              flexShrink:  0,
+              cursor:      status === 'loading' ? 'not-allowed' : 'pointer',
+            }}
+          />
+          <span>
+            <span style={{
+              display:    'block',
+              fontSize:   '0.875rem',
+              fontWeight: 600,
+              color:      '#e8e6e1',
+              marginBottom: '2px',
+            }}>
+              Share with the Repetita community
+            </span>
+            <span style={{
+              display:    'block',
+              fontSize:   '0.75rem',
+              color:      'var(--color-muted)',
+              lineHeight: 1.45,
+            }}>
+              Other Repetita users can discover and adopt this document. You can change this anytime from Library.
+            </span>
+          </span>
+        </label>
 
         {/* ── Generate Questions CTA ── */}
         <button
