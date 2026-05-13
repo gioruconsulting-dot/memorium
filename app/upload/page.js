@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import StarryBackground from '@/components/StarryBackground';
 import { cleanFilename } from '@/lib/utils/clean-filename';
+import { MIN_WORDS, MAX_WORDS, countWords } from '@/lib/upload-limits';
 
 const MAX_CHARS = 50000;
 const MIN_CHARS = 100;
@@ -118,11 +119,14 @@ export default function UploadPage() {
   }, [status]);
 
   const charCount = content.length;
+  const wordCount = countWords(content);
   const canSubmit =
     status !== 'loading' &&
     title.trim().length > 0 &&
     charCount >= MIN_CHARS &&
-    charCount <= MAX_CHARS;
+    charCount <= MAX_CHARS &&
+    wordCount >= MIN_WORDS &&
+    wordCount <= MAX_WORDS;
 
   function processFile(file) {
     if (!file) return;
@@ -495,6 +499,23 @@ export default function UploadPage() {
             {charCount > MAX_CHARS && (
               <span style={{ color: '#d4564a' }}>— too long</span>
             )}
+          </div>
+
+          {/* Word count */}
+          <div style={{ marginTop: '4px', fontSize: '0.75rem' }}>
+            <span style={{
+              color: wordCount < MIN_WORDS ? '#d4a832'
+                   : wordCount > MAX_WORDS ? '#d4564a'
+                   :                         'var(--color-muted)',
+            }}>
+              {wordCount.toLocaleString()} words
+              {wordCount > 0 && wordCount < MIN_WORDS && (
+                <> — minimum is {MIN_WORDS.toLocaleString()}</>
+              )}
+              {wordCount > MAX_WORDS && (
+                <> — maximum is {MAX_WORDS.toLocaleString()}</>
+              )}
+            </span>
           </div>
         </div>
 

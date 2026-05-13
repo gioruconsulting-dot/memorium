@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { generateQuestions } from "@/lib/ai/generate-questions";
 import { generateId, insertDocument, insertQuestion, ensureUser } from "@/lib/db/queries";
 import { getDb } from "@/lib/db/client";
+import { MIN_WORDS, MAX_WORDS, countWords } from "@/lib/upload-limits";
 
 const DAILY_DOC_LIMIT = 25;
 
@@ -40,6 +41,20 @@ export async function POST(request) {
     if (!content || typeof content !== "string") {
       return NextResponse.json(
         { error: "Content is required" },
+        { status: 400 }
+      );
+    }
+
+    const wordCount = countWords(content);
+    if (wordCount < MIN_WORDS) {
+      return NextResponse.json(
+        { error: `Document is ${wordCount} words. Minimum is ${MIN_WORDS}.` },
+        { status: 400 }
+      );
+    }
+    if (wordCount > MAX_WORDS) {
+      return NextResponse.json(
+        { error: `Document is ${wordCount} words. Maximum is ${MAX_WORDS}.` },
         { status: 400 }
       );
     }
