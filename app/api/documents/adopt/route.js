@@ -60,6 +60,8 @@ export async function POST(request) {
         answerText: q.answer_text,
         explanation: q.explanation || null,
         sourceReference: q.source_reference || null,
+        conceptId: q.concept_id || null,
+        difficulty: q.difficulty || null,
       });
     }
 

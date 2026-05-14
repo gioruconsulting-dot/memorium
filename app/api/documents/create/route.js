@@ -97,9 +97,9 @@ export async function POST(request) {
     const isPublicNormalized = isPublic === undefined ? true : Boolean(isPublic);
 
     // --- Generate questions via Claude API ---
-    let questions, description, topic;
+    let concepts, questions, description, topic;
     try {
-      ({ questions, description, topic } = await generateQuestions(trimmedContent, title.trim()));
+      ({ concepts, questions, description, topic } = await generateQuestions(trimmedContent, title.trim()));
     } catch (aiError) {
       console.error("[API] Question generation failed:", aiError.message);
       return NextResponse.json(
@@ -118,6 +118,7 @@ export async function POST(request) {
       content: trimmedContent,
       description,
       topic,
+      conceptsJson: concepts ? JSON.stringify(concepts) : null,
       questionCount: questions.length,
       isPublic: isPublicNormalized,
     });
@@ -131,9 +132,11 @@ export async function POST(request) {
           documentId,
           questionText: q.question,
           questionType: q.type,
-          answerText: q.correctAnswer,
+          answerText: q.correct_answer,
           explanation: q.explanation,
-          sourceReference: q.sourceReference,
+          sourceReference: q.source_reference,
+          conceptId: q.concept_id,
+          difficulty: q.difficulty,
         })
       )
     );
