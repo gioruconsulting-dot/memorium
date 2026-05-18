@@ -1,0 +1,459 @@
+{
+  "timestamp": "2026-05-18T19:49:23.132Z",
+  "target_db_url_redacted": "libsql://memorium-recovery-gioruconsulting-dot.aws-eu-west-1.turso.io",
+  "target_db_name_inferred": "memorium-recovery",
+  "confirm_target": "memorium-recovery",
+  "label": "prod-initial",
+  "run_id": "2026-05-18T19-49-23-127Z",
+  "phase": "preflight",
+  "using_override": false,
+  "counts": {
+    "documents": 46,
+    "questions": 1345,
+    "session_answers": 761,
+    "study_sessions": 272,
+    "question_feedback": 1,
+    "users": 31
+  },
+  "foreign_keys": {
+    "documents": [
+      {
+        "id": 0,
+        "seq": 0,
+        "table": "users",
+        "from": "user_id",
+        "to": "id",
+        "on_update": "NO ACTION",
+        "on_delete": "CASCADE",
+        "match": "NONE"
+      }
+    ],
+    "questions": [
+      {
+        "id": 0,
+        "seq": 0,
+        "table": "users",
+        "from": "user_id",
+        "to": "id",
+        "on_update": "NO ACTION",
+        "on_delete": "CASCADE",
+        "match": "NONE"
+      },
+      {
+        "id": 1,
+        "seq": 0,
+        "table": "documents",
+        "from": "document_id",
+        "to": "id",
+        "on_update": "NO ACTION",
+        "on_delete": "CASCADE",
+        "match": "NONE"
+      }
+    ],
+    "session_answers": [
+      {
+        "id": 0,
+        "seq": 0,
+        "table": "users",
+        "from": "user_id",
+        "to": "id",
+        "on_update": "NO ACTION",
+        "on_delete": "CASCADE",
+        "match": "NONE"
+      },
+      {
+        "id": 1,
+        "seq": 0,
+        "table": "questions",
+        "from": "question_id",
+        "to": "id",
+        "on_update": "NO ACTION",
+        "on_delete": "CASCADE",
+        "match": "NONE"
+      },
+      {
+        "id": 2,
+        "seq": 0,
+        "table": "study_sessions",
+        "from": "session_id",
+        "to": "id",
+        "on_update": "NO ACTION",
+        "on_delete": "CASCADE",
+        "match": "NONE"
+      }
+    ],
+    "question_feedback": [
+      {
+        "id": 0,
+        "seq": 0,
+        "table": "users",
+        "from": "user_id",
+        "to": "id",
+        "on_update": "NO ACTION",
+        "on_delete": "CASCADE",
+        "match": "NONE"
+      },
+      {
+        "id": 1,
+        "seq": 0,
+        "table": "questions",
+        "from": "question_id",
+        "to": "id",
+        "on_update": "NO ACTION",
+        "on_delete": "CASCADE",
+        "match": "NONE"
+      }
+    ]
+  },
+  "table_info_documents": [
+    {
+      "cid": 0,
+      "name": "id",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 1
+    },
+    {
+      "cid": 1,
+      "name": "user_id",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+    },
+    {
+      "cid": 2,
+      "name": "title",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+    },
+    {
+      "cid": 3,
+      "name": "content",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+    },
+    {
+      "cid": 4,
+      "name": "themes",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+    },
+    {
+      "cid": 5,
+      "name": "question_count",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+    },
+    {
+      "cid": 6,
+      "name": "created_at",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": null,
+      "pk": 0
+    },
+    {
+      "cid": 7,
+      "name": "is_public",
+      "type": "INTEGER",
+      "notnull": 1,
+      "dflt_value": "1",
+      "pk": 0
+    },
+    {
+      "cid": 8,
+      "name": "description",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+    },
+    {
+      "cid": 9,
+      "name": "topic",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+    },
+    {
+      "cid": 10,
+      "name": "concepts_json",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null,
+      "pk": 0
+    }
+  ],
+  "documents_create_sql": "CREATE TABLE documents (\n    id TEXT PRIMARY KEY,\n    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,\n    title TEXT NOT NULL,\n    content TEXT NOT NULL,\n    themes TEXT,\n    question_count INTEGER NOT NULL,\n    created_at INTEGER NOT NULL\n  , is_public INTEGER NOT NULL DEFAULT 1, description TEXT, topic TEXT, concepts_json TEXT)",
+  "per_user_doc_counts": [
+    {
+      "user_id": "user_3BZywOfUHekWQRrG8LwgSN9e7iO",
+      "doc_count": 18
+    },
+    {
+      "user_id": "user_3Ba5kqiLR8PNTCmPaDoaMLsoIMY",
+      "doc_count": 3
+    },
+    {
+      "user_id": "user_3BuTNy3HXuXBxHDYnMYbWv6jKOe",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3Bz4EyQUKQEfeQDH3sk1dFy7YWZ",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3CtAupkuWlR69t3HpCU7DhHgwOf",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DLyywWuDBEbcaSp2pEIyN5RJGR",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DQwlo73sOiik1xNQR6zDFL0VLc",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DRl9Jgsd35VBdvQraixpFaom2M",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DRoo6KwQaFXVq6QdmTXbeazPZm",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DTr54KJadmhAcYgJREDd4VsPgB",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DTzfm7HgwpygCf9C30zT0jtUKw",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DU4NZlOSLuIj0kIPNT5GUKoQ3n",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DWcmNPl0xgg5cC3MLLc8yWMvxR",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DXPNb7Uf9shdq0RPSESC7C1A1J",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DXRFF0vJ83ZIQy2UiZsZHoYLRY",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DcjFr50Zvg0wMQ0RzjMGUGi15i",
+      "doc_count": 2
+    },
+    {
+      "user_id": "user_3DdKknXXCCEHYZmeRkHxh9KeC8I",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DdLQmP3IpH5dhrBcraxdam0nEJ",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DdM3gunqRQBy2PW4M8SXnWWv0O",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DdMGOklBIxpvnUkKlfrwyVuzYg",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DdMwK80FVBfItEJJzoh4506PLA",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DdRWkic0MlPKNt2pBZVUGxF43Z",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DdZQlNILJwZg6VkDkQDBT5wTWr",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DdfchnQZwT6yvVK3YSaQ6DjM8i",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3Ddi5U1qkC6a76UOQ7EtH8uZcAI",
+      "doc_count": 1
+    },
+    {
+      "user_id": "user_3DjC7b4Ep0RfPlGTFCwVFJJJWdE",
+      "doc_count": 1
+    }
+  ],
+  "per_user_question_counts": [
+    {
+      "user_id": "user_3BZywOfUHekWQRrG8LwgSN9e7iO",
+      "q_count": 373
+    },
+    {
+      "user_id": "user_3Ba5kqiLR8PNTCmPaDoaMLsoIMY",
+      "q_count": 236
+    },
+    {
+      "user_id": "user_3BacNn9pP84UHST9w0RqkfaHkVX",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3BcBdUOVCVyyBZaxlMgKK6hk7r1",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3BuTNy3HXuXBxHDYnMYbWv6jKOe",
+      "q_count": 40
+    },
+    {
+      "user_id": "user_3Bz4EyQUKQEfeQDH3sk1dFy7YWZ",
+      "q_count": 19
+    },
+    {
+      "user_id": "user_3BzgF0VJE9uehIaWbyTSB1mduNT",
+      "q_count": 40
+    },
+    {
+      "user_id": "user_3ChdzHLdeZcQt2DQ3UGmIqjRDBT",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3CtAupkuWlR69t3HpCU7DhHgwOf",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DLyywWuDBEbcaSp2pEIyN5RJGR",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DQwlo73sOiik1xNQR6zDFL0VLc",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DRl9Jgsd35VBdvQraixpFaom2M",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DRoo6KwQaFXVq6QdmTXbeazPZm",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DTr54KJadmhAcYgJREDd4VsPgB",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DTzfm7HgwpygCf9C30zT0jtUKw",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DU4NZlOSLuIj0kIPNT5GUKoQ3n",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DWcmNPl0xgg5cC3MLLc8yWMvxR",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DXPNb7Uf9shdq0RPSESC7C1A1J",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DXRFF0vJ83ZIQy2UiZsZHoYLRY",
+      "q_count": 59
+    },
+    {
+      "user_id": "user_3DcjFr50Zvg0wMQ0RzjMGUGi15i",
+      "q_count": 60
+    },
+    {
+      "user_id": "user_3DdKknXXCCEHYZmeRkHxh9KeC8I",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DdLQmP3IpH5dhrBcraxdam0nEJ",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DdM3gunqRQBy2PW4M8SXnWWv0O",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DdMGOklBIxpvnUkKlfrwyVuzYg",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DdMwK80FVBfItEJJzoh4506PLA",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DdRWkic0MlPKNt2pBZVUGxF43Z",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DdZQlNILJwZg6VkDkQDBT5wTWr",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3DdfchnQZwT6yvVK3YSaQ6DjM8i",
+      "q_count": 20
+    },
+    {
+      "user_id": "user_3Ddi5U1qkC6a76UOQ7EtH8uZcAI",
+      "q_count": 78
+    },
+    {
+      "user_id": "user_3DjC7b4Ep0RfPlGTFCwVFJJJWdE",
+      "q_count": 20
+    }
+  ],
+  "orphans": {
+    "questions_without_document": 0,
+    "session_answers_without_question": 0,
+    "session_answers_without_session": 0
+  },
+  "identity_sample_first_10_doc_ids": [
+    "doc_1774455315271_fh9aee",
+    "doc_1774456586966_fntktx",
+    "doc_1774555994034_fe2gmq",
+    "doc_1774645597195_908e8v",
+    "doc_1774645955781_q7fykj",
+    "doc_1774646165400_qqyxrw",
+    "doc_1774646426528_bxfk1o",
+    "doc_1774646664090_mu2y9w",
+    "doc_1774646810642_sbvzhp",
+    "doc_1774647307862_95c3u9"
+  ],
+  "new_columns_state": {
+    "source_type": {
+      "present": false
+    },
+    "note_draft_content": {
+      "present": false
+    },
+    "last_generated_at": {
+      "present": false
+    },
+    "updated_at": {
+      "present": false
+    }
+  },
+  "manifest_mismatches": []
+}
