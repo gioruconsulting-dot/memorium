@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { UserButton } from '@clerk/nextjs';
+import { UserButton, useUser } from '@clerk/nextjs';
 
 // ── Shared icon constants ────────────────────────────────────────────────────
 
@@ -66,9 +66,21 @@ function LibraryIcon() {
   );
 }
 
+// Notes — page with text lines. Reads as a captured note.
+function NotesIcon() {
+  return (
+    <svg {...ICON_PROPS}>
+      <rect x="6" y="3" width="20" height="26" rx="2.5" />
+      <line x1="11" y1="11" x2="21" y2="11" />
+      <line x1="11" y1="17" x2="21" y2="17" />
+      <line x1="11" y1="23" x2="17" y2="23" />
+    </svg>
+  );
+}
+
 // ── Nav data ─────────────────────────────────────────────────────────────────
 
-const LINKS = [
+const BASE_LINKS = [
   { href: '/',         Icon: HomeIcon,     label: 'Home'     },
   { href: '/study',    Icon: StudyIcon,    label: 'Study'    },
   { href: '/progress', Icon: ProgressIcon, label: 'Progress' },
@@ -83,8 +95,14 @@ const INACTIVE_COLOR = 'var(--color-muted)';
 
 export default function Navigation() {
   const pathname = usePathname();
+  const { user } = useUser();
 
   if (pathname === '/study' || pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up') || /^\/library\/[^/]+\/read$/.test(pathname)) return null;
+
+  const hasNotesAccess = user?.publicMetadata?.hasNotesAccess === true;
+  const LINKS = hasNotesAccess
+    ? [...BASE_LINKS, { href: '/notes', Icon: NotesIcon, label: 'Notes' }]
+    : BASE_LINKS;
 
   return (
     <>
