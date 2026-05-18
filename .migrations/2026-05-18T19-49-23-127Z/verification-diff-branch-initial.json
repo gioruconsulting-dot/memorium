@@ -1,0 +1,65 @@
+{
+  "counts": {
+    "documents": {
+      "pre": 46,
+      "post": 46,
+      "delta": 0
+    },
+    "questions": {
+      "pre": 1345,
+      "post": 1345,
+      "delta": 0
+    },
+    "session_answers": {
+      "pre": 761,
+      "post": 761,
+      "delta": 0
+    },
+    "study_sessions": {
+      "pre": 272,
+      "post": 272,
+      "delta": 0
+    },
+    "question_feedback": {
+      "pre": 1,
+      "post": 1,
+      "delta": 0
+    },
+    "users": {
+      "pre": 31,
+      "post": 31,
+      "delta": 0
+    }
+  },
+  "foreign_keys_changed_tables": [],
+  "per_user_doc_count_changes": [],
+  "per_user_question_count_changes": [],
+  "documents_create_sql_changed": true,
+  "new_columns_added": [
+    {
+      "name": "source_type",
+      "type": "TEXT",
+      "notnull": 1,
+      "dflt_value": "'uploaded'"
+    },
+    {
+      "name": "note_draft_content",
+      "type": "TEXT",
+      "notnull": 0,
+      "dflt_value": null
+    },
+    {
+      "name": "last_generated_at",
+      "type": "INTEGER",
+      "notnull": 0,
+      "dflt_value": null
+    },
+    {
+      "name": "updated_at",
+      "type": "INTEGER",
+      "notnull": 0,
+      "dflt_value": null
+    }
+  ],
+  "identity_sample_unchanged": true
+}

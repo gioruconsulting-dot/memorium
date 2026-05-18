@@ -1,0 +1,30 @@
+# Migration log
+phase: migrate
+label: prod-pre
+run_id: 2026-05-18T19-49-23-127Z
+target: libsql://memorium-recovery-gioruconsulting-dot.aws-eu-west-1.turso.io
+dbName: memorium-recovery
+time_start: 2026-05-18T20:40:34.898Z
+
+--- Statement 1/4 ---
+ALTER TABLE documents
+  ADD COLUMN source_type TEXT NOT NULL DEFAULT 'uploaded'
+  CHECK (source_type IN ('uploaded', 'note'))
+OK (rowsAffected=0)
+
+--- Statement 2/4 ---
+ALTER TABLE documents
+  ADD COLUMN note_draft_content TEXT
+OK (rowsAffected=0)
+
+--- Statement 3/4 ---
+ALTER TABLE documents
+  ADD COLUMN last_generated_at INTEGER
+OK (rowsAffected=0)
+
+--- Statement 4/4 ---
+ALTER TABLE documents
+  ADD COLUMN updated_at INTEGER
+OK (rowsAffected=0)
+
+time_end: 2026-05-18T20:40:35.124Z
