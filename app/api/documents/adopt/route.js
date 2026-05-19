@@ -30,6 +30,9 @@ export async function POST(request) {
     if (!document) {
       return NextResponse.json({ error: "Document not found" }, { status: 404 });
     }
+    if (document.source_type === "note") {
+      return NextResponse.json({ error: "Notes cannot be adopted" }, { status: 403 });
+    }
     if (!document.is_public) {
       return NextResponse.json({ error: "Document is not public" }, { status: 403 });
     }
