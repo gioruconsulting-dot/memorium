@@ -16,12 +16,22 @@ export default function NewNotePage() {
     (async () => {
       try {
         const res = await fetch('/api/notes/create', { method: 'POST' });
+        if (!res.ok) {
+          const code = res.status === 401 || res.status === 403 ? 'auth'
+                     : res.status >= 500 ? 'server'
+                     : 'unknown';
+          router.replace(`/notes?error=${code}`);
+          return;
+        }
         const data = await res.json();
-        if (!res.ok || !data?.id) throw new Error(data?.error || 'Create failed');
+        if (!data?.id) {
+          router.replace('/notes?error=unknown');
+          return;
+        }
         router.replace(`/notes/${data.id}`);
       } catch (err) {
         console.error('[notes/new] create failed:', err);
-        router.replace('/notes');
+        router.replace('/notes?error=network');
       }
     })();
   }, [router]);

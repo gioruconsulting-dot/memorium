@@ -1,10 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import StarryBackground from '@/components/StarryBackground';
 
 const wrapperStyle = { position: 'relative', zIndex: 1, paddingTop: '24px', paddingBottom: '40px' };
+
+// Maps the ?error= code that /notes/new appends when create fails. Codes are
+// produced in app/notes/new/page.js; keep these tables in sync.
+const CREATE_ERROR_MESSAGES = {
+  auth:    "Couldn't create a new note. Please refresh and sign in.",
+  server:  "Couldn't create a new note. Please try again.",
+  network: "Couldn't create a new note. Check your connection and try again.",
+  unknown: "Couldn't create a new note.",
+};
 
 const heading = (
   <h1 style={{
@@ -46,11 +56,64 @@ function formatDate(ts) {
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-export default function NotesPage() {
+// Wrapped in <Suspense> below because useSearchParams() forces dynamic rendering
+// — without the boundary, Next.js 15 fails the static prerender of /notes.
+function NotesPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const createErrorCode = searchParams?.get('error') ?? null;
+  const createErrorMessage = createErrorCode
+    ? (CREATE_ERROR_MESSAGES[createErrorCode] || CREATE_ERROR_MESSAGES.unknown)
+    : null;
+  const [createErrorDismissed, setCreateErrorDismissed] = useState(false);
+
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState(null);
+
+  function dismissCreateError() {
+    setCreateErrorDismissed(true);
+    // Strip the query param so a reload doesn't resurface the banner.
+    router.replace('/notes');
+  }
+
+  const createErrorBanner = createErrorMessage && !createErrorDismissed ? (
+    <div
+      role="alert"
+      style={{
+        background:     'rgba(212,86,74,0.10)',
+        border:         '1px solid rgba(212,86,74,0.30)',
+        color:          '#e8e6e1',
+        padding:        '10px 14px',
+        borderRadius:   '8px',
+        marginBottom:   16,
+        display:        'flex',
+        alignItems:     'center',
+        justifyContent: 'space-between',
+        gap:            12,
+        maxWidth:       600,
+      }}
+    >
+      <span style={{ fontSize: '0.875rem' }}>{createErrorMessage}</span>
+      <button
+        type="button"
+        onClick={dismissCreateError}
+        aria-label="Dismiss"
+        style={{
+          background:  'transparent',
+          border:      'none',
+          color:       'var(--color-muted)',
+          cursor:      'pointer',
+          fontSize:    '1rem',
+          lineHeight:  1,
+          padding:     '2px 6px',
+        }}
+      >
+        ✕
+      </button>
+    </div>
+  ) : null;
 
   async function fetchNotes() {
     setLoading(true);
@@ -134,6 +197,7 @@ export default function NotesPage() {
         <StarryBackground />
         {heading}
         <div style={{ paddingLeft: 20 }}>
+          {createErrorBanner}
           <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem', marginBottom: 16 }}>
             You haven&apos;t created any notes yet.
           </p>
@@ -149,6 +213,7 @@ export default function NotesPage() {
       {heading}
 
       <div style={{ paddingLeft: 20, marginBottom: 16 }}>
+        {createErrorBanner}
         <NewNoteButton />
       </div>
 
@@ -215,5 +280,25 @@ export default function NotesPage() {
         })}
       </div>
     </div>
+  );
+}
+
+function NotesLoadingFallback() {
+  return (
+    <div style={wrapperStyle}>
+      <StarryBackground />
+      {heading}
+      <div style={{ paddingLeft: 20 }}>
+        <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem' }}>Loading…</p>
+      </div>
+    </div>
+  );
+}
+
+export default function NotesPage() {
+  return (
+    <Suspense fallback={<NotesLoadingFallback />}>
+      <NotesPageContent />
+    </Suspense>
   );
 }

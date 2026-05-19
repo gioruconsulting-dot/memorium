@@ -134,6 +134,13 @@ export default function NoteEditorPage() {
           note_draft_content: draft,
         }),
       });
+      if (res.status === 404) {
+        // Note was deleted in another tab. Swap to the not-found screen
+        // (same UX as initial loadNote → 404) rather than showing "Not found"
+        // as an inline saveError.
+        setNotFound(true);
+        return;
+      }
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'Save failed');
 
