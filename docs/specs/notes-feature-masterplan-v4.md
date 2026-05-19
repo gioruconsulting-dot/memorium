@@ -473,6 +473,7 @@ Wire up `/api/notes/[id]/generate` per §2.4.
 
 ### Chunk 7 — Ship to test users
 
+- **Hard prereq — close Flag #1 from Chunk 2.5 deferred list before flipping `hasNotesAccess=true` on any user.** `getProgressPageData` queries #3 (`activityDays`) and #4 (`lifetimeStats`) at `lib/db/queries.js:831-847` are not flag-aware. Aggregate-only leakage (calendar-day dots, lifetime answer counts) from previously-flagged-then-revoked sessions would surface to revoked users. Either filter via `JOIN questions × JOIN documents` for the non-flagged branch, or accept + document. Containment is not complete until this is closed.
 - Identify 1–3 specific test users by name (mentally is fine, but commit before flipping)
 - Set `hasNotesAccess: true` for each in Clerk dashboard
 - Send each a short message: what it is, how to use it, what feedback you want, how long the experiment runs (2–4 weeks)
