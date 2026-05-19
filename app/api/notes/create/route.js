@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getHasNotesAccess } from "@/lib/auth/has-notes-access";
-import { listNotes } from "@/lib/db/queries";
+import { ensureUser, generateId, insertNote } from "@/lib/db/queries";
 
-export async function GET() {
+export async function POST() {
   const { userId, sessionClaims } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -16,6 +16,12 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const notes = await listNotes(userId);
-  return NextResponse.json({ notes });
+  await ensureUser(userId);
+
+  const id = generateId("doc");
+  // Owner binding: the new row is written with user_id = authenticated userId.
+  // No pre-existing record to ownership-check on create.
+  await insertNote({ id, userId });
+
+  return NextResponse.json({ id });
 }
