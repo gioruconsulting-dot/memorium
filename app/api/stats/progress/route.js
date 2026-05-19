@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getProgressPageData } from "@/lib/db/queries";
+import { getHasNotesAccess } from "@/lib/auth/has-notes-access";
 
 // ── London calendar helpers (Europe/London = GMT in winter, BST UTC+1 in summer) ──
 
@@ -23,13 +24,14 @@ function londonThisMonday() {
 }
 
 export async function GET() {
-  const { userId } = await auth();
+  const { userId, sessionClaims } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const { knowledge, themesRows, intervalRows, activityDays, lifetimeStats } = await getProgressPageData(userId);
+    const hasNotesAccess = await getHasNotesAccess(sessionClaims);
+    const { knowledge, themesRows, intervalRows, activityDays, lifetimeStats } = await getProgressPageData(userId, hasNotesAccess);
 
     // ── Knowledge map ─────────────────────────────────────────────────────────
     const allThemes = new Set();

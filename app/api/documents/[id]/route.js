@@ -19,6 +19,9 @@ export async function PATCH(request, { params }) {
   const doc = await getDocumentById(id);
   if (!doc) return NextResponse.json({ error: "Document not found" }, { status: 404 });
   if (doc.user_id !== userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (doc.source_type === "note") {
+    return NextResponse.json({ error: "Notes do not support topic edits" }, { status: 403 });
+  }
 
   await updateDocumentTopic(id, userId, topic);
   return NextResponse.json({ success: true, topic });

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { deleteUserQuestionsByDocument } from "@/lib/db/queries";
+import { getDocumentById, deleteUserQuestionsByDocument } from "@/lib/db/queries";
 
 export async function DELETE(request) {
   const { userId } = await auth();
@@ -14,6 +14,11 @@ export async function DELETE(request) {
 
     if (!documentId) {
       return NextResponse.json({ error: "documentId is required" }, { status: 400 });
+    }
+
+    const document = await getDocumentById(documentId);
+    if (document && document.source_type === "note") {
+      return NextResponse.json({ error: "Notes cannot be unadopted" }, { status: 403 });
     }
 
     await deleteUserQuestionsByDocument(userId, documentId);
