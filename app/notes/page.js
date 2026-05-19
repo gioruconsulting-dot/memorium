@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import StarryBackground from '@/components/StarryBackground';
+import { pickNotesError } from '@/lib/notes/ui-errors';
 
 const wrapperStyle = { position: 'relative', zIndex: 1, paddingTop: '24px', paddingBottom: '40px' };
 
@@ -120,11 +121,15 @@ function NotesPageContent() {
     setError('');
     try {
       const res = await fetch('/api/notes/list');
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        setError(pickNotesError('list', res.status, errBody?.error));
+        return;
+      }
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Failed to load notes');
       setNotes(Array.isArray(data.notes) ? data.notes : []);
-    } catch (err) {
-      setError(err.message);
+    } catch {
+      setError(pickNotesError('list', 0));
     } finally {
       setLoading(false);
     }
@@ -135,18 +140,25 @@ function NotesPageContent() {
   async function handleDelete(e, note) {
     e.preventDefault();
     e.stopPropagation();
-    if (!window.confirm('Delete this note?')) return;
+    const qc = Number(note.question_count) || 0;
+    const msg = qc === 0
+      ? 'Delete this note?'
+      : `Delete this note? This will also delete ${qc} question${qc === 1 ? '' : 's'} generated from it.`;
+    if (!window.confirm(msg)) return;
 
     setDeletingId(note.id);
     try {
       const res = await fetch(`/api/notes/${note.id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || 'Delete failed');
+      // 404 = already gone (deleted in another tab). Treat as success and refetch
+      // so the stale card disappears without an error flash.
+      if (res.ok || res.status === 404) {
+        await fetchNotes();
+        return;
       }
-      await fetchNotes();
-    } catch (err) {
-      setError(err.message);
+      const errBody = await res.json().catch(() => ({}));
+      setError(pickNotesError('delete', res.status, errBody?.error));
+    } catch {
+      setError(pickNotesError('delete', 0));
     } finally {
       setDeletingId(null);
     }
@@ -199,7 +211,7 @@ function NotesPageContent() {
         <div style={{ paddingLeft: 20 }}>
           {createErrorBanner}
           <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem', marginBottom: 16 }}>
-            You haven&apos;t created any notes yet.
+            No notes yet. Capture what you&apos;re learning — turn it into review questions.
           </p>
           <NewNoteButton />
         </div>

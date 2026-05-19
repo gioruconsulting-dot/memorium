@@ -9,6 +9,7 @@ import { getDocumentById, updateNote, deleteNote, getNoteById } from "@/lib/db/q
 const DIVIDER_RE = /\n\n---\n\[Generated on: \d{4}-\d{2}-\d{2}\]\n/g;
 
 const MAX_COMBINED_CHARS = 50000;
+const MAX_TITLE_CHARS = 200;
 
 export async function GET(request, { params }) {
   const { userId, sessionClaims } = await auth();
@@ -66,6 +67,15 @@ export async function PATCH(request, { params }) {
   const newTitle = hasTitle ? body.title.trim() : undefined;
   const newContent = hasContent ? body.content.replace(DIVIDER_RE, "") : undefined;
   const newDraft = hasDraft ? body.note_draft_content.replace(DIVIDER_RE, "") : undefined;
+
+  // Per-field title length cap. 422 (unprocessable entity) matches the
+  // `draft_too_short`/`size_exceeded` patterns elsewhere in this feature.
+  if (newTitle !== undefined && newTitle.length > MAX_TITLE_CHARS) {
+    return NextResponse.json(
+      { error: "title_too_long", maxChars: MAX_TITLE_CHARS, actualChars: newTitle.length },
+      { status: 422 }
+    );
+  }
 
   // Cap is on the combined size after strip. Missing fields fall back to the
   // stored values; nullable columns normalize to '' per masterplan §1.

@@ -5,6 +5,12 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import StarryBackground from '@/components/StarryBackground';
 import { countWords, NOTE_MIN_WORDS } from '@/lib/upload-limits';
+import { pickNotesError } from '@/lib/notes/ui-errors';
+
+const MAX_TITLE_CHARS = 200;
+const MAX_COMBINED_CHARS = 50000;
+const SOFT_WARN_THRESHOLD = 45000;  // 90% of 50000
+const HARD_WARN_THRESHOLD = 47500;  // 95% of 50000
 
 const wrapperStyle = { position: 'relative', zIndex: 1, paddingTop: '24px', paddingBottom: '40px' };
 
@@ -66,14 +72,19 @@ export default function NoteEditorPage() {
   const loadNote = useCallback(async ({ silent = false } = {}) => {
     if (!id) return;
     if (!silent) setLoading(true);
+    if (!silent) setLoadError('');
     try {
       const res = await fetch(`/api/notes/${id}`);
       if (res.status === 404) {
         setNotFound(true);
         return;
       }
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        setLoadError(pickNotesError('load', res.status, errBody?.error));
+        return;
+      }
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Failed to load note');
 
       const t = data.title ?? '';
       const c = data.content ?? '';
@@ -88,8 +99,8 @@ export default function NoteEditorPage() {
         // Wait for the input to mount before focusing.
         setTimeout(() => titleInputRef.current?.focus(), 0);
       }
-    } catch (err) {
-      setLoadError(err.message);
+    } catch {
+      setLoadError(pickNotesError('load', 0));
     } finally {
       if (!silent) setLoading(false);
     }
@@ -142,13 +153,16 @@ export default function NoteEditorPage() {
         return;
       }
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || 'Save failed');
+      if (!res.ok) {
+        setSaveError(pickNotesError('save', res.status, data?.error));
+        return;
+      }
 
       await loadNote({ silent: true });
       setSavedFlash(true);
       setTimeout(() => setSavedFlash(false), 1500);
-    } catch (err) {
-      setSaveError(err.message);
+    } catch {
+      setSaveError(pickNotesError('save', 0));
     } finally {
       setSaving(false);
     }
@@ -166,6 +180,10 @@ export default function NoteEditorPage() {
         setGenerateFlash(`${data.questionsAdded} questions added ✓`);
         setTimeout(() => setGenerateFlash(''), 3000);
         await loadNote({ silent: true });
+      } else if (res.status === 401 || res.status === 403) {
+        setGenerateError(pickNotesError('generate', res.status));
+      } else if (res.status === 404) {
+        setGenerateError(pickNotesError('generate', 404));
       } else if (res.status === 409) {
         setGenerateError('Your note changed while generating. Refreshing…');
         await loadNote({ silent: true });
@@ -181,10 +199,10 @@ export default function NoteEditorPage() {
       } else if (res.status === 502) {
         setGenerateError('Generation failed. Please try again.');
       } else {
-        setGenerateError('Something went wrong. Please try again.');
+        setGenerateError(pickNotesError('generate', res.status));
       }
     } catch {
-      setGenerateError('Something went wrong. Please try again.');
+      setGenerateError(pickNotesError('generate', 0));
     } finally {
       setGenerating(false);
     }
@@ -268,6 +286,13 @@ export default function NoteEditorPage() {
   // ── Editor ─────────────────────────────────────────────────────────────────
 
   const draftWords = countWords(draft);
+  const combinedChars = content.length + draft.length;
+  // Brand-new notes have empty saved content. The textarea and the
+  // "Draft · YYYY-MM-DD" divider only make sense once at least one
+  // generate cycle has sealed something into content.
+  const hasSavedContent = content.trim() !== '';
+  const showCapWarning = combinedChars >= SOFT_WARN_THRESHOLD;
+  const isHardWarning = combinedChars >= HARD_WARN_THRESHOLD;
 
   const generateDisabled =
     !baseline || dirty || saving || generating || draftWords < NOTE_MIN_WORDS;
@@ -317,6 +342,7 @@ export default function NoteEditorPage() {
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        maxLength={MAX_TITLE_CHARS}
         placeholder="Give this note a title…"
         style={{
           ...fieldStyle,
@@ -326,50 +352,54 @@ export default function NoteEditorPage() {
         }}
       />
 
-      {/* Focus-banner for saved-content edits */}
-      {contentFocused && (
-        <div
-          style={{
-            background:   'rgba(96,165,250,0.08)',
-            border:       '1px solid rgba(96,165,250,0.25)',
-            color:        '#cbd5e1',
-            fontSize:     '0.78rem',
-            padding:      '8px 12px',
-            borderRadius: '8px',
-            marginBottom: 8,
-          }}
-        >
-          Editing previous content. Questions already generated from this section won&apos;t change.
-        </div>
+      {hasSavedContent && (
+        <>
+          {/* Focus-banner for saved-content edits */}
+          {contentFocused && (
+            <div
+              style={{
+                background:   'rgba(96,165,250,0.08)',
+                border:       '1px solid rgba(96,165,250,0.25)',
+                color:        '#cbd5e1',
+                fontSize:     '0.78rem',
+                padding:      '8px 12px',
+                borderRadius: '8px',
+                marginBottom: 8,
+              }}
+            >
+              Editing previous content. Questions already generated from this section won&apos;t change.
+            </div>
+          )}
+
+          {/* Saved content */}
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            onFocus={() => setContentFocused(true)}
+            onBlur={() => setContentFocused(false)}
+            rows={10}
+            placeholder=""
+            style={{ ...fieldStyle, marginBottom: 18 }}
+          />
+
+          {/* Draft boundary marker — visual divider with today's date */}
+          <div
+            aria-hidden="true"
+            style={{
+              display:       'flex',
+              alignItems:    'center',
+              gap:           10,
+              marginBottom:  10,
+              color:         '#8a8880',
+              fontSize:      '0.72rem',
+              letterSpacing: '0.04em',
+            }}
+          >
+            <span style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.10)' }} />
+            <span>Draft · {todayYMD()}</span>
+          </div>
+        </>
       )}
-
-      {/* Saved content */}
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        onFocus={() => setContentFocused(true)}
-        onBlur={() => setContentFocused(false)}
-        rows={10}
-        placeholder=""
-        style={{ ...fieldStyle, marginBottom: 18 }}
-      />
-
-      {/* Draft boundary marker — visual divider with today's date */}
-      <div
-        aria-hidden="true"
-        style={{
-          display:       'flex',
-          alignItems:    'center',
-          gap:           10,
-          marginBottom:  10,
-          color:         '#8a8880',
-          fontSize:      '0.72rem',
-          letterSpacing: '0.04em',
-        }}
-      >
-        <span style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.10)' }} />
-        <span>Draft · {todayYMD()}</span>
-      </div>
 
       {/* Draft */}
       <textarea
@@ -382,9 +412,19 @@ export default function NoteEditorPage() {
 
       {/* Footer */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <span style={{ fontSize: '0.78rem', color: 'var(--color-muted)' }}>
-          {draftWords} word{draftWords === 1 ? '' : 's'}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.78rem', color: 'var(--color-muted)' }}>
+            {draftWords} word{draftWords === 1 ? '' : 's'}
+          </span>
+          {showCapWarning && (
+            <span style={{
+              fontSize: '0.78rem',
+              color:    isHardWarning ? 'var(--color-forgot)' : 'var(--color-hard)',
+            }}>
+              {combinedChars} / {MAX_COMBINED_CHARS} chars{isHardWarning ? ' · approaching cap' : ''}
+            </span>
+          )}
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {generateHint && !generating && (
