@@ -42,6 +42,7 @@ export default function NoteEditorPage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [draft, setDraft] = useState('');
+  const [questionCount, setQuestionCount] = useState(0);
 
   // Baseline for dirty tracking. Mirrors the server's current persisted state.
   const [baseline, setBaseline] = useState(null);
@@ -55,6 +56,10 @@ export default function NoteEditorPage() {
   const [generateError, setGenerateError] = useState('');
   const [generateFlash, setGenerateFlash] = useState('');
   const [generatingMessage, setGeneratingMessage] = useState('Generating…');
+
+  const [prioritizing, setPrioritizing] = useState(false);
+  const [prioritizeDone, setPrioritizeDone] = useState(false);
+  const [prioritizeError, setPrioritizeError] = useState('');
 
   const titleInputRef = useRef(null);
 
@@ -76,6 +81,7 @@ export default function NoteEditorPage() {
       setTitle(t);
       setContent(c);
       setDraft(d);
+      setQuestionCount(Number(data.question_count ?? 0));
       setBaseline({ title: t, content: c, note_draft_content: d });
 
       if (!silent && t === '') {
@@ -177,6 +183,32 @@ export default function NoteEditorPage() {
     }
   }
 
+  async function handleReviewFirst() {
+    if (prioritizing) return;
+    setPrioritizeError('');
+    setPrioritizing(true);
+    try {
+      const res = await fetch('/api/questions/prioritize', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ documentId: id, mode: 'queue-front' }),
+      });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          setPrioritizeError('Please refresh and sign in.');
+        } else {
+          setPrioritizeError("Couldn't queue this note. Try again.");
+        }
+        return;
+      }
+      setPrioritizeDone(true);
+    } catch {
+      setPrioritizeError("Couldn't queue this note. Try again.");
+    } finally {
+      setPrioritizing(false);
+    }
+  }
+
   // ── Loading ────────────────────────────────────────────────────────────────
 
   if (loading) {
@@ -239,6 +271,19 @@ export default function NoteEditorPage() {
     if (generating) return '';
     if (dirty) return 'Save before generating.';
     if (draftWords < NOTE_MIN_WORDS) return `Draft needs ${NOTE_MIN_WORDS - draftWords} more words.`;
+    return '';
+  })();
+
+  const prioritizeDisabled =
+    !baseline || dirty || saving || generating || prioritizing || questionCount === 0;
+
+  // Suppressed when dirty: generateHint already surfaces the "save first" message,
+  // so we don't duplicate "Save before prioritizing." here.
+  const prioritizeHint = (() => {
+    if (!baseline) return '';
+    if (saving || generating || prioritizing) return '';
+    if (dirty) return '';
+    if (questionCount === 0) return 'Generate questions first to prioritize them.';
     return '';
   })();
 
@@ -345,6 +390,16 @@ export default function NoteEditorPage() {
               {generateHint}
             </span>
           )}
+          {prioritizeHint && !prioritizing && (
+            <span style={{
+              fontSize:  '0.78rem',
+              color:     'var(--color-muted)',
+              maxWidth:  220,
+              textAlign: 'right',
+            }}>
+              {prioritizeHint}
+            </span>
+          )}
           {savedFlash && (
             <span style={{ fontSize: '0.78rem', color: 'var(--color-easy)' }}>Saved ✓</span>
           )}
@@ -356,6 +411,9 @@ export default function NoteEditorPage() {
           )}
           {generateError && (
             <span style={{ fontSize: '0.78rem', color: 'var(--color-forgot)' }}>{generateError}</span>
+          )}
+          {prioritizeError && (
+            <span style={{ fontSize: '0.78rem', color: 'var(--color-forgot)' }}>{prioritizeError}</span>
           )}
           <button
             onClick={handleSave}
@@ -374,6 +432,24 @@ export default function NoteEditorPage() {
             }}
           >
             {saving ? 'Saving…' : 'Save'}
+          </button>
+          <button
+            onClick={handleReviewFirst}
+            disabled={prioritizeDisabled}
+            style={{
+              padding:      '8px 14px',
+              borderRadius: '8px',
+              fontWeight:   600,
+              fontSize:     '0.875rem',
+              background:   'rgba(124,58,237,0.15)',
+              border:       '1px solid rgba(124,58,237,0.3)',
+              color:        prioritizeDone ? 'var(--color-easy)' : '#ffffff',
+              cursor:       prioritizing ? 'progress' : prioritizeDisabled ? 'not-allowed' : 'pointer',
+              opacity:      prioritizeDisabled && !prioritizing ? 0.5 : 1,
+              transition:   'opacity 0.15s ease',
+            }}
+          >
+            {prioritizing ? '…' : prioritizeDone ? 'Queued ✓' : 'Review this first'}
           </button>
           <button
             onClick={handleGenerate}
