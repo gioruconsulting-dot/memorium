@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { completeStudySession, getStudySession, getUserStreak, getAllDueQuestions, awardMonthlyStreakCard, getCompletedSessionCount } from "@/lib/db/queries";
+import { getHasNotesAccess } from "@/lib/auth/has-notes-access";
 
 export async function POST(request) {
-  const { userId } = await auth();
+  const { userId, sessionClaims } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -18,10 +19,11 @@ export async function POST(request) {
 
     await completeStudySession(sessionId, userId);
 
+    const hasNotesAccess = await getHasNotesAccess(sessionClaims);
     const [session, streakData, remainingDue, completedCount] = await Promise.all([
       getStudySession(sessionId, userId),
       getUserStreak(userId),
-      getAllDueQuestions(userId),
+      getAllDueQuestions(userId, hasNotesAccess),
       getCompletedSessionCount(userId),
     ]);
 

@@ -9,6 +9,7 @@ import {
   ensureUser,
   getDocumentStatsForSession,
 } from "@/lib/db/queries";
+import { getHasNotesAccess } from "@/lib/auth/has-notes-access";
 
 // Round-robin interleave so consecutive questions come from different documents
 function interleaveByDocument(questions) {
@@ -37,12 +38,13 @@ function riskScore(q) {
 }
 
 export async function POST(request) {
-  const { userId } = await auth();
+  const { userId, sessionClaims } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   await ensureUser(userId);
+  const hasNotesAccess = await getHasNotesAccess(sessionClaims);
 
   // limit: number = cap questions; capped at 100 max
   // mode: optional string — 'starter' bypasses SR scheduling and pulls 5
@@ -72,7 +74,7 @@ export async function POST(request) {
       selected = await getUnreviewedQuestionsByDocument(userId, starterDocId, 5);
       // Single doc → no interleave needed; rows are already created_at-ordered.
     } else {
-      const allDue = await getAllDueQuestions(userId);
+      const allDue = await getAllDueQuestions(userId, hasNotesAccess);
       if (allDue.length === 0) {
         return NextResponse.json({ sessionId: null, questions: [] });
       }

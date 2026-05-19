@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { getUserContentCounts, getAllDueQuestions, getUserStreak, getCompletedSessionCount, getUpNextDocumentTitles } from "@/lib/db/queries";
+import { getHasNotesAccess } from "@/lib/auth/has-notes-access";
 import { autoAdoptStarterDocIfFirstTime } from "@/lib/auto-adopt-starter";
 import OnboardingCard from "@/components/OnboardingCard";
 import StarryBackground from "@/components/StarryBackground";
@@ -24,7 +25,7 @@ function getLevel(streak) {
 }
 
 export default async function Home() {
-  const { userId } = await auth();
+  const { userId, sessionClaims } = await auth();
   if (!userId) redirect("/sign-in");
 
   // FTUE: copy starter doc to new user before counting their content.
@@ -143,9 +144,10 @@ export default async function Home() {
   }
 
   // ── Returning user ─────────────────────────────────────────────────────────
+  const hasNotesAccess = await getHasNotesAccess(sessionClaims);
   const [dueQuestions, upNextTitles] = await Promise.all([
-    getAllDueQuestions(userId),
-    getUpNextDocumentTitles(userId),
+    getAllDueQuestions(userId, hasNotesAccess),
+    getUpNextDocumentTitles(userId, hasNotesAccess),
   ]);
 
   const dueCount = dueQuestions.length;
