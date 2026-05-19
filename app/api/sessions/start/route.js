@@ -100,7 +100,7 @@ export async function POST(request) {
 
     // Fetch document stats for insight computation on the farewell screen
     const docIds = [...new Set(selected.map(q => q.document_id))];
-    const docStatRows = await getDocumentStatsForSession(userId, docIds);
+    const docStatRows = await getDocumentStatsForSession(userId, docIds, hasNotesAccess);
     const docStatsMap = Object.fromEntries(
       docStatRows.map(d => [d.id, { title: d.title, total: Number(d.total), mastered: Number(d.mastered) }])
     );
