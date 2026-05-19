@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import StarryBackground from '@/components/StarryBackground';
-import { countWords } from '@/lib/upload-limits';
+import { countWords, NOTE_MIN_WORDS } from '@/lib/upload-limits';
 
 const wrapperStyle = { position: 'relative', zIndex: 1, paddingTop: '24px', paddingBottom: '40px' };
 
@@ -51,42 +51,62 @@ export default function NoteEditorPage() {
   const [savedFlash, setSavedFlash] = useState(false);
   const [contentFocused, setContentFocused] = useState(false);
 
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState('');
+  const [generateFlash, setGenerateFlash] = useState('');
+  const [generatingMessage, setGeneratingMessage] = useState('Generating…');
+
   const titleInputRef = useRef(null);
 
-  useEffect(() => {
+  const loadNote = useCallback(async ({ silent = false } = {}) => {
     if (!id) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(`/api/notes/${id}`);
-        if (cancelled) return;
-        if (res.status === 404) {
-          setNotFound(true);
-          return;
-        }
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || 'Failed to load note');
-
-        const t = data.title ?? '';
-        const c = data.content ?? '';
-        const d = data.note_draft_content ?? '';
-        setTitle(t);
-        setContent(c);
-        setDraft(d);
-        setBaseline({ title: t, content: c, note_draft_content: d });
-
-        if (t === '') {
-          // Wait for the input to mount before focusing.
-          setTimeout(() => titleInputRef.current?.focus(), 0);
-        }
-      } catch (err) {
-        if (!cancelled) setLoadError(err.message);
-      } finally {
-        if (!cancelled) setLoading(false);
+    if (!silent) setLoading(true);
+    try {
+      const res = await fetch(`/api/notes/${id}`);
+      if (res.status === 404) {
+        setNotFound(true);
+        return;
       }
-    })();
-    return () => { cancelled = true; };
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Failed to load note');
+
+      const t = data.title ?? '';
+      const c = data.content ?? '';
+      const d = data.note_draft_content ?? '';
+      setTitle(t);
+      setContent(c);
+      setDraft(d);
+      setBaseline({ title: t, content: c, note_draft_content: d });
+
+      if (!silent && t === '') {
+        // Wait for the input to mount before focusing.
+        setTimeout(() => titleInputRef.current?.focus(), 0);
+      }
+    } catch (err) {
+      setLoadError(err.message);
+    } finally {
+      if (!silent) setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    loadNote();
+  }, [loadNote]);
+
+  // Rotating status while generating. Interval ticks every 1s and updates
+  // the message based on elapsed time. handleGenerate resets to 'Generating…'
+  // before flipping generating=true so a previous "Almost there…" doesn't leak in.
+  useEffect(() => {
+    if (!generating) return;
+    const startedAt = Date.now();
+    const interval = setInterval(() => {
+      const elapsedSec = (Date.now() - startedAt) / 1000;
+      if (elapsedSec < 15) setGeneratingMessage('Generating…');
+      else if (elapsedSec < 45) setGeneratingMessage('Reading your draft…');
+      else setGeneratingMessage('Almost there…');
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [generating]);
 
   const dirty = !!baseline && (
     title !== baseline.title ||
@@ -111,17 +131,49 @@ export default function NoteEditorPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'Save failed');
 
-      // Server strips divider markers on its side; our local state may now diverge from
-      // what was actually persisted. For Chunk 3 this is acceptable — the cost is one
-      // extra save click after typing a literal divider. Chunk 5 polish can refetch
-      // here or mirror the strip client-side.
-      setBaseline({ title, content, note_draft_content: draft });
+      await loadNote({ silent: true });
       setSavedFlash(true);
       setTimeout(() => setSavedFlash(false), 1500);
     } catch (err) {
       setSaveError(err.message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleGenerate() {
+    setGenerateError('');
+    setGeneratingMessage('Generating…');
+    setGenerating(true);
+    try {
+      const res = await fetch(`/api/notes/${id}/generate`, { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.status === 200) {
+        setGenerateFlash(`${data.questionsAdded} questions added ✓`);
+        setTimeout(() => setGenerateFlash(''), 3000);
+        await loadNote({ silent: true });
+      } else if (res.status === 409) {
+        setGenerateError('Your note changed while generating. Refreshing…');
+        await loadNote({ silent: true });
+        setGenerateError('');
+      } else if (res.status === 422 && data?.error === 'draft_too_short') {
+        setGenerateError(`Add more content — at least ${data.minWords} words needed.`);
+      } else if (res.status === 422 && data?.error === 'no_distinct_material') {
+        setGenerateError('Not enough new material to generate questions. Add more content.');
+      } else if (res.status === 422 && data?.error === 'size_exceeded') {
+        setGenerateError(`Note is too long to generate from. Cap is ${data.cap} characters.`);
+      } else if (res.status === 429) {
+        setGenerateError('Hourly limit reached. Try again in an hour.');
+      } else if (res.status === 502) {
+        setGenerateError('Generation failed. Please try again.');
+      } else {
+        setGenerateError('Something went wrong. Please try again.');
+      }
+    } catch {
+      setGenerateError('Something went wrong. Please try again.');
+    } finally {
+      setGenerating(false);
     }
   }
 
@@ -177,6 +229,18 @@ export default function NoteEditorPage() {
   // ── Editor ─────────────────────────────────────────────────────────────────
 
   const draftWords = countWords(draft);
+
+  const generateDisabled =
+    !baseline || dirty || saving || generating || draftWords < NOTE_MIN_WORDS;
+
+  const generateHint = (() => {
+    if (!baseline) return '';
+    if (saving) return '';
+    if (generating) return '';
+    if (dirty) return 'Save before generating.';
+    if (draftWords < NOTE_MIN_WORDS) return `Draft needs ${NOTE_MIN_WORDS - draftWords} more words.`;
+    return '';
+  })();
 
   return (
     <div style={wrapperStyle}>
@@ -271,11 +335,27 @@ export default function NoteEditorPage() {
         </span>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {generateHint && !generating && (
+            <span style={{
+              fontSize:  '0.78rem',
+              color:     'var(--color-muted)',
+              maxWidth:  220,
+              textAlign: 'right',
+            }}>
+              {generateHint}
+            </span>
+          )}
           {savedFlash && (
             <span style={{ fontSize: '0.78rem', color: 'var(--color-easy)' }}>Saved ✓</span>
           )}
           {saveError && (
             <span style={{ fontSize: '0.78rem', color: 'var(--color-forgot)' }}>{saveError}</span>
+          )}
+          {generateFlash && (
+            <span style={{ fontSize: '0.78rem', color: 'var(--color-easy)' }}>{generateFlash}</span>
+          )}
+          {generateError && (
+            <span style={{ fontSize: '0.78rem', color: 'var(--color-forgot)' }}>{generateError}</span>
           )}
           <button
             onClick={handleSave}
@@ -294,6 +374,23 @@ export default function NoteEditorPage() {
             }}
           >
             {saving ? 'Saving…' : 'Save'}
+          </button>
+          <button
+            onClick={handleGenerate}
+            disabled={generateDisabled}
+            style={{
+              padding:      '8px 18px',
+              borderRadius: '8px',
+              fontWeight:   600,
+              fontSize:     '0.875rem',
+              background:   generating || !generateDisabled ? 'rgba(124,58,237,0.22)' : 'rgba(255,255,255,0.06)',
+              border:       generating || !generateDisabled ? '1px solid rgba(124,58,237,0.5)' : '1px solid rgba(255,255,255,0.10)',
+              color:        generating || !generateDisabled ? '#ffffff' : 'var(--color-muted)',
+              cursor:       generating ? 'progress' : generateDisabled ? 'not-allowed' : 'pointer',
+              transition:   'opacity 0.15s ease',
+            }}
+          >
+            {generating ? generatingMessage : 'Generate'}
           </button>
         </div>
       </div>
