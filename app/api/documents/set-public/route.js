@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { setDocumentPublic } from "@/lib/db/queries";
+import { getDocumentById, setDocumentPublic } from "@/lib/db/queries";
 
 export async function PATCH(request) {
   const { userId } = await auth();
@@ -14,6 +14,17 @@ export async function PATCH(request) {
   }
 
   try {
+    const document = await getDocumentById(documentId);
+    if (!document) {
+      return NextResponse.json({ error: "Document not found" }, { status: 404 });
+    }
+    if (document.user_id !== userId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    if (document.source_type === "note") {
+      return NextResponse.json({ error: "Notes cannot be published" }, { status: 403 });
+    }
+
     await setDocumentPublic(userId, documentId, isPublic);
     return NextResponse.json({ success: true, isPublic });
   } catch (error) {
