@@ -297,24 +297,23 @@ export default function NoteEditorPage() {
   const generateDisabled =
     !baseline || dirty || saving || generating || draftWords < NOTE_MIN_WORDS;
 
-  const generateHint = (() => {
-    if (!baseline) return '';
-    if (saving) return '';
-    if (generating) return '';
-    if (dirty) return 'Save before generating.';
-    if (draftWords < NOTE_MIN_WORDS) return `Draft needs ${NOTE_MIN_WORDS - draftWords} more words.`;
-    return '';
-  })();
-
   const prioritizeDisabled =
     !baseline || dirty || saving || generating || prioritizing || questionCount === 0;
 
-  // Suppressed when dirty: generateHint already surfaces the "save first" message,
-  // so we don't duplicate "Save before prioritizing." here.
-  const prioritizeHint = (() => {
+  // Single consolidated footer hint. At most one hint visible at any time, by
+  // priority — the highest-priority blocked action wins, not every disabled
+  // button. Mid-flight actions (saving/generating/prioritizing) suppress all
+  // hints; the active button label conveys the state.
+  //
+  // 1. dirty + has words           → save first so the next generate is clean
+  // 2. draft below NOTE_MIN_WORDS  → keep writing (count is in the hint, so the
+  //                                  standalone word counter is suppressed too)
+  // 3. generate enabled, no Q's    → nudge toward generate so review can act
+  const footerHint = (() => {
     if (!baseline) return '';
     if (saving || generating || prioritizing) return '';
-    if (dirty) return '';
+    if (dirty && draftWords > 0) return 'Save before generating.';
+    if (draftWords < NOTE_MIN_WORDS) return `Draft needs ${NOTE_MIN_WORDS - draftWords} more words.`;
     if (questionCount === 0) return 'Generate questions first to prioritize them.';
     return '';
   })();
@@ -413,9 +412,11 @@ export default function NoteEditorPage() {
       {/* Footer */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.78rem', color: 'var(--color-muted)' }}>
-            {draftWords} word{draftWords === 1 ? '' : 's'}
-          </span>
+          {draftWords >= NOTE_MIN_WORDS && (
+            <span style={{ fontSize: '0.78rem', color: 'var(--color-muted)' }}>
+              {draftWords} word{draftWords === 1 ? '' : 's'}
+            </span>
+          )}
           {showCapWarning && (
             <span style={{
               fontSize: '0.78rem',
@@ -427,24 +428,14 @@ export default function NoteEditorPage() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {generateHint && !generating && (
+          {footerHint && (
             <span style={{
               fontSize:  '0.78rem',
               color:     'var(--color-muted)',
               maxWidth:  220,
               textAlign: 'right',
             }}>
-              {generateHint}
-            </span>
-          )}
-          {prioritizeHint && !prioritizing && (
-            <span style={{
-              fontSize:  '0.78rem',
-              color:     'var(--color-muted)',
-              maxWidth:  220,
-              textAlign: 'right',
-            }}>
-              {prioritizeHint}
+              {footerHint}
             </span>
           )}
           {savedFlash && (
