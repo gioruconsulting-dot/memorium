@@ -501,7 +501,6 @@ export default function NoteEditorPage() {
               border:       generating || !generateDisabled ? '1px solid rgba(124,58,237,0.5)' : '1px solid rgba(255,255,255,0.10)',
               color:        generating || !generateDisabled ? '#ffffff' : 'var(--color-muted)',
               cursor:       generating ? 'progress' : generateDisabled ? 'not-allowed' : 'pointer',
-              transition:   'opacity 0.15s ease',
             }}
           >
             {generating ? generatingMessage : 'Generate'}
