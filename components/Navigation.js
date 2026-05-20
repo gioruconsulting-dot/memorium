@@ -154,28 +154,30 @@ export default function Navigation() {
 
       {/* Desktop: fixed top bar */}
       <nav
-        className="hidden md:flex fixed top-0 left-0 right-0 z-50 items-center gap-6 px-6 h-14"
+        className="hidden md:flex fixed top-0 left-0 right-0 z-50 items-center px-6 h-14"
         style={{
           background: '#0d0d0c',
           borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
         }}
       >
-        <span className="font-semibold mr-2 text-[#EEFF99]">Repetita</span>
-        {LINKS.map(({ href, Icon, label }) => {
-          const active = pathname === href;
-          const color  = active ? ACTIVE_COLOR : INACTIVE_COLOR;
-          return (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-1.5 text-sm"
-              style={{ color, fontWeight: active ? 500 : 400, transition: 'color 0.2s ease' }}
-            >
-              <Icon />
-              <span>{label}</span>
-            </Link>
-          );
-        })}
+        <span className="font-semibold text-[#EEFF99]">Repetita</span>
+        <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 flex items-center gap-8">
+          {LINKS.map(({ href, Icon, label }) => {
+            const active = pathname === href;
+            const color  = active ? ACTIVE_COLOR : INACTIVE_COLOR;
+            return (
+              <Link
+                key={href}
+                href={href}
+                className="flex items-center gap-1.5 text-sm"
+                style={{ color, fontWeight: active ? 500 : 400, transition: 'color 0.2s ease' }}
+              >
+                <Icon />
+                <span>{label}</span>
+              </Link>
+            );
+          })}
+        </div>
         <div className="ml-auto">
           <UserButton afterSignOutUrl="/sign-in" />
         </div>
