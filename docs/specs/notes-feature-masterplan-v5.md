@@ -53,6 +53,8 @@ This supersedes §1's earlier line about "1-line JSON export of each tester's no
 
 See §3 Chunk 8.5 for the full restore plan. Amendment C is preserved as a pointer for the audit trail.
 
+**Updated by Amendment E**: Chunk 8.5 now follows Chunk 7.5 immediately (same operation window), not weeks later. The original ~2-4 week downtime window for the at-risk user is reduced to ~30 minutes.
+
 ### Amendment D — Stop conditions added to Chunk 1 pre-flight
 
 Beyond the existing PRE-MORTEM-CHECKLIST gates (Backup Freshness, Expected-Delta Manifest, Four-Level Verification), Chunk 1 STOPS if **any** of the following is not satisfied. Each is a checkbox in `docs/specs/notes-v5-chunk-1-preflight.md`:
@@ -61,6 +63,20 @@ Beyond the existing PRE-MORTEM-CHECKLIST gates (Backup Freshness, Expected-Delta
 2. The at-risk user's JSON snapshot has not been validated — either the snapshot script (`scripts/notes-v5-snapshot-at-risk-user.mjs`) has not been run, or it ran but the internal record-count + sample-row validation did not pass.
 3. The other two users' plain-text exports have not been written and emailed by the operator.
 4. Heads-up messages have not been sent to all three affected users (`user_3DXRFF0vJ83ZIQy2UiZsZHoYLRY`, `user_3Ba5kqiLR8PNTCmPaDoaMLsoIMY`, `user_3DcjFr50Zvg0wMQ0RzjMGUGi15i`).
+
+### Amendment E — Expand-contract split of Chunk 1
+
+The masterplan as written bundled additive DDL and destructive DELETE into one Chunk 1, violating the expand-contract rule from `PRE-MORTEM-CHECKLIST.md`. Split into two operations:
+
+- **Chunk 1a — Expand (additive DDL only)**: Create `note_blocks`, add `documents.note_version`, add `questions.block_id` / `retired_at` / `retired_reason`, add indexes. v4 notes remain fully functional. No user data touched. Runs early in the build.
+- **Chunk 7.5 — Contract (destructive wipe)**: `DELETE FROM documents WHERE source_type='note'`. Runs immediately before v5 ships, after personal-use week. v4 notes break for ~30 minutes during ship; at-risk user's data restored at Chunk 8.5 in the same window.
+
+Rationale: v4's code reads `documents.content` for notes and ignores the new v5 columns. The new columns are nullable / have defaults. v4 keeps working during the entire build period. The destructive operation is therefore unnecessary at the start of the build — it only needs to happen just before v5 starts reading from `note_blocks` instead of `documents.content`.
+
+Effect on affected users:
+- At-risk user (`user_3DXRFF0vJ83ZIQy2UiZsZHoYLRY`): keeps using v4 notes through the build period. Loses access for ~30 min during Chunk 7.5 → 8.5 sequence. Data restored.
+- Plain-text users: keep using v4 notes through the build period. Lose access permanently at Chunk 7.5. Receive .txt export at that moment (not earlier).
+- The JSON snapshot and .txt exports produced today (2026-05-21) become development artifacts — they validate the scripts work but are not the canonical restore source. Chunk 7.5 will produce fresh exports.
 
 ---
 
@@ -393,21 +409,53 @@ Confirm in code/docs *before* schema migration runs, since several decisions aff
 - **Ordering tie-breaker**: all block reads use `ORDER BY sealed_at ASC, id ASC`.
 - **Recovery panel** uses `sessionStorage` for the local pending payload (not just in-memory).
 
-### Chunk 1 — Schema migration (Tier 4 ceremony)
+### Chunk 1a — Schema expand (additive DDL only)
 
-- Branch-first verification per v4 protocol.
+**Tier 3** (production schema change, additive). Branch-first per `PRE-MORTEM-CHECKLIST.md`.
+
+Operations:
 - Add `note_blocks` table + indexes (document/sealed_at, document/is_stale/stale_since).
-- Add `documents.note_version`.
-- Add `questions.block_id`, `questions.retired_at`, `questions.retired_reason` + indexes.
-- Run courtesy export of existing note content for testers (3 users, ~15 notes total).
-- `DELETE FROM documents WHERE source_type='note'` — cascade chain verified pre-execution.
-- **FK cascade tests** (mandatory before going to prod):
-  1. Delete a note document with blocks and block-linked questions. Verify: document gone, all its `note_blocks` gone, all its questions gone, downstream `session_answers` + `question_feedback` handled.
-  2. Delete a single block. Verify: only that block's questions affected; other blocks untouched; parent document untouched.
-  3. Delete an uploaded document with `block_id = NULL` questions. Verify: existing v4 cascade still works unchanged.
-- App-level invariant tests: note-questions have `block_id IS NOT NULL`; uploaded-doc questions have `block_id IS NULL`.
-- Four-level verification on uploaded-doc data: counts unchanged, FK relationships intact, sample upload-doc question still grades correctly.
-- Two-clock verification before production.
+- Add `documents.note_version INTEGER NOT NULL DEFAULT 0`.
+- Add `questions.block_id TEXT REFERENCES note_blocks(id) ON DELETE CASCADE`.
+- Add `questions.retired_at INTEGER` (nullable; alongside existing `is_retired`).
+- Add `questions.retired_reason TEXT` (nullable).
+- Add indexes `idx_questions_block` and `idx_questions_active`.
+
+**Critical**: NO destructive operations. NO `DELETE FROM documents`. v4 notes feature remains fully functional throughout.
+
+Verification:
+- Expected-delta manifest: every row count UNCHANGED. Only schema-level intent verified.
+- Four-level verification scope simplified: Level 1 (counts unchanged for all blast-radius tables), Level 2 (no orphaned FKs introduced — new `block_id` FK starts NULL for all existing rows), Level 4 (v4 notes feature still works on branch — open a note, save, generate questions).
+- Two-clock verification before production: agent confirms schema, operator confirms v4 notes still work in the app pointing at the branch.
+
+FK cascade tests (subset of original Chunk 1 list — without note_blocks data, only schema correctness needed):
+1. Verify `note_blocks` table created with correct FK shape; manually insert a test row then delete to confirm FK acts but no real data harmed.
+2. Verify `questions.block_id` FK behavior: a hypothetical block delete cascades correctly.
+3. Verify existing v4 cascade still works (uploaded doc → questions → session_answers).
+
+Reference: see migrations/notes-v5-schema-expand.sql.
+
+### Chunk 7.5 — Schema contract (destructive wipe + v5 deploy)
+
+**Tier 4** (destructive on Sacred-tier-parent table). Full PRE-MORTEM-CHECKLIST.md ceremony.
+
+Trigger gate: Chunk 7 (personal use week) exit criterion met — *"I would not be embarrassed to give this to a tester."*
+
+Pre-flight (fresh, not reusing 2026-05-21 artifacts):
+- Re-snapshot at-risk user via `scripts/notes-v5-snapshot-at-risk-user.mjs`. Validate fresh JSON.
+- Re-run plain-text export for the other 2 users. Email them their fresh .txt with a short note.
+- Heads-up message to all 3 affected users naming the specific ship time.
+- Fresh SQLite backup of production via `turso db export memorium-recovery`.
+- Confirm PITR window ≥6h.
+
+Operations (all in one short window):
+- `DELETE FROM documents WHERE source_type='note'` (cascades to note questions, session_answers, question_feedback).
+- Deploy v5 code (Chunks 2-6 work landing in production).
+- Verify v5 notes feature works end-to-end with a test note.
+
+Reference: see migrations/notes-v5-schema-contract.sql.
+
+Chunk 8.5 (restore at-risk user) follows immediately, within the same operation window.
 
 ### Chunk 2 — Backend: GET + PATCH refactor + autosave plumbing
 
@@ -476,7 +524,7 @@ Same as v4 Chunk 6. No code changes unless bugs found. Exit criterion: "I would 
 
 ### Chunk 8.5 — Restore at-risk user's preserved notes
 
-**Trigger gate:** v5 is stable per Chunk 7's exit criterion. The JSON snapshot from the at-risk user (created pre-Chunk-1) still parses and validates against expected record counts.
+**Trigger gate:** Chunk 7.5 has completed successfully (wipe + v5 deploy). The fresh JSON snapshot from at-risk user (created pre-Chunk-7.5) is in hand and validates against expected record counts.
 
 **Tier 4 ceremony per PRE-MORTEM-CHECKLIST.md.**
 
