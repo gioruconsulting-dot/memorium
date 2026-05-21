@@ -51,20 +51,7 @@ This supersedes §1's earlier line about "1-line JSON export of each tester's no
 
 ### Amendment C — Chunk 8.5 added to build chunks
 
-A new chunk is inserted **between Chunk 7 (Personal use week) and Chunk 8 (Re-onboard testers + observe + decide)** in §3. Until that section is rewritten, this amendment is the authoritative description.
-
-**Chunk 8.5 — Restore at-risk user's preserved notes (Tier 4)**
-
-Full PRE-MORTEM-CHECKLIST ceremony. Gates (all must hold before any write):
-
-- v5 is stable per Chunk 7's exit criterion ("I would not be embarrassed to give this to a tester").
-- The JSON snapshot still parses and validates against the record counts captured at snapshot time.
-- The restore plan inserts into Sacred tables (`documents`, `questions`, `session_answers`) with the FK chain preserved.
-- **v4 sealed content collapses to one v5 "legacy block" per note.** No attempt is made to parse v4 textual `\n\n---\n[Generated on: …]\n` dividers into multiple v5 blocks. The entire prior `documents.content` becomes one `note_blocks` row per note. `sealed_at` is set from the original `documents.last_generated_at` (or `documents.created_at` if the former is NULL).
-- **Question-to-block reattachment:** every preserved question for a given note attaches to that note's single legacy block (`questions.block_id = <that_note's_legacy_block_id>`). Retirement state (`is_retired`, `retired_at`, `retired_reason`) preserved as captured.
-- **Four-level + product verification post-restore:** the user logs in, sees their notes with correct titles and content in legacy blocks, can start a study session that pulls their preserved questions, and sees their preserved `session_answers` reflected in personal stats / Progress.
-
-If any gate fails, Chunk 8.5 stops and the snapshot is held until the operator can intervene manually. The snapshot files are not deleted until the user has confirmed end-to-end that restored data is intact.
+See §3 Chunk 8.5 for the full restore plan. Amendment C is preserved as a pointer for the audit trail.
 
 ### Amendment D — Stop conditions added to Chunk 1 pre-flight
 
@@ -237,7 +224,7 @@ Unchanged from v4. `hasNotesAccess` controls all access.
 
 ### Rollout
 
-- **v5 migration is destructive for existing notes.** Confirmed acceptable: 3 testers, ~15 notes total, feature gated. Uploaded documents are not touched.
+- **v5 migration is destructive for existing notes.** Confirmed acceptable: 3 testers, ~15 notes total, feature gated. Uploaded documents are not touched. **Note:** per-user handling has been refined post-audit — see Amendment B for which users get JSON snapshot (with eventual restore at Chunk 8.5) vs. plain text export.
 - Optional courtesy: 1-line JSON export of each tester's notes content (titles + concatenated content), emailed before the migration. Adds ~15 min; preserves goodwill. Lean: do this.
 - Personal-use week before any tester is re-flagged (same as v4 §1).
 - Then re-enable 1-3 external testers with explicit notice: "We rebuilt notes. Your old notes are gone (we sent you a copy). Try the new version."
@@ -487,11 +474,28 @@ Confirm in code/docs *before* schema migration runs, since several decisions aff
 
 Same as v4 Chunk 6. No code changes unless bugs found. Exit criterion: "I would not be embarrassed to give this to a tester."
 
+### Chunk 8.5 — Restore at-risk user's preserved notes
+
+**Trigger gate:** v5 is stable per Chunk 7's exit criterion. The JSON snapshot from the at-risk user (created pre-Chunk-1) still parses and validates against expected record counts.
+
+**Tier 4 ceremony per PRE-MORTEM-CHECKLIST.md.**
+
+**Restore mechanics:**
+- For each preserved document: insert a fresh row into `documents` with `source_type='note'`, owned by the original user. Set `note_version=0`. Use the original `title`. Leave `content=''` (v5 doesn't use it for notes). Restore `note_draft_content` from snapshot if non-empty.
+- For each preserved document: insert exactly one `note_blocks` row — the "legacy block" — containing the snapshot's `documents.content` as its content. Set `sealed_at = original documents.last_generated_at` if non-null, else `documents.created_at`. Set `is_stale=0`, `stale_since=NULL`, `version=0`.
+- For each preserved question: insert into `questions` with the original row's values, plus `block_id = <the_legacy_block_id_for_that_question's_document>`, `retired_at=NULL`, `retired_reason=NULL`, `is_retired=0`.
+- For each preserved session_answer: insert into `session_answers` verbatim. FK to `questions.id` is preserved because we restored the original question IDs.
+
+**Verification:**
+- Restored doc count, question count, session_answer count match snapshot
+- The user can log in and see their notes
+- The user can start a study session that includes their preserved questions
+- The user's progress page shows their preserved session_answers
+- Two-clock verification (agent + user) per PRE-MORTEM-CHECKLIST.md
+
 ### Chunk 8 — Re-onboard testers + observe + decide
 
 Same as v4 Chunks 7 + 8. Re-evaluate against kill criteria from v4 §4.
-
-*Note: Amendment C inserts a Chunk 8.5 between Chunks 7 and 8. See the Amendments section above for full definition until §3 is rewritten to absorb it.*
 
 ---
 
