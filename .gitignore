@@ -44,3 +44,6 @@ next-env.d.ts
 # notes v5 — user content from migration scripts (never commit)
 notes-exports-plaintext/
 notes-snapshot-*.json
+
+# local sqlite dev DB (created by scripts/init-local-db.mjs)
+.data/
