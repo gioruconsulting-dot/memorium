@@ -1,0 +1,2 @@
+ID     SEQ     TABLE         FROM            TO     ON UPDATE     ON DELETE     MATCH 
+0      0       documents     document_id     id     NO ACTION     CASCADE       NONE      

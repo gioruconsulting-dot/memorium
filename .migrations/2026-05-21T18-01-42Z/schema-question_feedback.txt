@@ -1,0 +1,9 @@
+CREATE TABLE question_feedback (                                                
+      id TEXT PRIMARY KEY,                                                      
+      question_id TEXT NOT NULL REFERENCES questions(id) ON DELETE CASCADE,     
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,             
+      document_id TEXT NOT NULL,                                                
+      question_text TEXT NOT NULL,                                              
+      created_at INTEGER NOT NULL,                                              
+      UNIQUE(question_id, user_id)                                              
+    );                                                                          

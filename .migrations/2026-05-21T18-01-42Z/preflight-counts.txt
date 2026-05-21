@@ -1,0 +1,11 @@
+METRIC                        VALUE 
+documents_total               51        
+documents_note                4         
+documents_uploaded            47        
+questions_total               1430      
+questions_note_linked         64        
+questions_uploaded_linked     1366      
+session_answers_total         821       
+study_sessions_total          285       
+users_total                   33        
+question_feedback_total       1         

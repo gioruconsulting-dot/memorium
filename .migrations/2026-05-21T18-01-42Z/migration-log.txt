@@ -1,0 +1,80 @@
+Notes v5 — Chunk 1a expand migration
+Timestamp: 2026-05-21T18-01-42Z
+Operator: Gio (gio@myprobatepartner.co.uk)
+Migration SQL: migrations/notes-v5-schema-expand.sql
+Tier: 3 (additive DDL, branch-first)
+
+=============================================================
+STEP 0 — Pre-flight gate
+=============================================================
+[2026-05-21T18:01:42Z] Backup verified: ~/Documents/repetita-backups/memorium-recovery-2026-05-21T15-19-40Z.db (2338816 bytes / ~2.23 MB)
+[2026-05-21T18:01:42Z] Migration SQL read end-to-end. Statements: 1 CREATE TABLE (note_blocks), 4 ALTER TABLE ADD COLUMN (documents.note_version, questions.block_id, questions.retired_at, questions.retired_reason), 4 CREATE INDEX (idx_note_blocks_document, idx_note_blocks_stale, idx_questions_block, idx_questions_active). Destructive count: 0 (no DROP, no DELETE, no UPDATE).
+[2026-05-21T18:01:42Z] Branch: main. 9 commits ahead of origin/main (runbook expected 8; memory confirms 9 is current state — one additional doc commit landed since runbook authored: 173376d 'docs(notes-v5): re-target Amendment D to Chunk 7.5'). No state issue.
+[2026-05-21T18:01:42Z] TURSO_DATABASE_URL verified via dotenv → libsql://memorium-recovery-gioruconsulting-dot.aws-eu-west-1.turso.io (production target = memorium-recovery, matches reference memory).
+[2026-05-21T18:01:42Z] Artifact directory created: .migrations/2026-05-21T18-01-42Z/
+
+Step 0 result: PASS. Proceeding to Step 1 (read-only pre-flight on production).
+⣾  Creating database chunk-1a-expand-2026-05-21T18-01-42Z in group default...
+Error: could not create database chunk-1a-expand-2026-05-21T18-01-42Z: invalid database name: name may only contain numbers, lowercase letters, and dashes
+⣾  Creating database chunk-1a-expand-2026-05-21-1801 in group default...
+Created database chunk-1a-expand-2026-05-21-1801 at group default in 2.729s.
+
+Start an interactive SQL shell with:
+
+   turso db shell chunk-1a-expand-2026-05-21-1801
+
+To see information about the database, including a connection URL, run:
+
+   turso db show chunk-1a-expand-2026-05-21-1801
+
+To get an authentication token for the database, run:
+
+   turso db tokens create chunk-1a-expand-2026-05-21-1801
+
+Name:               chunk-1a-expand-2026-05-21-1801
+URL:                libsql://chunk-1a-expand-2026-05-21-1801-gioruconsulting-dot.aws-eu-west-1.turso.io
+ID:                 019e4bbd-cd01-7cb6-9937-398ccaa05405
+Group:              default
+Parent:             memorium-recovery
+Version:            2026.7.1
+Locations:          aws-eu-west-1
+Size:               0 B
+Archived:           No
+Bytes Synced:       0 B
+Is Schema:          No
+Type:               SQLite
+Delete Protection:  No
+
+Database Instances:
+NAME              TYPE        LOCATION      
+aws-eu-west-1     primary     aws-eu-west-1     
+---apply exit code: 0---
+⣾  Destroying database chunk-1a-expand-2026-05-21-1801... 
+Destroyed database chunk-1a-expand-2026-05-21-1801 in 1.701s.
+
+
+=============================================================
+STEP 8 — Production promotion
+=============================================================
+[2026-05-21T18:14Z] Operator said GO after Step 7 (Level 4 branch user-clock).
+[2026-05-21T18:15Z] Apply DDL to memorium-recovery (Path A — single multi-statement turso db shell call). Exit 0, no output (clean DDL).
+
+=============================================================
+STEP 9 — Production post-flight (agent clock)
+=============================================================
+[2026-05-21T18:15Z] Level 1 counts on memorium-recovery: identical to preflight (every delta = 0).
+[2026-05-21T18:15Z] Level 2 schema: note_blocks table + 4 indexes present; new FKs verified (note_blocks→documents CASCADE; questions→note_blocks CASCADE).
+[2026-05-21T18:15Z] Level 3 identity & defaults: 5 sampled documents preserved; non-default counts on new columns all 0.
+
+=============================================================
+STEP 10 — Production user-clock (operator)
+=============================================================
+[2026-05-21T18:??Z] Operator reported GREEN after Level 4 verification on production.
+
+=============================================================
+STEP 11 — Cleanup
+=============================================================
+[2026-05-21T18:??Z] Branch chunk-1a-expand-2026-05-21-1801 destroyed (1.701s).
+[2026-05-21T18:??Z] turso db list confirmed no chunk-1a-expand branches remain. Memorium DBs intact: memorium, memorium-notes-migration, memorium-recovery.
+
+Final result: Chunk 1a (Notes v5 expand-only DDL) complete on memorium-recovery. Additive only — every existing row count UNCHANGED. v4 notes feature continues working.

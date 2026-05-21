@@ -1,0 +1,10 @@
+CREATE TABLE session_answers (                                                    
+    id TEXT PRIMARY KEY,                                                          
+    session_id TEXT NOT NULL REFERENCES study_sessions(id) ON DELETE CASCADE,     
+    question_id TEXT NOT NULL REFERENCES questions(id) ON DELETE CASCADE,         
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,                 
+    user_attempt TEXT,                                                            
+    grade TEXT NOT NULL,                                                          
+    elaboration_note TEXT,                                                        
+    answered_at INTEGER NOT NULL                                                  
+  , interval_days INTEGER);                                                       

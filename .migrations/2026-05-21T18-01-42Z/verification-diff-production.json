@@ -1,0 +1,19 @@
+{
+  "compared_at_iso": "2026-05-21T18:15:45Z",
+  "preflight_source": "memorium-recovery (production) pre-DDL @ 2026-05-21T18:05:20Z",
+  "postflight_source": "memorium-recovery (production) post-DDL @ 2026-05-21T18:15:30Z",
+  "expected_all_deltas": 0,
+  "counts": {
+    "documents_total":          { "pre": 51,   "post": 51,   "delta": 0 },
+    "documents_note":           { "pre": 4,    "post": 4,    "delta": 0 },
+    "documents_uploaded":       { "pre": 47,   "post": 47,   "delta": 0 },
+    "questions_total":          { "pre": 1430, "post": 1430, "delta": 0 },
+    "questions_note_linked":    { "pre": 64,   "post": 64,   "delta": 0 },
+    "questions_uploaded_linked":{ "pre": 1366, "post": 1366, "delta": 0 },
+    "session_answers_total":    { "pre": 821,  "post": 821,  "delta": 0 },
+    "study_sessions_total":     { "pre": 285,  "post": 285,  "delta": 0 },
+    "users_total":              { "pre": 33,   "post": 33,   "delta": 0 },
+    "question_feedback_total":  { "pre": 1,    "post": 1,    "delta": 0 }
+  },
+  "verdict": "PASS — every delta is 0 on production"
+}

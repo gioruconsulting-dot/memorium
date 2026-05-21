@@ -1,0 +1,47 @@
+{
+  "captured_at_iso": "2026-05-21T18:15:30Z",
+  "source_db": "memorium-recovery",
+  "source_db_url": "libsql://memorium-recovery-gioruconsulting-dot.aws-eu-west-1.turso.io",
+  "counts": {
+    "documents_total": 51,
+    "documents_note": 4,
+    "documents_uploaded": 47,
+    "questions_total": 1430,
+    "questions_note_linked": 64,
+    "questions_uploaded_linked": 1366,
+    "session_answers_total": 821,
+    "study_sessions_total": 285,
+    "users_total": 33,
+    "question_feedback_total": 1
+  },
+  "new_objects_present": {
+    "note_blocks_table": true,
+    "idx_note_blocks_document": true,
+    "idx_note_blocks_stale": true,
+    "idx_questions_block": true,
+    "idx_questions_active": true
+  },
+  "foreign_keys_post": {
+    "note_blocks": [
+      {"from": "document_id", "to_table": "documents", "to_col": "id", "on_delete": "CASCADE"}
+    ],
+    "questions": [
+      {"from": "block_id", "to_table": "note_blocks", "to_col": "id", "on_delete": "CASCADE"},
+      {"from": "user_id", "to_table": "users", "to_col": "id", "on_delete": "CASCADE"},
+      {"from": "document_id", "to_table": "documents", "to_col": "id", "on_delete": "CASCADE"}
+    ]
+  },
+  "level3_defaults": {
+    "questions_block_id_non_null_count": 0,
+    "questions_retired_at_non_null_count": 0,
+    "questions_retired_reason_non_null_count": 0,
+    "documents_note_version_nonzero_count": 0
+  },
+  "level3_identity_sample_5_docs": [
+    {"id": "doc_1774455315271_fh9aee", "title": "Test Document - Spaced Repetition", "source_type": "uploaded"},
+    {"id": "doc_1774456586966_fntktx", "title": "Atomic Habits", "source_type": "uploaded"},
+    {"id": "doc_1774555994034_fe2gmq", "title": "Building-Memorium-Key-Learnings", "source_type": "uploaded"},
+    {"id": "doc_1774645597195_908e8v", "title": "Way with Words", "source_type": "uploaded"},
+    {"id": "doc_1774645955781_q7fykj", "title": "The Choice Factory – Richard Shotton", "source_type": "uploaded"}
+  ]
+}

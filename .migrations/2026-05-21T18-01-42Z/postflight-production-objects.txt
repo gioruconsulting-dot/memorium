@@ -1,0 +1,6 @@
+NAME                         TYPE  
+note_blocks                  table     
+idx_note_blocks_document     index     
+idx_note_blocks_stale        index     
+idx_questions_block          index     
+idx_questions_active         index     

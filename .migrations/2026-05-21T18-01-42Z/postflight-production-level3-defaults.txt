@@ -1,0 +1,8 @@
+NON NULL BLOCK ID 
+0                     
+NON NULL RETIRED AT 
+0                       
+NON NULL RETIRED REASON 
+0                           
+NONZERO NOTE VERSION 
+0                        

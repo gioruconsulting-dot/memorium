@@ -1,0 +1,4 @@
+ID     SEQ     TABLE           FROM            TO     ON UPDATE     ON DELETE     MATCH 
+0      0       note_blocks     block_id        id     NO ACTION     CASCADE       NONE      
+1      0       users           user_id         id     NO ACTION     CASCADE       NONE      
+2      0       documents       document_id     id     NO ACTION     CASCADE       NONE      
