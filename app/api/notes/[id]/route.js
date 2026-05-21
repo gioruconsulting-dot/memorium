@@ -1,30 +1,38 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getHasNotesAccess } from "@/lib/auth/has-notes-access";
-import { getDocumentById, updateNote, deleteNote, getNoteById } from "@/lib/db/queries";
+import {
+  getDocumentById,
+  updateNote,
+  deleteNote,
+  getNoteById,
+} from "@/lib/db/queries";
 
-// Composite divider marker injected by the generation transaction (masterplan §2.4).
-// Stripped from user-supplied content/draft on Save so a typed lookalike can't corrupt
-// section parsing. Bracket chars are literal in the marker, so escaped here.
-const DIVIDER_RE = /\n\n---\n\[Generated on: \d{4}-\d{2}-\d{2}\]\n/g;
+// Masterplan §2.2 contract:
+//   GET   → { id, title, draft, note_version, blocks: [{...}] }
+//   PATCH ← { title?, draft?, note_version?, blocks?: [{id, content, version}] }
+// Concurrency, size cap, stale-flip and block validation live in lib/db/queries.js
+// (updateNote returns a tagged result). This handler is shape-only: parse body,
+// dispatch, map tagged result → HTTP status.
 
-const MAX_COMBINED_CHARS = 50000;
-const MAX_TITLE_CHARS = 200;
-
-export async function GET(request, { params }) {
+export async function GET(_request, { params }) {
   const { userId, sessionClaims } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Defense-in-depth: middleware already gates /api/notes/*, but every notes
+  // route re-verifies the flag independently (masterplan §2.3).
   const hasAccess = await getHasNotesAccess(sessionClaims);
   if (!hasAccess) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { id } = await params;
-  const note = await getNoteById({ id, userId });
+  const note = await getNoteById(id, userId);
   if (!note) {
+    // Single 404 covers "missing", "not yours", "not a note" without leaking
+    // which case (matches getNoteById's null contract).
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
@@ -37,66 +45,74 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Defense-in-depth: middleware already gates /api/notes/* on the flag, but
-  // every notes route re-verifies independently (masterplan §2.3).
   const hasAccess = await getHasNotesAccess(sessionClaims);
   if (!hasAccess) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { id } = await params;
-  const body = await request.json();
 
-  const hasTitle = typeof body?.title === "string";
-  const hasContent = typeof body?.content === "string";
-  const hasDraft = typeof body?.note_draft_content === "string";
-
-  if (!hasTitle && !hasContent && !hasDraft) {
-    return NextResponse.json(
-      { error: "At least one of title, content, or note_draft_content is required" },
-      { status: 400 }
-    );
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    // Malformed JSON → treat as invalid patch shape.
+    return NextResponse.json({ error: "invalid_patch" }, { status: 400 });
   }
 
-  const doc = await getDocumentById(id);
-  if (!doc || doc.user_id !== userId || doc.source_type !== "note") {
-    // Single 404 for "doesn't exist", "not yours", and "not a note" — don't leak existence.
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const result = await updateNote(id, userId, body);
+
+  if (result.ok) {
+    return NextResponse.json({ note: result.note });
   }
 
-  const newTitle = hasTitle ? body.title.trim() : undefined;
-  const newContent = hasContent ? body.content.replace(DIVIDER_RE, "") : undefined;
-  const newDraft = hasDraft ? body.note_draft_content.replace(DIVIDER_RE, "") : undefined;
+  switch (result.reason) {
+    case "invalid_patch":
+      return NextResponse.json({ error: "invalid_patch" }, { status: 400 });
 
-  // Per-field title length cap. 422 (unprocessable entity) matches the
-  // `draft_too_short`/`size_exceeded` patterns elsewhere in this feature.
-  if (newTitle !== undefined && newTitle.length > MAX_TITLE_CHARS) {
-    return NextResponse.json(
-      { error: "title_too_long", maxChars: MAX_TITLE_CHARS, actualChars: newTitle.length },
-      { status: 422 }
-    );
+    case "not_found":
+      return NextResponse.json({ error: "not_found" }, { status: 404 });
+
+    case "size_exceeded":
+      return NextResponse.json(
+        {
+          error: "size_exceeded",
+          combined_chars: result.combined_chars,
+          limit: result.limit,
+        },
+        { status: 422 }
+      );
+
+    case "note_changed":
+      // updateNote already attached the fresh current state.
+      return NextResponse.json(
+        { error: "note_changed", current: result.current },
+        { status: 409 }
+      );
+
+    case "block_not_found": {
+      // updateNote returns only block_id here (its shape concern stops at the
+      // failed validation). The route surfaces current state for the client's
+      // recovery panel — same UX as note_changed.
+      const current = await getNoteById(id, userId);
+      return NextResponse.json(
+        {
+          error: "block_not_found",
+          block_id: result.block_id,
+          current,
+        },
+        { status: 409 }
+      );
+    }
+
+    default:
+      // Belt-and-braces: any unmapped reason becomes a 500 with the reason
+      // string visible to ops. Shouldn't happen given updateNote's contract.
+      return NextResponse.json(
+        { error: "unknown", reason: result.reason ?? null },
+        { status: 500 }
+      );
   }
-
-  // Cap is on the combined size after strip. Missing fields fall back to the
-  // stored values; nullable columns normalize to '' per masterplan §1.
-  const effContent = newContent !== undefined ? newContent : (doc.content ?? "");
-  const effDraft = newDraft !== undefined ? newDraft : (doc.note_draft_content ?? "");
-  if (effContent.length + effDraft.length > MAX_COMBINED_CHARS) {
-    return NextResponse.json(
-      { error: `Combined content exceeds ${MAX_COMBINED_CHARS} characters` },
-      { status: 413 }
-    );
-  }
-
-  const updatedAt = await updateNote({
-    id,
-    userId,
-    title: newTitle,
-    content: newContent,
-    noteDraftContent: newDraft,
-  });
-
-  return NextResponse.json({ updated_at: updatedAt });
 }
 
 export async function DELETE(request, { params }) {
