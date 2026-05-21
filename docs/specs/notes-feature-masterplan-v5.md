@@ -55,11 +55,11 @@ See §3 Chunk 8.5 for the full restore plan. Amendment C is preserved as a point
 
 **Updated by Amendment E**: Chunk 8.5 now follows Chunk 7.5 immediately (same operation window), not weeks later. The original ~2-4 week downtime window for the at-risk user is reduced to ~30 minutes.
 
-### Amendment D — Stop conditions added to Chunk 1 pre-flight
+### Amendment D — Stop conditions added to Chunk 7.5 pre-flight
 
-Beyond the existing PRE-MORTEM-CHECKLIST gates (Backup Freshness, Expected-Delta Manifest, Four-Level Verification), Chunk 1 STOPS if **any** of the following is not satisfied. Each is a checkbox in `docs/specs/notes-v5-chunk-1-preflight.md`:
+Beyond the existing PRE-MORTEM-CHECKLIST gates (Backup Freshness, Expected-Delta Manifest, Four-Level Verification), Chunk 7.5 STOPS if **any** of the following is not satisfied. A `docs/specs/notes-v5-chunk-7-5-preflight.md` will be created when Chunk 7.5 is planned; these become its checkboxes:
 
-1. PITR availability on `memorium-recovery` has not been re-confirmed via the Turso dashboard within the last 24 hours of Chunk 1 starting.
+1. PITR availability on `memorium-recovery` has not been re-confirmed via the Turso dashboard within the last 24 hours of Chunk 7.5 starting.
 2. The at-risk user's JSON snapshot has not been validated — either the snapshot script (`scripts/notes-v5-snapshot-at-risk-user.mjs`) has not been run, or it ran but the internal record-count + sample-row validation did not pass.
 3. The other two users' plain-text exports have not been written and emailed by the operator.
 4. Heads-up messages have not been sent to all three affected users (`user_3DXRFF0vJ83ZIQy2UiZsZHoYLRY`, `user_3Ba5kqiLR8PNTCmPaDoaMLsoIMY`, `user_3DcjFr50Zvg0wMQ0RzjMGUGi15i`).
@@ -435,28 +435,6 @@ FK cascade tests (subset of original Chunk 1 list — without note_blocks data, 
 
 Reference: see migrations/notes-v5-schema-expand.sql.
 
-### Chunk 7.5 — Schema contract (destructive wipe + v5 deploy)
-
-**Tier 4** (destructive on Sacred-tier-parent table). Full PRE-MORTEM-CHECKLIST.md ceremony.
-
-Trigger gate: Chunk 7 (personal use week) exit criterion met — *"I would not be embarrassed to give this to a tester."*
-
-Pre-flight (fresh, not reusing 2026-05-21 artifacts):
-- Re-snapshot at-risk user via `scripts/notes-v5-snapshot-at-risk-user.mjs`. Validate fresh JSON.
-- Re-run plain-text export for the other 2 users. Email them their fresh .txt with a short note.
-- Heads-up message to all 3 affected users naming the specific ship time.
-- Fresh SQLite backup of production via `turso db export memorium-recovery`.
-- Confirm PITR window ≥6h.
-
-Operations (all in one short window):
-- `DELETE FROM documents WHERE source_type='note'` (cascades to note questions, session_answers, question_feedback).
-- Deploy v5 code (Chunks 2-6 work landing in production).
-- Verify v5 notes feature works end-to-end with a test note.
-
-Reference: see migrations/notes-v5-schema-contract.sql.
-
-Chunk 8.5 (restore at-risk user) follows immediately, within the same operation window.
-
 ### Chunk 2 — Backend: GET + PATCH refactor + autosave plumbing
 
 - Build `GET /api/notes/[id]` returning the structured shape with `version` and `note_version`.
@@ -521,6 +499,28 @@ Chunk 8.5 (restore at-risk user) follows immediately, within the same operation 
 ### Chunk 7 — Personal use week
 
 Same as v4 Chunk 6. No code changes unless bugs found. Exit criterion: "I would not be embarrassed to give this to a tester."
+
+### Chunk 7.5 — Schema contract (destructive wipe + v5 deploy)
+
+**Tier 4** (destructive on Sacred-tier-parent table). Full PRE-MORTEM-CHECKLIST.md ceremony.
+
+Trigger gate: Chunk 7 (personal use week) exit criterion met — *"I would not be embarrassed to give this to a tester."*
+
+Pre-flight (fresh, not reusing 2026-05-21 artifacts):
+- Re-snapshot at-risk user via `scripts/notes-v5-snapshot-at-risk-user.mjs`. Validate fresh JSON.
+- Re-run plain-text export for the other 2 users. Email them their fresh .txt with a short note.
+- Heads-up message to all 3 affected users naming the specific ship time.
+- Fresh SQLite backup of production via `turso db export memorium-recovery`.
+- Confirm PITR window ≥6h.
+
+Operations (all in one short window):
+- `DELETE FROM documents WHERE source_type='note'` (cascades to note questions, session_answers, question_feedback).
+- Deploy v5 code (Chunks 2-6 work landing in production).
+- Verify v5 notes feature works end-to-end with a test note.
+
+Reference: see migrations/notes-v5-schema-contract.sql.
+
+Chunk 8.5 (restore at-risk user) follows immediately, within the same operation window.
 
 ### Chunk 8.5 — Restore at-risk user's preserved notes
 
