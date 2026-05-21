@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# notes v5 — user content from migration scripts (never commit)
+notes-exports-plaintext/
+notes-snapshot-*.json
