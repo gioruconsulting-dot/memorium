@@ -14,7 +14,7 @@
 //   the newly-sealed block fades in via CSS animation
 // - Generate button is state-aware (label + disabled), sticks to bottom on mobile
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import StarryBackground from '@/components/StarryBackground';
@@ -143,6 +143,19 @@ export default function NoteEditorPage() {
   const [editingBlockId, setEditingBlockId] = useState(null);
   const [editingContent, setEditingContent] = useState('');
   const editingBaselineRef = useRef({ id: null, content: '', version: 0 });
+
+  // ── Block show-more state (personal-use tweaks) ────────────────────────
+  // Each sealed block renders compact (4-line clamp) by default. expandedBlocks
+  // tracks which ids the user has explicitly expanded. overflowingBlocks holds
+  // the result of the post-render measurement (scrollHeight > clientHeight) —
+  // controls whether the "Show more" affordance appears.
+  const [expandedBlocks, setExpandedBlocks] = useState({});
+  const [overflowingBlocks, setOverflowingBlocks] = useState({});
+  const blockContentRefs = useRef({});
+
+  function toggleBlockExpanded(id) {
+    setExpandedBlocks((prev) => ({ ...prev, [id]: !prev[id] }));
+  }
 
   // ── Save state ─────────────────────────────────────────────────────────
   const [saving, setSaving]         = useState(false);
@@ -396,6 +409,30 @@ export default function NoteEditorPage() {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     if (postGenTimerRef.current) clearTimeout(postGenTimerRef.current);
   }, []);
+
+  // Measure each collapsed sealed block to decide if "Show more" should render.
+  // Runs before paint so the button doesn't flicker in after the first paint.
+  // Skips currently-expanded blocks (their max-height is unset, so scrollHeight
+  // would equal clientHeight and falsely report no overflow); for those we
+  // keep the prior measurement.
+  useLayoutEffect(() => {
+    setOverflowingBlocks((prev) => {
+      const next = { ...prev };
+      for (const b of blocks) {
+        if (expandedBlocks[b.id]) continue;
+        const el = blockContentRefs.current[b.id];
+        if (!el) continue;
+        next[b.id] = el.scrollHeight > el.clientHeight + 1;
+      }
+      const prevKeys = Object.keys(prev);
+      const nextKeys = Object.keys(next);
+      if (prevKeys.length === nextKeys.length
+          && nextKeys.every((k) => prev[k] === next[k])) {
+        return prev;
+      }
+      return next;
+    });
+  }, [blocks, expandedBlocks]);
 
   // Dismiss the post-Generate toast as soon as the user re-engages with the
   // editor (starts typing in draft, title, or an editing block). The toast is
@@ -735,6 +772,32 @@ export default function NoteEditorPage() {
           border-bottom: 1px solid rgba(255,255,255,0.06);
           margin-bottom: 18px;
         }
+        .v5-block-content {
+          background: #0e0e18;
+          border: 1px solid #1e1e2a;
+          border-radius: 12px;
+          padding: 14px 16px;
+          color: rgba(232, 230, 225, 0.7);
+          font-size: 0.9375rem;
+          line-height: 1.65;
+          white-space: pre-wrap;
+          word-break: break-word;
+          position: relative;
+        }
+        .v5-block-content-collapsed {
+          display: -webkit-box;
+          -webkit-line-clamp: 4;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .v5-block-content-collapsed.v5-has-fade::after {
+          content: '';
+          position: absolute;
+          left: 0; right: 0; bottom: 0;
+          height: 2em;
+          pointer-events: none;
+          background: linear-gradient(to bottom, rgba(14, 14, 24, 0), rgba(14, 14, 24, 0.95));
+        }
       `}</style>
 
       {/* Sticky header — back link + title + save indicator. Mobile + desktop.
@@ -907,21 +970,41 @@ export default function NoteEditorPage() {
                 </div>
               </>
             ) : (
-              <div
-                style={{
-                  background:   COLOR.cardBg,
-                  border:       COLOR.cardBorder,
-                  borderRadius: 12,
-                  padding:      '14px 16px',
-                  color:        COLOR.textDim,
-                  fontSize:     '0.9375rem',
-                  lineHeight:   1.65,
-                  whiteSpace:   'pre-wrap',
-                  wordBreak:    'break-word',
-                }}
-              >
-                {b.content}
-              </div>
+              <>
+                <div
+                  ref={(el) => {
+                    if (el) blockContentRefs.current[b.id] = el;
+                    else delete blockContentRefs.current[b.id];
+                  }}
+                  className={`v5-block-content${
+                    expandedBlocks[b.id] ? '' : ' v5-block-content-collapsed'
+                  }${
+                    !expandedBlocks[b.id] && overflowingBlocks[b.id] ? ' v5-has-fade' : ''
+                  }`}
+                >
+                  {b.content}
+                </div>
+                {overflowingBlocks[b.id] && (
+                  <button
+                    type="button"
+                    onClick={() => toggleBlockExpanded(b.id)}
+                    style={{
+                      marginTop:           6,
+                      fontSize:            '0.78rem',
+                      color:               COLOR.pageMuted,
+                      background:          'transparent',
+                      border:              'none',
+                      padding:             '2px 0 0 4px',
+                      cursor:              'pointer',
+                      textDecoration:      'underline',
+                      textDecorationStyle: 'dotted',
+                      textUnderlineOffset: 2,
+                    }}
+                  >
+                    {expandedBlocks[b.id] ? 'Show less' : 'Show more'}
+                  </button>
+                )}
+              </>
             )}
           </div>
         );
