@@ -24,7 +24,9 @@ import { pickNotesError } from '@/lib/notes/ui-errors';
 const AUTOSAVE_DEBOUNCE_MS = 1000;
 const LONG_DRAFT_THRESHOLD_WORDS = 1000;
 const STALE_BATCH_CAP = 5;
-const POST_GEN_AUTO_DISMISS_MS = 8000;
+// Cumulative scroll distance (in one direction) needed to hide / re-show the
+// post-Generate toast. 50px = hysteresis that ignores small reflows.
+const POST_GEN_SCROLL_THRESHOLD_PX = 50;
 
 const recoveryStorageKey = (noteId) => `notes-v5-recovery:${noteId}`;
 
@@ -175,9 +177,12 @@ export default function NoteEditorPage() {
   // Shape: { newQuestions, refreshed, newBlockId, stillNeedsRefresh: [...] }
   // Drives the top-of-canvas toast with Study/Keep CTAs and the fade-in
   // animation on the new sealed block. Cleared on Keep-writing, on next
-  // user edit (dirty flip), or after POST_GEN_AUTO_DISMISS_MS.
+  // user edit (dirty flip), or on navigation away. Scroll-direction
+  // hides/reveals the toast without unmounting it (toastScrollHidden).
   const [postGen, setPostGen] = useState(null);
-  const postGenTimerRef = useRef(null);
+  const [toastScrollHidden, setToastScrollHidden] = useState(false);
+  const scrollAccumRef = useRef({ y: 0, cumulative: 0, direction: 0 });
+  const scrollFrameRef = useRef(null);
 
   // ── Recovery panel (Chunk 5) ───────────────────────────────────────────
   // On 409 the unsent local payload is preserved in sessionStorage so the
@@ -411,7 +416,7 @@ export default function NoteEditorPage() {
   // Cleanup on unmount.
   useEffect(() => () => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    if (postGenTimerRef.current) clearTimeout(postGenTimerRef.current);
+    if (scrollFrameRef.current) cancelAnimationFrame(scrollFrameRef.current);
   }, []);
 
   // Measure each collapsed sealed block to decide if "Show more" should render.
@@ -445,13 +450,53 @@ export default function NoteEditorPage() {
   useEffect(() => {
     if (!postGen) return;
     if (dirty) {
-      if (postGenTimerRef.current) {
-        clearTimeout(postGenTimerRef.current);
-        postGenTimerRef.current = null;
-      }
       setPostGen(null);
+      setToastScrollHidden(false);
     }
   }, [postGen, dirty]);
+
+  // Scroll-direction hides / re-shows the post-Generate toast. Uses
+  // requestAnimationFrame as a built-in throttle (one read per frame, no
+  // listener thrash) and accumulates distance in the current direction until
+  // it exceeds POST_GEN_SCROLL_THRESHOLD_PX — that hysteresis stops mobile
+  // momentum scrolls from flickering the toast on and off.
+  useEffect(() => {
+    if (!postGen) return;
+    scrollAccumRef.current = { y: window.scrollY, cumulative: 0, direction: 0 };
+
+    function onScroll() {
+      if (scrollFrameRef.current) return;
+      scrollFrameRef.current = requestAnimationFrame(() => {
+        scrollFrameRef.current = null;
+        const acc = scrollAccumRef.current;
+        const newY = window.scrollY;
+        const delta = newY - acc.y;
+        if (delta === 0) return;
+        const dir = delta > 0 ? 1 : -1;
+        if (dir === acc.direction) {
+          acc.cumulative += Math.abs(delta);
+        } else {
+          acc.direction = dir;
+          acc.cumulative = Math.abs(delta);
+        }
+        acc.y = newY;
+        if (dir === 1 && acc.cumulative > POST_GEN_SCROLL_THRESHOLD_PX) {
+          setToastScrollHidden(true);
+        } else if (dir === -1 && acc.cumulative > POST_GEN_SCROLL_THRESHOLD_PX) {
+          setToastScrollHidden(false);
+        }
+      });
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (scrollFrameRef.current) {
+        cancelAnimationFrame(scrollFrameRef.current);
+        scrollFrameRef.current = null;
+      }
+    };
+  }, [postGen]);
 
   // Flush-before-Generate / Done / switch-block: synchronously cancel any
   // pending debounce and fire an immediate save when dirty. Returns true on
@@ -569,18 +614,15 @@ export default function NoteEditorPage() {
         const newQuestions = Number(body?.new_question_count ?? 0);
         await loadNote({ silent: true });
         // Set toast AFTER silent reload so the dirty effect doesn't see a
-        // transient dirty=true and clear it immediately.
+        // transient dirty=true and clear it immediately. Persistence is now
+        // scroll-driven (see post-Generate scroll effect) — no auto-dismiss.
+        setToastScrollHidden(false);
         setPostGen({
           newQuestions,
           refreshed: regenerated.length,
           newBlockId,
           stillNeedsRefresh,
         });
-        if (postGenTimerRef.current) clearTimeout(postGenTimerRef.current);
-        postGenTimerRef.current = setTimeout(() => {
-          postGenTimerRef.current = null;
-          setPostGen(null);
-        }, POST_GEN_AUTO_DISMISS_MS);
         return;
       }
       if (res.status === 404) {
@@ -621,11 +663,8 @@ export default function NoteEditorPage() {
   }
 
   function clearPostGen() {
-    if (postGenTimerRef.current) {
-      clearTimeout(postGenTimerRef.current);
-      postGenTimerRef.current = null;
-    }
     setPostGen(null);
+    setToastScrollHidden(false);
   }
 
   function studyTheseNow() {
@@ -763,6 +802,12 @@ export default function NoteEditorPage() {
         }
         .v5-post-gen-toast {
           animation: v5-toast-in 220ms ease-out;
+          transition: opacity 200ms ease, transform 200ms ease;
+        }
+        .v5-post-gen-toast.v5-toast-hidden {
+          opacity: 0;
+          transform: translateY(-8px);
+          pointer-events: none;
         }
         .v5-sticky-header {
           position: sticky;
@@ -864,6 +909,7 @@ export default function NoteEditorPage() {
           postGen={postGen}
           onStudy={studyTheseNow}
           onKeepWriting={keepWriting}
+          hidden={toastScrollHidden}
         />
       )}
 
@@ -1157,7 +1203,7 @@ export default function NoteEditorPage() {
 // Sits at the top of the editor canvas after a successful Generate. Shows
 // counts ("N new questions · M refreshed") and the two locked CTAs: Study
 // these now / Keep writing (masterplan §1).
-function PostGenToast({ postGen, onStudy, onKeepWriting }) {
+function PostGenToast({ postGen, onStudy, onKeepWriting, hidden = false }) {
   const { newQuestions, refreshed } = postGen;
   const parts = [];
   if (newQuestions > 0) parts.push(`${newQuestions} new question${newQuestions === 1 ? '' : 's'}`);
@@ -1165,9 +1211,10 @@ function PostGenToast({ postGen, onStudy, onKeepWriting }) {
   const summary = parts.length > 0 ? parts.join(' · ') : 'Generate complete';
   return (
     <div
-      className="v5-post-gen-toast"
+      className={`v5-post-gen-toast${hidden ? ' v5-toast-hidden' : ''}`}
       role="status"
       aria-live="polite"
+      aria-hidden={hidden ? 'true' : undefined}
       style={{
         position:     'sticky',
         top:          8,
