@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import {
   getAllDueQuestions,
   getUnreviewedQuestionsByDocument,
+  getDueQuestionsForNote,
   completeAbandonedSessions,
   createStudySession,
   generateId,
@@ -50,6 +51,10 @@ export async function POST(request) {
   // mode: optional string — 'starter' bypasses SR scheduling and pulls 5
   //   unreviewed questions from the user's starter doc (used by the FTUE
   //   welcome CTA and the post-celebration "Continue with memory" CTA).
+  // from_note (URL query): optional note id — when set, scopes the session
+  //   to active+due questions whose block_id belongs to that note
+  //   (masterplan §1 / Chunk 6 "Study these now"). Ownership enforced
+  //   inside getDueQuestionsForNote.
   const MAX_SESSION_LIMIT = 100;
   let limit = 15;
   let mode = null;
@@ -63,6 +68,8 @@ export async function POST(request) {
     }
   } catch {}
 
+  const fromNoteId = new URL(request.url).searchParams.get('from_note');
+
   try {
     await completeAbandonedSessions(userId);
 
@@ -73,6 +80,29 @@ export async function POST(request) {
       const starterDocId = `starter_${userIdSuffix}`;
       selected = await getUnreviewedQuestionsByDocument(userId, starterDocId, 5);
       // Single doc → no interleave needed; rows are already created_at-ordered.
+    } else if (fromNoteId) {
+      // Notes are gated — only flagged users should reach this path.
+      if (!hasNotesAccess) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+      const noteResult = await getDueQuestionsForNote(userId, fromNoteId);
+      if (!noteResult.ok) {
+        // not_found covers "missing", "not yours", "not a note" — single 404
+        // mirrors getNoteById's non-leaking contract.
+        return NextResponse.json({ error: 'not_found' }, { status: 404 });
+      }
+      if (noteResult.questions.length === 0) {
+        return NextResponse.json({ sessionId: null, questions: [] });
+      }
+      const sortedFromNote = [...noteResult.questions].sort((a, b) => {
+        const byDue = Number(a.next_review_at) - Number(b.next_review_at);
+        if (byDue !== 0) return byDue;
+        const byRisk = riskScore(b) - riskScore(a);
+        if (byRisk !== 0) return byRisk;
+        return Number(a.created_at) - Number(b.created_at);
+      });
+      // Single document → no interleave.
+      selected = sortedFromNote.slice(0, limit);
     } else {
       const allDue = await getAllDueQuestions(userId, hasNotesAccess);
       if (allDue.length === 0) {
