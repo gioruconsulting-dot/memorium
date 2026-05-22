@@ -830,21 +830,28 @@ export default function NoteEditorPage() {
       <StarryBackground />
 
       <style suppressHydrationWarning>{`
+        .v5-generate-footer {
+          /* Desktop default: inline, button right-aligned within the canvas. */
+          display: flex;
+          justify-content: flex-end;
+        }
         @media (max-width: 640px) {
           .v5-generate-footer {
             position: fixed;
-            /* 72px clears the persistent bottom nav (~68px tall: 10px top +
-               24px icon + 3px gap + 11px label + 10px pill padding + 10px
-               bottom). env() adds the iOS home-indicator safe area on top
-               so we never sit under the home pill on devices that have it. */
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
+            /* Sits directly on top of the bottom nav (Navigation.js fixed at
+               bottom: 0, ~68px tall) — no gap between footer and nav, so no
+               page content can scroll through the strip. Internal padding
+               positions the button ~16px above the nav top edge. */
+            bottom: 68px;
             left: 0;
             right: 0;
-            padding: 12px 16px;
-            background: rgba(14, 14, 24, 0.96);
-            backdrop-filter: saturate(180%) blur(10px);
+            padding: 16px 16px calc(env(safe-area-inset-bottom, 0px) + 16px) 16px;
+            /* Solid page background — rgba + backdrop-filter was letting the
+               StarryBackground and scrolling content show through. */
+            background: var(--color-background);
             border-top: 1px solid rgba(255,255,255,0.08);
             z-index: 10;
+            justify-content: center;
           }
         }
         @keyframes v5-block-fade-in {
@@ -869,13 +876,31 @@ export default function NoteEditorPage() {
         }
         .v5-sticky-header {
           position: sticky;
-          top: 10px; /* breathing room from the viewport edge when scrolled */
+          /* Mobile: stick at the very top of the viewport (no top nav exists),
+             which removes the 10px strip where content was bleeding through. */
+          top: 0;
           z-index: 12;
-          background: rgba(14, 14, 24, 0.94);
-          backdrop-filter: saturate(180%) blur(10px);
-          padding: 14px 0 10px 0;
+          /* Solid page background — rgba 0.94 + backdrop-filter blur was
+             letting the StarryBackground (z-index 0) and scrolling content
+             show through on mobile. */
+          background: var(--color-background);
+          /* Extend edge-to-edge: layout's <main> has px-4 (16px) and the
+             wrapper has no horizontal padding, so -16 margins back out the
+             layout padding to reach the viewport edges; internal 16px padding
+             keeps header content aligned with the rest of the canvas. */
+          margin-left: -16px;
+          margin-right: -16px;
+          padding: 14px 16px 10px 16px;
           border-bottom: 1px solid rgba(255,255,255,0.06);
           margin-bottom: 32px;
+        }
+        @media (min-width: 768px) {
+          .v5-sticky-header {
+            /* Desktop: clear the fixed top nav (Navigation.js .h-14 = 56px,
+               z-index 50). Without this lift the header would stick under
+               the nav and be invisible. */
+            top: 56px;
+          }
         }
         .v5-block-content {
           background: #0e0e18;
@@ -1226,14 +1251,13 @@ export default function NoteEditorPage() {
         </p>
       )}
 
-      {/* Generate — sticky on mobile, inline on desktop */}
+      {/* Generate — sticky on mobile, inline on desktop. display/justify-content
+          live in the .v5-generate-footer CSS class so the @media rule can flip
+          right-aligned (desktop) to centered (mobile) without inline-style
+          precedence shenanigans. */}
       <div
         className="v5-generate-footer"
-        style={{
-          marginTop:      14,
-          display:        'flex',
-          justifyContent: 'flex-end',
-        }}
+        style={{ marginTop: 14 }}
       >
         <button
           onClick={handleGenerate}
