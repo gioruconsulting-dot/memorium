@@ -194,6 +194,10 @@ export default function NoteEditorPage() {
   const [recoveryPayload, setRecoveryPayload] = useState(null);
 
   const draftRef = useRef(null);
+  // Outer container of the most recent sealed block. Used by the initial-load
+  // scroll: anchor the last sealed block under the sticky header so the draft
+  // and Generate button stay in the visible viewport on standard laptops.
+  const lastBlockOuterRef = useRef(null);
   const editingTextareaRef = useRef(null);
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -224,10 +228,17 @@ export default function NoteEditorPage() {
       baselineRef.current = { title: nextTitle, draft: nextDraft };
 
       if (!silent) {
-        // Auto-scroll to the draft once paint lands. "instant" avoids a long
-        // visible scroll on an existing note with many blocks.
+        // On open: anchor the LAST sealed block under the sticky header so
+        // the draft + Generate button stay in the visible viewport without
+        // extra scrolling. Older blocks live off-screen above. With zero
+        // blocks the ref is null and we skip the scroll entirely; focus
+        // still lands in the draft so the user can start typing immediately.
+        // The block's scroll-margin-top (~100px on the last-block outer div)
+        // clears the sticky header — scrollIntoView respects it natively.
         setTimeout(() => {
-          draftRef.current?.scrollIntoView({ behavior: 'instant', block: 'end' });
+          if (lastBlockOuterRef.current) {
+            lastBlockOuterRef.current.scrollIntoView({ block: 'start', behavior: 'auto' });
+          }
           draftRef.current?.focus();
         }, 0);
       }
@@ -916,14 +927,23 @@ export default function NoteEditorPage() {
       )}
 
       {/* History — sealed blocks (read-only by default; Edit opens textarea) */}
-      {blocks.map((b) => {
+      {blocks.map((b, idx) => {
         const isEditing = editingBlockId === b.id;
         const isNewlySealed = postGen?.newBlockId && b.id === postGen.newBlockId;
+        const isLast = idx === blocks.length - 1;
         return (
           <div
             key={b.id}
+            ref={isLast ? lastBlockOuterRef : undefined}
             className={isNewlySealed ? 'v5-block-new' : undefined}
-            style={{ marginBottom: 18 }}
+            style={
+              isLast
+                // 100px clears the sticky header (~92px tall at top:10px) plus
+                // a few px of breathing room. Applied only to the last block
+                // since it's the only scrollIntoView target on this page.
+                ? { marginBottom: 18, scrollMarginTop: 100 }
+                : { marginBottom: 18 }
+            }
           >
             <div
               style={{
