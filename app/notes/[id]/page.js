@@ -723,23 +723,75 @@ export default function NoteEditorPage() {
         .v5-post-gen-toast {
           animation: v5-toast-in 220ms ease-out;
         }
+        .v5-sticky-header {
+          position: sticky;
+          top: 0;
+          z-index: 12;
+          background: rgba(14, 14, 24, 0.94);
+          backdrop-filter: saturate(180%) blur(10px);
+          margin-left: -16px;
+          margin-right: -16px;
+          padding: 14px 16px 10px 16px;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
+          margin-bottom: 18px;
+        }
       `}</style>
 
-      {/* Back link */}
-      <Link
-        href="/notes"
-        style={{
-          color:          COLOR.pageMuted,
-          fontSize:       '0.8rem',
-          textDecoration: 'none',
-          marginBottom:   12,
-          display:        'inline-block',
-        }}
-      >
-        ← Notes
-      </Link>
+      {/* Sticky header — back link + title + save indicator. Mobile + desktop.
+          Same dark surface as the Generate footer so it reads as the top of
+          the canvas, not a floating layer. */}
+      <div className="v5-sticky-header">
+        <Link
+          href="/notes"
+          style={{
+            color:          COLOR.pageMuted,
+            fontSize:       '0.8rem',
+            textDecoration: 'none',
+            marginBottom:   8,
+            display:        'inline-block',
+          }}
+        >
+          ← Notes
+        </Link>
 
-      {/* Post-Generate toast — top-of-canvas, dismissible (Chunk 6) */}
+        <div
+          style={{
+            display:      'flex',
+            alignItems:   'center',
+            gap:          12,
+            flexWrap:     'wrap',
+          }}
+        >
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Give this note a title…"
+            style={titleFieldStyle}
+          />
+          <button
+            type="button"
+            onClick={saveIndicatorClickable ? retrySave : undefined}
+            disabled={!saveIndicatorClickable}
+            style={{
+              fontSize:    '1.17rem', // 50% bigger than the prior 0.78rem
+              color:       saveIndicatorTone,
+              background:  'transparent',
+              border:      'none',
+              padding:     0,
+              cursor:      saveIndicatorClickable ? 'pointer' : 'default',
+              minHeight:   28,
+              whiteSpace:  'nowrap',
+              lineHeight:  1.2,
+            }}
+            aria-live="polite"
+          >
+            {saveIndicatorText}
+          </button>
+        </div>
+      </div>
+
+      {/* Post-Generate toast — sits below the sticky header (Chunk 6) */}
       {postGen && (
         <PostGenToast
           postGen={postGen}
@@ -747,44 +799,6 @@ export default function NoteEditorPage() {
           onKeepWriting={keepWriting}
         />
       )}
-
-      {/* Title + save indicator */}
-      <div
-        style={{
-          display:      'flex',
-          alignItems:   'center',
-          gap:          12,
-          marginBottom: 18,
-          flexWrap:     'wrap',
-        }}
-      >
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Give this note a title…"
-          style={titleFieldStyle}
-        />
-        <button
-          type="button"
-          onClick={saveIndicatorClickable ? retrySave : undefined}
-          disabled={!saveIndicatorClickable}
-          style={{
-            fontSize:    '1.17rem', // 50% bigger than the prior 0.78rem
-            color:       saveIndicatorTone,
-            background:  'transparent',
-            border:      'none',
-            padding:     0,
-            cursor:      saveIndicatorClickable ? 'pointer' : 'default',
-            minHeight:   28,
-            whiteSpace:  'nowrap',
-            lineHeight:  1.2,
-          }}
-          aria-live="polite"
-        >
-          {saveIndicatorText}
-        </button>
-      </div>
 
       {/* History — sealed blocks (read-only by default; Edit opens textarea) */}
       {blocks.map((b) => {
