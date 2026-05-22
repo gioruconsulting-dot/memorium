@@ -412,11 +412,42 @@ function NotesPageContent() {
                     ))}
                   </p>
                 </div>
-                <OverflowMenu
-                  noteId={note.id}
-                  onDelete={handleDelete}
-                  busy={deletingId === note.id}
-                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  {dueCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        router.push(`/study?from_note=${encodeURIComponent(note.id)}`);
+                      }}
+                      aria-label="Study questions from this note"
+                      style={{
+                        minHeight:      44,
+                        padding:        '0 14px',
+                        display:        'inline-flex',
+                        alignItems:     'center',
+                        justifyContent: 'center',
+                        fontSize:       '0.82rem',
+                        fontWeight:     600,
+                        color:          '#ffffff',
+                        background:     'rgba(124,58,237,0.15)',
+                        border:         '1px solid rgba(124,58,237,0.3)',
+                        borderRadius:   8,
+                        cursor:         'pointer',
+                        fontFamily:     'inherit',
+                        whiteSpace:     'nowrap',
+                      }}
+                    >
+                      Study
+                    </button>
+                  )}
+                  <OverflowMenu
+                    noteId={note.id}
+                    onDelete={handleDelete}
+                    busy={deletingId === note.id}
+                  />
+                </div>
               </div>
             </Link>
           );
