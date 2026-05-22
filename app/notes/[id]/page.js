@@ -21,7 +21,7 @@ import StarryBackground from '@/components/StarryBackground';
 import { countWords, NOTE_MIN_WORDS } from '@/lib/upload-limits';
 import { pickNotesError } from '@/lib/notes/ui-errors';
 
-const AUTOSAVE_DEBOUNCE_MS = 3000;
+const AUTOSAVE_DEBOUNCE_MS = 1000;
 const LONG_DRAFT_THRESHOLD_WORDS = 1000;
 const STALE_BATCH_CAP = 5;
 const POST_GEN_AUTO_DISMISS_MS = 8000;
@@ -47,7 +47,10 @@ const COLOR = {
   draftBg:          '#10101e',
   fieldBorder:      '1px solid rgba(255,255,255,0.15)',
   divider:          'rgba(255,255,255,0.08)',
-  saved:            'var(--color-easy)',
+  // Active save state ("Saving…" + "Saved · 09:42") shares the amber accent
+  // used by StreakCard and the Needs-refresh badge — keeps a single warm
+  // signal across the app instead of mixing the green grade-pass tone in.
+  saved:            '#EEFF99',
   err:              'var(--color-forgot)',
   recoveryBg:       'rgba(238, 200, 120, 0.08)',
   recoveryBorder:   'rgba(238, 200, 120, 0.35)',
@@ -613,6 +616,7 @@ export default function NoteEditorPage() {
     saveIndicatorClickable = true;
   } else if (saving || (dirty && !loading)) {
     saveIndicatorText = 'Saving…';
+    saveIndicatorTone = COLOR.saved;
   } else if (lastSavedAt) {
     saveIndicatorText = `Saved · ${formatClock(lastSavedAt)}`;
     saveIndicatorTone = COLOR.saved;
@@ -766,14 +770,15 @@ export default function NoteEditorPage() {
           onClick={saveIndicatorClickable ? retrySave : undefined}
           disabled={!saveIndicatorClickable}
           style={{
-            fontSize:    '0.78rem',
+            fontSize:    '1.17rem', // 50% bigger than the prior 0.78rem
             color:       saveIndicatorTone,
             background:  'transparent',
             border:      'none',
             padding:     0,
             cursor:      saveIndicatorClickable ? 'pointer' : 'default',
-            minHeight:   24,
+            minHeight:   28,
             whiteSpace:  'nowrap',
+            lineHeight:  1.2,
           }}
           aria-live="polite"
         >
