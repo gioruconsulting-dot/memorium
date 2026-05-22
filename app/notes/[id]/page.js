@@ -97,6 +97,10 @@ const draftFieldStyle = {
   outline:      'none',
   resize:       'vertical',
   display:      'block',
+  // ~10 lines of writing room. Explicit minHeight backstops rows={10} in case
+  // the browser computes a different initial size. No maxHeight — user can
+  // still drag-resize taller via the corner handle.
+  minHeight:    'calc(10 * 0.9375rem * 1.7 + 28px)',
 };
 
 // "May 18" — locale-aware short month + day.
@@ -1045,7 +1049,7 @@ export default function NoteEditorPage() {
         ref={draftRef}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
-        rows={12}
+        rows={10}
         placeholder="Jot the ideas you want to remember…"
         style={draftFieldStyle}
       />
