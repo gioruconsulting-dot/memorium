@@ -481,23 +481,18 @@ export default function StudyView() {
   const insightDataRef = useRef({ recovered: [], intervalGrowthCount: 0, intervalGrowthDocTitle: null, masteryGained: {}, totalAnswered: 0 });
   const documentStatsRef = useRef({});
 
-  // On mount: handle FTUE starter entry (welcome CTA / post-celebration continue)
-  // or a from_note entry (Notes "Study these now" CTA — masterplan §1 Chunk 6).
-  // Otherwise fetch due count + show picker.
+  // On mount: handle FTUE starter entry (welcome CTA / post-celebration
+  // continue). Everything else — including ?from_note=<id> from the Notes
+  // Study CTAs — falls through to the picker, where the user chooses
+  // length (5/15/heroic) before the session starts. The from_note param
+  // is read again in the picker's onClick handlers and forwarded to
+  // startSession.
   useEffect(() => {
     if (searchParams.get('source') === 'starter') {
       // Skip picker; pull 5 unreviewed starter-doc questions directly.
       // Clear the param so a back/refresh shows the normal picker instead of looping.
       router.replace('/study');
       startSession(5, 'starter');
-      return;
-    }
-    const fromNote = searchParams.get('from_note');
-    if (fromNote) {
-      // Skip picker; scope the session to this note's active+due questions.
-      // Clear the param to avoid re-firing on refresh.
-      router.replace('/study');
-      startSession(null, null, fromNote);
       return;
     }
     fetchDueCount();
@@ -1016,6 +1011,10 @@ export default function StudyView() {
 
   if (phase === 'picker') {
     const totalTime = timeEstimate(dueCount);
+    // When the picker was entered from a Notes Study CTA, the from_note id
+    // is still on the URL and must be threaded through whichever length
+    // the user picks so the session is scoped to that note's blocks.
+    const fromNote = searchParams.get('from_note');
     const cardOverline = {
       fontSize: '0.64rem', fontWeight: 600,
       textTransform: 'uppercase', letterSpacing: '0.1em',
@@ -1064,7 +1063,7 @@ export default function StudyView() {
             {dueCount <= 5 ? (
               /* 1–5: single "Review all" — violet anchor treatment */
               <button
-                onClick={() => startSession(dueCount)}
+                onClick={() => startSession(dueCount, null, fromNote)}
                 style={{
                   width:        '100%',
                   background:   '#08080f',
@@ -1084,7 +1083,7 @@ export default function StudyView() {
               <>
                 {/* Quick session — subtle cool cyan energy */}
                 <button
-                  onClick={() => startSession(5)}
+                  onClick={() => startSession(5, null, fromNote)}
                   style={{
                     width:        '100%',
                     background:   '#0e0e18',
@@ -1103,7 +1102,7 @@ export default function StudyView() {
 
                 {/* Normal session — violet anchor, default choice */}
                 <button
-                  onClick={() => startSession(15)}
+                  onClick={() => startSession(15, null, fromNote)}
                   style={{
                     width:        '100%',
                     background:   '#08080f',
@@ -1123,7 +1122,7 @@ export default function StudyView() {
                 {/* Heroic — warm ember energy, 15+ only */}
                 {dueCount >= 15 && (
                   <button
-                    onClick={() => startSession(null)}
+                    onClick={() => startSession(null, null, fromNote)}
                     style={{
                       width:        '100%',
                       background:   '#0e0e18',
