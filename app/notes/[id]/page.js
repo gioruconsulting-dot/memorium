@@ -9,18 +9,22 @@
 // - Draft textarea is the visual hero; autosaves on a 3s debounce shared with title + editing block
 // - On 409, the unsent payload is captured to sessionStorage and shown in a
 //   dismissible recovery panel above the draft (survives accidental reload)
+// - Pre-Generate preview surfaces above the button for mixed / cap-exceeded cases
+// - Post-Generate: toast at top with "Study these now" / "Keep writing" CTAs;
+//   the newly-sealed block fades in via CSS animation
 // - Generate button is state-aware (label + disabled), sticks to bottom on mobile
-// - Post-Generate animation + Study/Keep-writing CTAs are Chunk 6.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import StarryBackground from '@/components/StarryBackground';
 import { countWords, NOTE_MIN_WORDS } from '@/lib/upload-limits';
 import { pickNotesError } from '@/lib/notes/ui-errors';
 
 const AUTOSAVE_DEBOUNCE_MS = 3000;
 const LONG_DRAFT_THRESHOLD_WORDS = 1000;
+const STALE_BATCH_CAP = 5;
+const POST_GEN_AUTO_DISMISS_MS = 8000;
 
 const recoveryStorageKey = (noteId) => `notes-v5-recovery:${noteId}`;
 
@@ -109,6 +113,7 @@ function formatClock(unixMs) {
 
 export default function NoteEditorPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params?.id;
 
   // ── Load lifecycle ─────────────────────────────────────────────────────
@@ -145,6 +150,14 @@ export default function NoteEditorPage() {
   // ── Generate state ─────────────────────────────────────────────────────
   const [generating, setGenerating]     = useState(false);
   const [generateError, setGenerateError] = useState('');
+
+  // ── Post-Generate (Chunk 6) ────────────────────────────────────────────
+  // Shape: { newQuestions, refreshed, newBlockId, stillNeedsRefresh: [...] }
+  // Drives the top-of-canvas toast with Study/Keep CTAs and the fade-in
+  // animation on the new sealed block. Cleared on Keep-writing, on next
+  // user edit (dirty flip), or after POST_GEN_AUTO_DISMISS_MS.
+  const [postGen, setPostGen] = useState(null);
+  const postGenTimerRef = useRef(null);
 
   // ── Recovery panel (Chunk 5) ───────────────────────────────────────────
   // On 409 the unsent local payload is preserved in sessionStorage so the
@@ -378,7 +391,23 @@ export default function NoteEditorPage() {
   // Cleanup on unmount.
   useEffect(() => () => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    if (postGenTimerRef.current) clearTimeout(postGenTimerRef.current);
   }, []);
+
+  // Dismiss the post-Generate toast as soon as the user re-engages with the
+  // editor (starts typing in draft, title, or an editing block). The toast is
+  // about the just-completed action — a new dirty flip means the user has
+  // moved on.
+  useEffect(() => {
+    if (!postGen) return;
+    if (dirty) {
+      if (postGenTimerRef.current) {
+        clearTimeout(postGenTimerRef.current);
+        postGenTimerRef.current = null;
+      }
+      setPostGen(null);
+    }
+  }, [postGen, dirty]);
 
   // Flush-before-Generate / Done / switch-block: synchronously cancel any
   // pending debounce and fire an immediate save when dirty. Returns true on
@@ -473,6 +502,8 @@ export default function NoteEditorPage() {
   async function handleGenerate() {
     if (generating) return;
     setGenerateError('');
+    // Any prior toast goes — a fresh Generate replaces it.
+    clearPostGen();
 
     const flushedClean = await flushPending();
     if (!flushedClean) return; // surfaces via saveError / recovery panel
@@ -488,7 +519,24 @@ export default function NoteEditorPage() {
         setEditingBlockId(null);
         setEditingContent('');
         editingBaselineRef.current = { id: null, content: '', version: 0 };
+        const regenerated = Array.isArray(body?.regenerated_blocks) ? body.regenerated_blocks : [];
+        const stillNeedsRefresh = Array.isArray(body?.still_needs_refresh) ? body.still_needs_refresh : [];
+        const newBlockId = body?.new_block_id ?? null;
+        const newQuestions = Number(body?.new_question_count ?? 0);
         await loadNote({ silent: true });
+        // Set toast AFTER silent reload so the dirty effect doesn't see a
+        // transient dirty=true and clear it immediately.
+        setPostGen({
+          newQuestions,
+          refreshed: regenerated.length,
+          newBlockId,
+          stillNeedsRefresh,
+        });
+        if (postGenTimerRef.current) clearTimeout(postGenTimerRef.current);
+        postGenTimerRef.current = setTimeout(() => {
+          postGenTimerRef.current = null;
+          setPostGen(null);
+        }, POST_GEN_AUTO_DISMISS_MS);
         return;
       }
       if (res.status === 404) {
@@ -496,17 +544,24 @@ export default function NoteEditorPage() {
         return;
       }
       if (res.status === 409) {
+        // Reuse the recovery panel mechanism — same UX as a 409 from autosave.
+        // No "unsent payload" to preserve here (Generate doesn't carry edits),
+        // so we just refresh state and surface a focused error.
         setGenerateError('Note changed elsewhere — refreshed.');
         await loadNote({ silent: true });
-        setTimeout(() => setGenerateError(''), 3000);
+        setTimeout(() => setGenerateError(''), 4000);
         return;
       }
       if (res.status === 422 && body?.error === 'nothing_to_do') {
-        setGenerateError('Nothing to generate yet.');
+        setGenerateError('Nothing to generate yet — write a bit more in your draft.');
+        return;
+      }
+      if (res.status === 422 && body?.error === 'size_exceeded') {
+        setGenerateError('Note is at the 50K character limit. Shorten something to continue.');
         return;
       }
       if (res.status === 429) {
-        setGenerateError('Rate limit reached. Try again later.');
+        setGenerateError("You've generated a lot recently. Try again in a few minutes.");
         return;
       }
       if (res.status === 502) {
@@ -519,6 +574,24 @@ export default function NoteEditorPage() {
     } finally {
       setGenerating(false);
     }
+  }
+
+  function clearPostGen() {
+    if (postGenTimerRef.current) {
+      clearTimeout(postGenTimerRef.current);
+      postGenTimerRef.current = null;
+    }
+    setPostGen(null);
+  }
+
+  function studyTheseNow() {
+    clearPostGen();
+    router.push(`/study?from_note=${encodeURIComponent(id)}`);
+  }
+
+  function keepWriting() {
+    clearPostGen();
+    setTimeout(() => draftRef.current?.focus(), 0);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -632,6 +705,20 @@ export default function NoteEditorPage() {
             z-index: 10;
           }
         }
+        @keyframes v5-block-fade-in {
+          0%   { opacity: 0; transform: translateY(8px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .v5-block-new {
+          animation: v5-block-fade-in 320ms ease-out;
+        }
+        @keyframes v5-toast-in {
+          0%   { opacity: 0; transform: translateY(-6px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .v5-post-gen-toast {
+          animation: v5-toast-in 220ms ease-out;
+        }
       `}</style>
 
       {/* Back link */}
@@ -647,6 +734,15 @@ export default function NoteEditorPage() {
       >
         ← Notes
       </Link>
+
+      {/* Post-Generate toast — top-of-canvas, dismissible (Chunk 6) */}
+      {postGen && (
+        <PostGenToast
+          postGen={postGen}
+          onStudy={studyTheseNow}
+          onKeepWriting={keepWriting}
+        />
+      )}
 
       {/* Title + save indicator */}
       <div
@@ -688,8 +784,13 @@ export default function NoteEditorPage() {
       {/* History — sealed blocks (read-only by default; Edit opens textarea) */}
       {blocks.map((b) => {
         const isEditing = editingBlockId === b.id;
+        const isNewlySealed = postGen?.newBlockId && b.id === postGen.newBlockId;
         return (
-          <div key={b.id} style={{ marginBottom: 18 }}>
+          <div
+            key={b.id}
+            className={isNewlySealed ? 'v5-block-new' : undefined}
+            style={{ marginBottom: 18 }}
+          >
             <div
               style={{
                 display:        'flex',
@@ -874,6 +975,39 @@ export default function NoteEditorPage() {
         </p>
       )}
 
+      {/* Pre-Generate preview (Chunk 6) — only for mixed / cap-exceeded cases.
+          Simple-case + stale-only previews still live on the button label. */}
+      {(() => {
+        const willCapExceed = staleBlocks.length > STALE_BATCH_CAP;
+        const isMixed = hasDraftToSeal && hasStale;
+        if (!willCapExceed && !isMixed) return null;
+        return (
+          <GeneratePreview
+            words={draftWords}
+            staleCount={staleBlocks.length}
+            hasDraftToSeal={hasDraftToSeal}
+            capExceeded={willCapExceed}
+            cap={STALE_BATCH_CAP}
+          />
+        );
+      })()}
+
+      {/* Still-needs-refresh callout — fires when last Generate left some blocks
+          unrefreshed (NoDistinctMaterialError on the AI side). Sits between any
+          preview and the Generate button so the user sees the explanation. */}
+      {postGen && postGen.stillNeedsRefresh?.length > 0 && (
+        <p style={{
+          marginTop:   12,
+          fontSize:    '0.82rem',
+          color:       COLOR.badgeFg,
+          lineHeight:  1.5,
+        }}>
+          {postGen.stillNeedsRefresh.length === 1
+            ? '1 block still needs refresh because it didn\'t contain enough distinct material. Add more detail or remove it.'
+            : `${postGen.stillNeedsRefresh.length} blocks still need refresh because they didn't contain enough distinct material. Add more detail or remove them.`}
+        </p>
+      )}
+
       {/* Generate — sticky on mobile, inline on desktop */}
       <div
         className="v5-generate-footer"
@@ -909,6 +1043,120 @@ export default function NoteEditorPage() {
           {generateLabel}
         </button>
       </div>
+    </div>
+  );
+}
+
+// ─── Post-Generate toast (Chunk 6) ───────────────────────────────────────
+// Sits at the top of the editor canvas after a successful Generate. Shows
+// counts ("N new questions · M refreshed") and the two locked CTAs: Study
+// these now / Keep writing (masterplan §1).
+function PostGenToast({ postGen, onStudy, onKeepWriting }) {
+  const { newQuestions, refreshed } = postGen;
+  const parts = [];
+  if (newQuestions > 0) parts.push(`${newQuestions} new question${newQuestions === 1 ? '' : 's'}`);
+  if (refreshed > 0)    parts.push(`${refreshed} refreshed`);
+  const summary = parts.length > 0 ? parts.join(' · ') : 'Generate complete';
+  return (
+    <div
+      className="v5-post-gen-toast"
+      role="status"
+      aria-live="polite"
+      style={{
+        position:     'sticky',
+        top:          8,
+        zIndex:       5,
+        background:   'rgba(74, 222, 128, 0.10)',
+        border:       '1px solid rgba(74, 222, 128, 0.35)',
+        color:        '#e8e6e1',
+        borderRadius: 12,
+        padding:      '12px 14px',
+        marginBottom: 18,
+        boxShadow:    '0 4px 18px rgba(0,0,0,0.30)',
+        display:      'flex',
+        flexWrap:     'wrap',
+        alignItems:   'center',
+        justifyContent: 'space-between',
+        gap:          12,
+      }}
+    >
+      <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 500 }}>
+        <span style={{ color: 'rgba(74, 222, 128, 0.95)', marginRight: 6 }}>✓</span>
+        {summary}
+      </p>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          type="button"
+          onClick={onStudy}
+          style={{
+            fontSize:     '0.82rem',
+            fontWeight:   600,
+            color:        '#ffffff',
+            background:   'rgba(124,58,237,0.22)',
+            border:       '1px solid rgba(124,58,237,0.55)',
+            borderRadius: 8,
+            padding:      '6px 14px',
+            cursor:       'pointer',
+          }}
+        >
+          Study these now
+        </button>
+        <button
+          type="button"
+          onClick={onKeepWriting}
+          style={{
+            fontSize:     '0.82rem',
+            fontWeight:   500,
+            color:        '#e8e6e1',
+            background:   'transparent',
+            border:       '1px solid rgba(255,255,255,0.18)',
+            borderRadius: 8,
+            padding:      '6px 14px',
+            cursor:       'pointer',
+          }}
+        >
+          Keep writing
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Pre-Generate preview (Chunk 6) ──────────────────────────────────────
+// Progressive-disclosure surface above the Generate button for mixed and
+// cap-exceeded cases. Simple-case (only draft) and stale-only cases keep
+// using the button label exclusively (masterplan §1 "Generate preview").
+function GeneratePreview({ words, staleCount, hasDraftToSeal, capExceeded, cap }) {
+  const bullets = [];
+  if (hasDraftToSeal && words > 0) {
+    bullets.push(`${words} new word${words === 1 ? '' : 's'} → new questions`);
+  }
+  if (staleCount > 0) {
+    if (capExceeded) {
+      bullets.push(`Refresh ${cap} of ${staleCount} blocks now. Generate again after for the rest.`);
+    } else {
+      bullets.push(`${staleCount} block${staleCount === 1 ? '' : 's'} need${staleCount === 1 ? 's' : ''} refresh → questions replaced`);
+    }
+  }
+  return (
+    <div
+      style={{
+        marginTop:    14,
+        background:   'rgba(255,255,255,0.03)',
+        border:       '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 10,
+        padding:      '10px 14px',
+        color:        'rgba(232, 230, 225, 0.85)',
+        fontSize:     '0.82rem',
+        lineHeight:   1.55,
+      }}
+    >
+      <p style={{ margin: 0, marginBottom: 6, fontWeight: 600, color: '#e8e6e1' }}>
+        Ready to generate
+      </p>
+      <ul style={{ margin: 0, paddingLeft: 18 }}>
+        {bullets.map((b, i) => (<li key={i}>{b}</li>))}
+      </ul>
     </div>
   );
 }

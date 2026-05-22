@@ -481,14 +481,23 @@ export default function StudyView() {
   const insightDataRef = useRef({ recovered: [], intervalGrowthCount: 0, intervalGrowthDocTitle: null, masteryGained: {}, totalAnswered: 0 });
   const documentStatsRef = useRef({});
 
-  // On mount: handle FTUE starter entry (welcome CTA / post-celebration continue),
-  // otherwise fetch due count + show picker
+  // On mount: handle FTUE starter entry (welcome CTA / post-celebration continue)
+  // or a from_note entry (Notes "Study these now" CTA — masterplan §1 Chunk 6).
+  // Otherwise fetch due count + show picker.
   useEffect(() => {
     if (searchParams.get('source') === 'starter') {
       // Skip picker; pull 5 unreviewed starter-doc questions directly.
       // Clear the param so a back/refresh shows the normal picker instead of looping.
       router.replace('/study');
       startSession(5, 'starter');
+      return;
+    }
+    const fromNote = searchParams.get('from_note');
+    if (fromNote) {
+      // Skip picker; scope the session to this note's active+due questions.
+      // Clear the param to avoid re-firing on refresh.
+      router.replace('/study');
+      startSession(null, null, fromNote);
       return;
     }
     fetchDueCount();
@@ -527,7 +536,7 @@ export default function StudyView() {
     }
   }
 
-  async function startSession(limit, mode = null) {
+  async function startSession(limit, mode = null, fromNoteId = null) {
     setPhase('loading');
     setErrorMsg('');
     setForgotCount(0);
@@ -541,7 +550,10 @@ export default function StudyView() {
     clearTimeout(msgTimerRef.current);
     pendingAdvanceRef.current = null;
     try {
-      const res = await fetch('/api/sessions/start', {
+      const url = fromNoteId
+        ? `/api/sessions/start?from_note=${encodeURIComponent(fromNoteId)}`
+        : '/api/sessions/start';
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ limit: limit ?? null, mode }),
