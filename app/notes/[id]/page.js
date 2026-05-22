@@ -65,7 +65,11 @@ const wrapperStyle = {
   position:      'relative',
   zIndex:        1,
   paddingTop:    24,
-  paddingBottom: 140, // headroom for sticky mobile footer
+  // Headroom for sticky mobile Generate footer. Footer now sits at ~72px
+  // above the bottom nav (see v5-generate-footer below), and its button is
+  // ~48px tall — so the last line of content needs ~200px to scroll fully
+  // into view above the footer on iOS with safe-area-inset-bottom.
+  paddingBottom: 200,
   // No maxWidth / marginLeft / marginRight / paddingLeft / paddingRight here:
   // the canvas inherits its bounds from the root <main> (max-w-2xl + px-4 in
   // app/layout.js), matching /notes list and /library exactly.
@@ -829,7 +833,11 @@ export default function NoteEditorPage() {
         @media (max-width: 640px) {
           .v5-generate-footer {
             position: fixed;
-            bottom: env(safe-area-inset-bottom, 0px);
+            /* 72px clears the persistent bottom nav (~68px tall: 10px top +
+               24px icon + 3px gap + 11px label + 10px pill padding + 10px
+               bottom). env() adds the iOS home-indicator safe area on top
+               so we never sit under the home pill on devices that have it. */
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
             left: 0;
             right: 0;
             padding: 12px 16px;
