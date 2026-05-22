@@ -832,7 +832,7 @@ export default function NoteEditorPage() {
           margin-right: -16px;
           padding: 14px 16px 10px 16px;
           border-bottom: 1px solid rgba(255,255,255,0.06);
-          margin-bottom: 18px;
+          margin-bottom: 32px;
         }
         .v5-block-content {
           background: #0e0e18;
@@ -938,10 +938,11 @@ export default function NoteEditorPage() {
             className={isNewlySealed ? 'v5-block-new' : undefined}
             style={
               isLast
-                // 100px clears the sticky header (~92px tall at top:10px) plus
-                // a few px of breathing room. Applied only to the last block
-                // since it's the only scrollIntoView target on this page.
-                ? { marginBottom: 18, scrollMarginTop: 100 }
+                // 115px clears the sticky header (~92px tall at top:10px) plus
+                // the header's 32px bottom margin and a few px breathing room.
+                // Applied only to the last block since it's the only
+                // scrollIntoView target on this page.
+                ? { marginBottom: 18, scrollMarginTop: 115 }
                 : { marginBottom: 18 }
             }
           >
