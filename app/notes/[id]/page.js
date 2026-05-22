@@ -66,11 +66,9 @@ const wrapperStyle = {
   zIndex:        1,
   paddingTop:    24,
   paddingBottom: 140, // headroom for sticky mobile footer
-  maxWidth:      720,
-  marginLeft:    'auto',
-  marginRight:   'auto',
-  paddingLeft:   16,
-  paddingRight:  16,
+  // No maxWidth / marginLeft / marginRight / paddingLeft / paddingRight here:
+  // the canvas inherits its bounds from the root <main> (max-w-2xl + px-4 in
+  // app/layout.js), matching /notes list and /library exactly.
 };
 
 const titleFieldStyle = {
@@ -101,7 +99,7 @@ const draftFieldStyle = {
   border:       '1px solid rgba(255,255,255,0.18)',
   background:   COLOR.draftBg,
   color:        COLOR.text,
-  fontSize:     '0.9375rem',
+  fontSize:     '1.08rem',
   lineHeight:   1.7,
   fontFamily:   'inherit',
   outline:      'none',
@@ -110,7 +108,7 @@ const draftFieldStyle = {
   // ~10 lines of writing room. Explicit minHeight backstops rows={10} in case
   // the browser computes a different initial size. No maxHeight — user can
   // still drag-resize taller via the corner handle.
-  minHeight:    'calc(10 * 0.9375rem * 1.7 + 28px)',
+  minHeight:    'calc(10 * 1.08rem * 1.7 + 28px)',
 };
 
 // "May 18" — locale-aware short month + day.
@@ -867,9 +865,7 @@ export default function NoteEditorPage() {
           z-index: 12;
           background: rgba(14, 14, 24, 0.94);
           backdrop-filter: saturate(180%) blur(10px);
-          margin-left: -16px;
-          margin-right: -16px;
-          padding: 14px 16px 10px 16px;
+          padding: 14px 0 10px 0;
           border-bottom: 1px solid rgba(255,255,255,0.06);
           margin-bottom: 32px;
         }
@@ -879,7 +875,7 @@ export default function NoteEditorPage() {
           border-radius: 12px;
           padding: 14px 16px;
           color: rgba(232, 230, 225, 0.7);
-          font-size: 0.9375rem;
+          font-size: 1.08rem;
           line-height: 1.65;
           white-space: pre-wrap;
           word-break: break-word;
@@ -1054,7 +1050,7 @@ export default function NoteEditorPage() {
                     border:       COLOR.cardBorderEdit,
                     background:   COLOR.cardBgEdit,
                     color:        COLOR.text,
-                    fontSize:     '0.9375rem',
+                    fontSize:     '1.08rem',
                     lineHeight:   1.65,
                     fontFamily:   'inherit',
                     outline:      'none',
