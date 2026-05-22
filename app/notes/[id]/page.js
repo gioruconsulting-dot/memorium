@@ -145,6 +145,10 @@ export default function NoteEditorPage() {
   const [draft, setDraft]             = useState('');
   const [noteVersion, setNoteVersion] = useState(0);
   const [blocks, setBlocks]           = useState([]);
+  // Drives visibility of the floating Study button. Sourced from
+  // GET /api/notes/[id] (lib/db/queries.js → getNoteById, subquery that
+  // counts active+due questions whose block belongs to this note).
+  const [dueQuestionCount, setDueQuestionCount] = useState(0);
 
   // Baseline = last known server-persisted (title, draft). Compared against
   // local state to compute `dirty`. Kept in a ref so it doesn't trigger
@@ -247,6 +251,7 @@ export default function NoteEditorPage() {
       setDraft(nextDraft);
       setNoteVersion(Number(data.note_version ?? 0));
       setBlocks(Array.isArray(data.blocks) ? data.blocks : []);
+      setDueQuestionCount(Number(data.due_question_count ?? 0));
       baselineRef.current = { title: nextTitle, draft: nextDraft };
 
       if (!silent) {
@@ -397,6 +402,7 @@ export default function NoteEditorPage() {
           setDraft(cur.draft ?? '');
           setNoteVersion(Number(cur.note_version ?? 0));
           setBlocks(Array.isArray(cur.blocks) ? cur.blocks : []);
+          setDueQuestionCount(Number(cur.due_question_count ?? 0));
           baselineRef.current = {
             title: cur.title ?? '',
             draft: cur.draft ?? '',
@@ -834,6 +840,41 @@ export default function NoteEditorPage() {
           /* Desktop default: inline, button right-aligned within the canvas. */
           display: flex;
           justify-content: flex-end;
+        }
+        .v5-floating-study {
+          position: fixed;
+          /* Desktop: 24px from the canvas's bottom-right corner. The right
+             value scales with viewport width so the button stays anchored to
+             the canvas (max-w-2xl = 672px) rather than flying out to the
+             viewport edge on wide screens. max() floors to 24px when the
+             viewport is narrower than the canvas. */
+          bottom: 24px;
+          right: max(24px, calc((100vw - 672px) / 2 + 24px));
+          z-index: 11;
+          min-height: 44px;
+          padding: 0 18px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.82rem;
+          font-weight: 600;
+          color: #ffffff;
+          background: rgba(124,58,237,0.15);
+          border: 1px solid rgba(124,58,237,0.3);
+          border-radius: 999px;
+          cursor: pointer;
+          font-family: inherit;
+          white-space: nowrap;
+        }
+        @media (max-width: 640px) {
+          .v5-floating-study {
+            /* Sits 12px above the Generate footer's top edge. Generate
+               footer math (see v5-generate-footer @media below): bottom 68 +
+               padding-top 16 + button ~48 + padding-bottom (env+16) = top
+               edge at 148 + env. +12px gap → 160 + env. */
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 160px);
+            right: 16px;
+          }
         }
         @media (max-width: 640px) {
           .v5-generate-footer {
@@ -1285,6 +1326,20 @@ export default function NoteEditorPage() {
           {generateLabel}
         </button>
       </div>
+
+      {/* Floating Study button — fixed bottom-right. Only when this note has
+          due questions. Routes through the length picker (commit 7a799e9) so
+          the user still chooses 5/15/heroic before the session starts. */}
+      {dueQuestionCount > 0 && (
+        <button
+          type="button"
+          className="v5-floating-study"
+          onClick={() => router.push(`/study?from_note=${encodeURIComponent(id)}`)}
+          aria-label={`Study ${dueQuestionCount} due question${dueQuestionCount === 1 ? '' : 's'} from this note`}
+        >
+          Study
+        </button>
+      )}
     </div>
   );
 }
