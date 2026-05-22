@@ -7,9 +7,9 @@
 //   tap does nothing; locked decision per §1)
 // - At most one block in edit mode at a time; switching auto-Done-and-switches
 // - Draft textarea is the visual hero; autosaves on a 3s debounce shared with title + editing block
+// - On 409, the unsent payload is captured to sessionStorage and shown in a
+//   dismissible recovery panel above the draft (survives accidental reload)
 // - Generate button is state-aware (label + disabled), sticks to bottom on mobile
-// - 409 handling here is the Chunk 4 minimum (banner + reload); Chunk 5's
-//   second half adds the sessionStorage-backed recovery panel.
 // - Post-Generate animation + Study/Keep-writing CTAs are Chunk 6.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -21,6 +21,8 @@ import { pickNotesError } from '@/lib/notes/ui-errors';
 
 const AUTOSAVE_DEBOUNCE_MS = 3000;
 const LONG_DRAFT_THRESHOLD_WORDS = 1000;
+
+const recoveryStorageKey = (noteId) => `notes-v5-recovery:${noteId}`;
 
 // ── tokens ───────────────────────────────────────────────────────────────
 // Match adjacent components (StreakCard / OnboardingCard): #0e0e18 card on
@@ -43,6 +45,9 @@ const COLOR = {
   divider:          'rgba(255,255,255,0.08)',
   saved:            'var(--color-easy)',
   err:              'var(--color-forgot)',
+  recoveryBg:       'rgba(238, 200, 120, 0.08)',
+  recoveryBorder:   'rgba(238, 200, 120, 0.35)',
+  recoveryFg:       'rgba(244, 220, 170, 0.95)',
 };
 
 const wrapperStyle = {
@@ -141,11 +146,12 @@ export default function NoteEditorPage() {
   const [generating, setGenerating]     = useState(false);
   const [generateError, setGenerateError] = useState('');
 
-  // ── Banners ────────────────────────────────────────────────────────────
-  // Conflict banner is the Chunk 4 minimum for 409 handling, retained here
-  // for the edit-block surface. The next commit replaces this with the
-  // sessionStorage-backed recovery panel.
-  const [conflictBanner, setConflictBanner] = useState('');
+  // ── Recovery panel (Chunk 5) ───────────────────────────────────────────
+  // On 409 the unsent local payload is preserved in sessionStorage so the
+  // user can still copy it out even after an accidental reload. Panel UI is
+  // non-blocking — the user can keep editing the refreshed note.
+  // Shape: { title?, draft?, block?: { id, content }, savedAt }
+  const [recoveryPayload, setRecoveryPayload] = useState(null);
 
   const draftRef = useRef(null);
   const editingTextareaRef = useRef(null);
@@ -194,6 +200,23 @@ export default function NoteEditorPage() {
 
   useEffect(() => { loadNote(); }, [loadNote]);
 
+  // Restore any unsent recovery payload on page mount — survives accidental
+  // reload mid-conflict (masterplan §2.4: "in-memory alone would lose it").
+  useEffect(() => {
+    if (!id || typeof window === 'undefined') return;
+    try {
+      const raw = window.sessionStorage.getItem(recoveryStorageKey(id));
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        setRecoveryPayload(parsed);
+      }
+    } catch {
+      // Corrupt payload — drop it.
+      try { window.sessionStorage.removeItem(recoveryStorageKey(id)); } catch {}
+    }
+  }, [id]);
+
   // ─────────────────────────────────────────────────────────────────────────
   // Autosave — single 3s debounce timer for (title, draft, editing block) combined
   // ─────────────────────────────────────────────────────────────────────────
@@ -237,6 +260,15 @@ export default function NoteEditorPage() {
     }
     if (!hasTitle && !hasDraft && !hasBlockEdit) return; // nothing to send
 
+    // Snapshot the local payload at fire time. On 409 we preserve THIS,
+    // not the (now-refreshed) state.
+    const unsentSnapshot = {
+      title:  hasTitle ? title : undefined,
+      draft:  hasDraft ? draft : undefined,
+      block:  hasBlockEdit ? { id: editBase.id, content: editingContent } : undefined,
+      savedAt: Date.now(),
+    };
+
     setSaving(true);
     setSaveError('');
     try {
@@ -278,10 +310,20 @@ export default function NoteEditorPage() {
         return;
       }
       if (res.status === 409) {
-        // Chunk 4 minimum retained: replace state with server's current and
-        // show a brief banner. The next commit replaces this with the
-        // sessionStorage-backed recovery panel.
-        setConflictBanner('This note changed elsewhere. Reloading…');
+        // Masterplan §2.4: write unsent local payload to sessionStorage,
+        // refetch full note state from response.current, render recovery panel.
+        try {
+          if (typeof window !== 'undefined') {
+            window.sessionStorage.setItem(
+              recoveryStorageKey(id),
+              JSON.stringify(unsentSnapshot),
+            );
+          }
+        } catch {
+          // Quota / private-mode failure — fall back to in-memory only.
+        }
+        setRecoveryPayload(unsentSnapshot);
+
         if (body?.current) {
           const cur = body.current;
           setTitle(cur.title ?? '');
@@ -294,10 +336,10 @@ export default function NoteEditorPage() {
           };
         }
         // Exit edit mode — the editing block's version is no longer trusted.
+        // The unsent edit content is preserved in the recovery panel.
         setEditingBlockId(null);
         setEditingContent('');
         editingBaselineRef.current = { id: null, content: '', version: 0 };
-        setTimeout(() => setConflictBanner(''), 3000);
         return;
       }
       if (res.status === 422 && body?.error === 'size_exceeded') {
@@ -340,7 +382,7 @@ export default function NoteEditorPage() {
 
   // Flush-before-Generate / Done / switch-block: synchronously cancel any
   // pending debounce and fire an immediate save when dirty. Returns true on
-  // clean state, false if a 409 happened (banner / recovery takes over).
+  // clean state, false if a 409 happened (recovery panel takes over).
   async function flushPending() {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -349,6 +391,7 @@ export default function NoteEditorPage() {
     if (dirty && !saving) {
       await fireSaveRef.current?.();
     }
+    // If still dirty after fire (e.g., save errored on size), bail.
     const stillDirty =
       title !== baselineRef.current.title
       || draft !== baselineRef.current.draft
@@ -372,8 +415,9 @@ export default function NoteEditorPage() {
 
     if (editingBlockId != null) {
       // Auto-Done-and-switch: flush any pending edit on the currently-open
-      // block before opening the new one. If flush 409s, the conflict
-      // path takes over and we DON'T open the new block.
+      // block before opening the new one. If flush 409s, recovery panel
+      // takes over and we DON'T open the new block (user needs to see the
+      // refreshed state first).
       const flushedClean = await flushPending();
       if (!flushedClean) return;
     }
@@ -403,6 +447,27 @@ export default function NoteEditorPage() {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Recovery panel handlers
+  // ─────────────────────────────────────────────────────────────────────────
+
+  function dismissRecovery() {
+    if (id && typeof window !== 'undefined') {
+      try { window.sessionStorage.removeItem(recoveryStorageKey(id)); } catch {}
+    }
+    setRecoveryPayload(null);
+  }
+
+  // Best-effort clipboard. Failure is non-fatal — the text is visible in the
+  // panel, so the user can also copy manually.
+  async function copyText(text) {
+    try {
+      await navigator.clipboard.writeText(text ?? '');
+    } catch {
+      // ignore
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Generate
   // ─────────────────────────────────────────────────────────────────────────
   async function handleGenerate() {
@@ -410,7 +475,7 @@ export default function NoteEditorPage() {
     setGenerateError('');
 
     const flushedClean = await flushPending();
-    if (!flushedClean) return; // surfaces via saveError / conflictBanner
+    if (!flushedClean) return; // surfaces via saveError / recovery panel
 
     setGenerating(true);
     try {
@@ -463,6 +528,7 @@ export default function NoteEditorPage() {
   const staleBlocks   = blocks.filter((b) => b.is_stale === 1);
   const hasDraftToSeal = draftWords >= NOTE_MIN_WORDS;
   const hasStale      = staleBlocks.length > 0;
+  const recoveryOpen  = !!recoveryPayload;
 
   // Save indicator — single text + tone, near the title.
   let saveIndicatorText = '';
@@ -480,7 +546,8 @@ export default function NoteEditorPage() {
   }
 
   // Generate button — state-aware label + disabled.
-  const flushBlocked = dirty || saving || saveError;
+  // Recovery panel open also disables (masterplan §1 locked rule).
+  const flushBlocked = dirty || saving || saveError || recoveryOpen;
   let generateLabel;
   let generateDisabled;
   if (generating) {
@@ -617,23 +684,6 @@ export default function NoteEditorPage() {
           {saveIndicatorText}
         </button>
       </div>
-
-      {/* 409 banner (Chunk 4 minimum; the next commit replaces with a recovery panel) */}
-      {conflictBanner && (
-        <div
-          style={{
-            background:   'rgba(96,165,250,0.10)',
-            border:       '1px solid rgba(96,165,250,0.30)',
-            color:        '#cbd5e1',
-            fontSize:     '0.82rem',
-            padding:      '10px 14px',
-            borderRadius: 10,
-            marginBottom: 16,
-          }}
-        >
-          {conflictBanner}
-        </div>
-      )}
 
       {/* History — sealed blocks (read-only by default; Edit opens textarea) */}
       {blocks.map((b) => {
@@ -778,6 +828,15 @@ export default function NoteEditorPage() {
         </div>
       )}
 
+      {/* Recovery panel — sits above the draft, non-blocking, dismissible */}
+      {recoveryOpen && (
+        <RecoveryPanel
+          payload={recoveryPayload}
+          onDismiss={dismissRecovery}
+          onCopy={copyText}
+        />
+      )}
+
       {/* Draft — the capture layer */}
       <textarea
         ref={draftRef}
@@ -848,6 +907,120 @@ export default function NoteEditorPage() {
           }}
         >
           {generateLabel}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Recovery panel ──────────────────────────────────────────────────────
+// Anchors above the draft. Shows whatever fields the user had unsent
+// (title / draft / single block edit). Each field is a read-only display
+// with a Copy button. Dismiss clears sessionStorage + hides the panel.
+// Non-blocking: the refreshed note below is fully editable while open.
+function RecoveryPanel({ payload, onDismiss, onCopy }) {
+  if (!payload) return null;
+  const sections = [];
+  if (typeof payload.title === 'string') {
+    sections.push({ label: 'Title',  value: payload.title });
+  }
+  if (typeof payload.draft === 'string') {
+    sections.push({ label: 'Draft',  value: payload.draft });
+  }
+  if (payload.block && typeof payload.block.content === 'string') {
+    sections.push({ label: 'Block edit', value: payload.block.content });
+  }
+
+  return (
+    <div
+      role="region"
+      aria-label="Unsaved changes from before the note refreshed"
+      style={{
+        background:   'rgba(238, 200, 120, 0.06)',
+        border:       '1px solid rgba(238, 200, 120, 0.35)',
+        color:        'rgba(244, 220, 170, 0.95)',
+        borderRadius: 12,
+        padding:      '14px 16px',
+        marginBottom: 16,
+      }}
+    >
+      <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: 1.5 }}>
+        This note changed elsewhere. We refreshed it and kept your unsaved
+        edit below — copy what you need, then dismiss.
+      </p>
+      {sections.length === 0 ? (
+        <p style={{ margin: '10px 0 0', fontSize: '0.78rem', opacity: 0.8 }}>
+          (No unsent content found.)
+        </p>
+      ) : (
+        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {sections.map((s) => (
+            <div key={s.label}>
+              <div
+                style={{
+                  display:        'flex',
+                  alignItems:     'center',
+                  justifyContent: 'space-between',
+                  gap:            10,
+                  marginBottom:   4,
+                }}
+              >
+                <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.85 }}>
+                  {s.label}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onCopy(s.value)}
+                  style={{
+                    fontSize:     '0.72rem',
+                    color:        'rgba(244, 220, 170, 0.95)',
+                    background:   'transparent',
+                    border:       '1px solid rgba(238, 200, 120, 0.4)',
+                    borderRadius: 6,
+                    padding:      '2px 10px',
+                    cursor:       'pointer',
+                  }}
+                >
+                  Copy
+                </button>
+              </div>
+              <div
+                style={{
+                  background:   'rgba(0,0,0,0.25)',
+                  border:       '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: 8,
+                  padding:      '10px 12px',
+                  fontSize:     '0.85rem',
+                  color:        '#e8e6e1',
+                  lineHeight:   1.55,
+                  whiteSpace:   'pre-wrap',
+                  wordBreak:    'break-word',
+                  maxHeight:    220,
+                  overflow:     'auto',
+                }}
+              >
+                {s.value || <span style={{ opacity: 0.6 }}>(empty)</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          type="button"
+          onClick={onDismiss}
+          style={{
+            fontSize:     '0.78rem',
+            fontWeight:   500,
+            color:        '#e8e6e1',
+            background:   'transparent',
+            border:       '1px solid rgba(255,255,255,0.18)',
+            borderRadius: 8,
+            padding:      '6px 14px',
+            cursor:       'pointer',
+          }}
+        >
+          Dismiss
         </button>
       </div>
     </div>
