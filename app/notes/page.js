@@ -1,6 +1,15 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+// Notes list — v5 Chunk 6 redesign.
+// - Sort by COALESCE(updated_at, created_at) DESC (server-side).
+// - Each card surfaces: title, relative time, "Draft in progress" (no word
+//   count — masterplan changelog item 32), N blocks needing refresh, N due
+//   questions. Only the chips with a non-zero / true value render.
+// - Delete moved to a per-card overflow menu so the destructive action
+//   doesn't compete with the habit-forming card-click → open-note action.
+// - Empty state copy teaches the loop (§1 / Chunk 6 "Empty states").
+
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import StarryBackground from '@/components/StarryBackground';
@@ -51,10 +60,111 @@ function NewNoteButton() {
   );
 }
 
-function formatDate(ts) {
-  if (!ts) return '';
-  const d = new Date(Number(ts) * 1000);
-  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+// "updated 12 min ago" / "updated yesterday" / "updated Mar 14"
+function formatRelative(unixSec) {
+  if (!unixSec) return '';
+  const now = Math.floor(Date.now() / 1000);
+  const diff = Math.max(0, now - Number(unixSec));
+  if (diff < 60) return 'just now';
+  if (diff < 3600) {
+    const m = Math.floor(diff / 60);
+    return `${m} min ago`;
+  }
+  if (diff < 86400) {
+    const h = Math.floor(diff / 3600);
+    return `${h} hr ago`;
+  }
+  if (diff < 86400 * 2) return 'yesterday';
+  if (diff < 86400 * 7) {
+    const d = Math.floor(diff / 86400);
+    return `${d} days ago`;
+  }
+  return new Date(Number(unixSec) * 1000).toLocaleDateString(undefined, {
+    month: 'short', day: 'numeric',
+  });
+}
+
+function OverflowMenu({ noteId, onDelete, busy }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  // Close on outside click.
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+
+  return (
+    <div ref={wrapRef} style={{ position: 'relative', flexShrink: 0 }} onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+      <button
+        type="button"
+        aria-label="More actions"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
+        style={{
+          width:        28,
+          height:       28,
+          borderRadius: 6,
+          background:   open ? 'rgba(255,255,255,0.08)' : 'transparent',
+          border:       'none',
+          color:        '#8a8880',
+          cursor:       'pointer',
+          fontSize:     '1.05rem',
+          lineHeight:   1,
+          display:      'flex',
+          alignItems:   'center',
+          justifyContent: 'center',
+        }}
+      >
+        ⋯
+      </button>
+      {open && (
+        <div
+          role="menu"
+          style={{
+            position:     'absolute',
+            top:          32,
+            right:        0,
+            minWidth:     140,
+            background:   '#13131f',
+            border:       '1px solid rgba(255,255,255,0.10)',
+            borderRadius: 10,
+            boxShadow:    '0 8px 24px rgba(0,0,0,0.45)',
+            padding:      4,
+            zIndex:       5,
+          }}
+        >
+          <button
+            type="button"
+            role="menuitem"
+            disabled={busy}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(false); onDelete(noteId); }}
+            style={{
+              display:      'block',
+              width:        '100%',
+              textAlign:    'left',
+              padding:      '8px 12px',
+              borderRadius: 6,
+              background:   'transparent',
+              border:       'none',
+              color:        'var(--color-forgot)',
+              fontSize:     '0.85rem',
+              fontWeight:   500,
+              cursor:       busy ? 'not-allowed' : 'pointer',
+              opacity:      busy ? 0.5 : 1,
+            }}
+          >
+            {busy ? 'Deleting…' : 'Delete'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Wrapped in <Suspense> below because useSearchParams() forces dynamic rendering
@@ -137,18 +247,17 @@ function NotesPageContent() {
 
   useEffect(() => { fetchNotes(); }, []);
 
-  async function handleDelete(e, note) {
-    e.preventDefault();
-    e.stopPropagation();
-    const qc = Number(note.question_count) || 0;
+  async function handleDelete(noteId) {
+    const note = notes.find((n) => n.id === noteId);
+    const qc = Number(note?.question_count) || 0;
     const msg = qc === 0
       ? 'Delete this note?'
       : `Delete this note? This will also delete ${qc} question${qc === 1 ? '' : 's'} generated from it.`;
     if (!window.confirm(msg)) return;
 
-    setDeletingId(note.id);
+    setDeletingId(noteId);
     try {
-      const res = await fetch(`/api/notes/${note.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/notes/${noteId}`, { method: 'DELETE' });
       // 404 = already gone (deleted in another tab). Treat as success and refetch
       // so the stale card disappears without an error flash.
       if (res.ok || res.status === 404) {
@@ -208,10 +317,17 @@ function NotesPageContent() {
       <div style={wrapperStyle}>
         <StarryBackground />
         {heading}
-        <div style={{ paddingLeft: 20 }}>
+        <div style={{ paddingLeft: 20, maxWidth: 560 }}>
           {createErrorBanner}
-          <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem', marginBottom: 16 }}>
-            No notes yet. Capture what you&apos;re learning — turn it into review questions.
+          <p style={{
+            color:        'var(--color-muted)',
+            fontSize:     '0.95rem',
+            lineHeight:   1.55,
+            marginBottom: 18,
+          }}>
+            Start capturing what you want to remember. Write rough notes while
+            reading, listening, or watching. When you have enough material,
+            generate study questions.
           </p>
           <NewNoteButton />
         </div>
@@ -233,7 +349,12 @@ function NotesPageContent() {
         {notes.map((note) => {
           const ts = note.updated_at ?? note.created_at;
           const displayTitle = (note.title && note.title.trim()) || 'Untitled';
-          const qc = Number(note.question_count) || 0;
+          const staleCount = Number(note.stale_block_count) || 0;
+          const dueCount   = Number(note.due_question_count) || 0;
+          const metaParts = [`updated ${formatRelative(ts)}`];
+          if (note.has_draft) metaParts.push('Draft in progress');
+          if (staleCount > 0) metaParts.push(`${staleCount} block${staleCount === 1 ? '' : 's'} need${staleCount === 1 ? 's' : ''} refresh`);
+          if (dueCount > 0)   metaParts.push(`${dueCount} due`);
           return (
             <Link
               key={note.id}
@@ -249,43 +370,34 @@ function NotesPageContent() {
                 boxShadow:      '0 0 16px rgba(124,58,237,0.278), 0 0 32px rgba(124,58,237,0.101)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{
-                    fontWeight:    700,
-                    fontSize:      '1rem',
-                    color:         '#e8e6e1',
-                    lineHeight:    1.35,
-                    marginBottom:  4,
-                    overflow:      'hidden',
-                    textOverflow:  'ellipsis',
-                    whiteSpace:    'nowrap',
+                    fontWeight:   700,
+                    fontSize:     '1rem',
+                    color:        '#e8e6e1',
+                    lineHeight:   1.35,
+                    marginBottom: 4,
+                    overflow:     'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace:   'nowrap',
                   }}>
                     {displayTitle}
                   </p>
-                  <p style={{ fontSize: '0.78rem', color: '#8a8880' }}>
-                    {formatDate(ts)}{' · '}{qc} question{qc === 1 ? '' : 's'}
+                  <p style={{
+                    fontSize:    '0.78rem',
+                    color:       '#8a8880',
+                    lineHeight:  1.5,
+                    wordBreak:   'break-word',
+                  }}>
+                    {metaParts.join(' · ')}
                   </p>
                 </div>
-                <button
-                  onClick={(e) => handleDelete(e, note)}
-                  disabled={deletingId === note.id}
-                  style={{
-                    flexShrink:   0,
-                    fontSize:     '0.725rem',
-                    fontWeight:   500,
-                    color:        'var(--color-forgot)',
-                    background:   'rgba(212,86,74,0.1)',
-                    border:       'none',
-                    borderRadius: '6px',
-                    padding:      '4px 10px',
-                    cursor:       deletingId === note.id ? 'not-allowed' : 'pointer',
-                    opacity:      deletingId === note.id ? 0.4 : 1,
-                    transition:   'opacity 0.15s ease',
-                  }}
-                >
-                  {deletingId === note.id ? 'Deleting…' : 'Delete'}
-                </button>
+                <OverflowMenu
+                  noteId={note.id}
+                  onDelete={handleDelete}
+                  busy={deletingId === note.id}
+                />
               </div>
             </Link>
           );

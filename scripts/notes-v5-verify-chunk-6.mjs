@@ -296,6 +296,71 @@ async function scenarioBf() {
   ok('excludes q_Bf_ret2', !ids.has('q_Bf_ret2'), [...ids]);
 }
 
+// ─── Workstream C scenarios — notes list metadata ────────────────────────
+
+async function callList() {
+  const res = await fetch(`${BASE_URL}/api/notes/list`);
+  let body;
+  try { body = await res.json(); } catch { body = null; }
+  return { status: res.status, body };
+}
+
+// a. Empty draft + no stale blocks + 0 due → all metadata zero/false.
+async function scenarioCa() {
+  console.log('\n─── C-a: empty draft / no stale / 0 due ───');
+  await wipeAll();
+  await ensureUser();
+  const docId = nextDocId('Ca');
+  await insertNoteDoc({ docId, draft: '' });
+  const blkA = `blk_${docId}_1`;
+  await insertBlock({ id: blkA, docId, isStale: 0 });
+  // One non-due, non-retired question — must NOT increment due_question_count.
+  await insertQuestion({ id: 'q_Ca_future', docId, blockId: blkA, nextReviewAt: +7200 });
+
+  const { status, body } = await callList();
+  ok('status 200', status === 200, { status, body });
+  const note = body?.notes?.find((n) => n.id === docId);
+  ok('note present in list', !!note, body);
+  ok('has_draft === false', note?.has_draft === false, note);
+  ok('stale_block_count === 0', note?.stale_block_count === 0, note);
+  ok('due_question_count === 0', note?.due_question_count === 0, note);
+}
+
+// b. Non-empty draft + 2 stale blocks + 5 due → exact metadata reflects state.
+async function scenarioCb() {
+  console.log('\n─── C-b: draft + 2 stale + 5 due ───');
+  await wipeAll();
+  await ensureUser();
+  const docId = nextDocId('Cb');
+  await insertNoteDoc({ docId, draft: 'In-progress thoughts' });
+  const blk1 = `blk_${docId}_s1`;
+  const blk2 = `blk_${docId}_s2`;
+  const blk3 = `blk_${docId}_fresh`;
+  const staleSince = Math.floor(Date.now() / 1000) - 1800;
+  await insertBlock({ id: blk1, docId, isStale: 1, staleSince });
+  await insertBlock({ id: blk2, docId, isStale: 1, staleSince });
+  await insertBlock({ id: blk3, docId, isStale: 0 });
+
+  // 5 due (active, past next_review_at) across the blocks.
+  await insertQuestion({ id: 'q_Cb_d1', docId, blockId: blk1, nextReviewAt: -3600 });
+  await insertQuestion({ id: 'q_Cb_d2', docId, blockId: blk1, nextReviewAt: -1800 });
+  await insertQuestion({ id: 'q_Cb_d3', docId, blockId: blk2, nextReviewAt: -1200 });
+  await insertQuestion({ id: 'q_Cb_d4', docId, blockId: blk3, nextReviewAt: -600 });
+  await insertQuestion({ id: 'q_Cb_d5', docId, blockId: blk3, nextReviewAt: -7200 });
+  // Plus one future (must not count) and one retired (must not count).
+  await insertQuestion({ id: 'q_Cb_fut', docId, blockId: blk3, nextReviewAt: +3600 });
+  const now = Math.floor(Date.now() / 1000);
+  await insertQuestion({ id: 'q_Cb_ret', docId, blockId: blk1, nextReviewAt: -3600, retiredAt: now - 100 });
+
+  const { status, body } = await callList();
+  ok('status 200', status === 200, { status, body });
+  const note = body?.notes?.find((n) => n.id === docId);
+  ok('note present in list', !!note, body);
+  ok('has_draft === true', note?.has_draft === true, note);
+  ok('stale_block_count === 2', note?.stale_block_count === 2, note);
+  ok('due_question_count === 5', note?.due_question_count === 5, note);
+}
+
 // ─── Cleanup ────────────────────────────────────────────────────────────
 async function wipeAll() {
   for (const u of [USER_ID, OTHER_USER_ID]) {
@@ -313,6 +378,7 @@ await wipeAll();
 
 const scenarios = [
   scenarioBa, scenarioBb, scenarioBc, scenarioBd, scenarioBe, scenarioBf,
+  scenarioCa, scenarioCb,
 ];
 
 for (const s of scenarios) {
