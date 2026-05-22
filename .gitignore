@@ -47,3 +47,7 @@ notes-snapshot-*.json
 
 # local sqlite dev DB (created by scripts/init-local-db.mjs)
 .data/
+
+# Pre-flight DB dumps — emailed/exported as needed, not committed
+memorium-recovery-preflight-*.sql
+notes-snapshot-*.json
