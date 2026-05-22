@@ -200,6 +200,14 @@ export default function NoteEditorPage() {
   const lastBlockOuterRef = useRef(null);
   const editingTextareaRef = useRef(null);
 
+  // Initial-load anchor scroll: a setTimeout(0) here would race React's
+  // post-fetch commit — while loading=true the editor JSX (and the ref-bearing
+  // last block) aren't in the DOM, so the ref would be null when the callback
+  // fires. We flip this flag inside loadNote and let a useLayoutEffect (which
+  // runs after the loading=false commit) perform the scroll, with rAF to clear
+  // any Next.js router scroll-restoration that fires on Link navigation.
+  const [pendingInitialAnchor, setPendingInitialAnchor] = useState(false);
+
   // ─────────────────────────────────────────────────────────────────────────
   // Load
   // ─────────────────────────────────────────────────────────────────────────
@@ -230,17 +238,11 @@ export default function NoteEditorPage() {
       if (!silent) {
         // On open: anchor the LAST sealed block under the sticky header so
         // the draft + Generate button stay in the visible viewport without
-        // extra scrolling. Older blocks live off-screen above. With zero
-        // blocks the ref is null and we skip the scroll entirely; focus
-        // still lands in the draft so the user can start typing immediately.
-        // The block's scroll-margin-top (~100px on the last-block outer div)
-        // clears the sticky header — scrollIntoView respects it natively.
-        setTimeout(() => {
-          if (lastBlockOuterRef.current) {
-            lastBlockOuterRef.current.scrollIntoView({ block: 'start', behavior: 'auto' });
-          }
-          draftRef.current?.focus();
-        }, 0);
+        // extra scrolling. The actual scroll runs from a useLayoutEffect
+        // (see below) once loading=false has committed and the block is in
+        // the DOM. Zero-block notes will no-op there and just focus the
+        // draft.
+        setPendingInitialAnchor(true);
       }
     } catch {
       setLoadError(pickNotesError('load', 0));
@@ -431,6 +433,23 @@ export default function NoteEditorPage() {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     if (scrollFrameRef.current) cancelAnimationFrame(scrollFrameRef.current);
   }, []);
+
+  // Initial-load anchor scroll. Fires only after loadNote sets
+  // pendingInitialAnchor=true AND the loading=false render has committed
+  // (so the editor JSX and lastBlockOuterRef are in the DOM). rAF defers
+  // the actual scroll past any Next.js App Router scroll-restoration that
+  // runs on Link navigation.
+  useLayoutEffect(() => {
+    if (!pendingInitialAnchor || loading) return;
+    const rafId = requestAnimationFrame(() => {
+      if (lastBlockOuterRef.current) {
+        lastBlockOuterRef.current.scrollIntoView({ block: 'start', behavior: 'auto' });
+      }
+      draftRef.current?.focus();
+      setPendingInitialAnchor(false);
+    });
+    return () => cancelAnimationFrame(rafId);
+  }, [pendingInitialAnchor, loading, blocks]);
 
   // Measure each collapsed sealed block to decide if "Show more" should render.
   // Runs before paint so the button doesn't flicker in after the first paint.
