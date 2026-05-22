@@ -21,7 +21,13 @@ import { NoDistinctMaterialError } from "@/lib/ai/errors";
 //     active, the rest of the generate still happens
 //   - Hard AI failure → abort entire generate, no DB writes (502)
 
-const HOURLY_NOTE_QUESTION_LIMIT = 30;
+// Masterplan §1: "30 generations/hour per user. A 'generation' is one
+// Generate click, regardless of stale-block count within it." We don't
+// have a dedicated generate-events log, so we use questions.created_at as
+// a proxy: each Generate inserts its questions inside a single transaction
+// that lands in the same second, so COUNT(DISTINCT created_at) gives us
+// the click count without a schema change.
+const HOURLY_NOTE_GENERATIONS_LIMIT = 30;
 const STALE_BATCH_CAP = 5;
 
 function logEvent(event, fields) {
@@ -97,18 +103,22 @@ export async function POST(_request, { params }) {
     );
   }
 
-  // ─── e. Rate limit (v4 logic — preserved verbatim) ───────────────────
-  // 30 note-questions inserted per rolling hour, per user.
+  // ─── e. Rate limit — 30 Generate clicks per rolling hour, per user ───
+  // COUNT(DISTINCT q.created_at): each Generate inserts ~3 questions in one
+  // transaction sharing the same created_at second, so distinct timestamps
+  // approximate distinct Generate clicks. Counting raw rows (the previous
+  // behavior) capped effective generations at ~10/hour, not the masterplan
+  // §1 spec of 30.
   const db = getDb();
   const rateResult = await db.execute({
-    sql: `SELECT COUNT(*) AS c FROM questions q
+    sql: `SELECT COUNT(DISTINCT q.created_at) AS c FROM questions q
           JOIN documents d ON d.id = q.document_id
           WHERE q.user_id = ?
             AND d.source_type = 'note'
             AND q.created_at > strftime('%s','now','-1 hour')`,
     args: [userId],
   });
-  if (Number(rateResult.rows[0].c) >= HOURLY_NOTE_QUESTION_LIMIT) {
+  if (Number(rateResult.rows[0].c) >= HOURLY_NOTE_GENERATIONS_LIMIT) {
     logEvent("note_generation_failed", {
       documentId,
       userId,
@@ -118,7 +128,7 @@ export async function POST(_request, { params }) {
     return NextResponse.json(
       {
         error: "rate_limited",
-        message: "Hourly limit reached (30 note-questions per hour). Try again later.",
+        message: "You've generated a lot recently. Try again in a few minutes.",
         retryAfterSeconds: 3600,
       },
       { status: 429, headers: { "Retry-After": "3600" } }
