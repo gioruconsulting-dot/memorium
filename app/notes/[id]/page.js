@@ -39,9 +39,11 @@ const COLOR = {
   pageMuted:        '#8a8880',
   text:             '#e8e6e1',
   textDim:          'rgba(232, 230, 225, 0.7)',
-  badgeFg:          'rgba(238, 255, 153, 0.85)', // muted amber — "needs refresh"
-  badgeBorder:      'rgba(238, 255, 153, 0.30)',
-  badgeBg:          'rgba(238, 255, 153, 0.10)',
+  // "Needs refresh" badge — orange, shared with the notes list metadata via
+  // the --color-needs-refresh CSS variable in globals.css.
+  badgeFg:          'var(--color-needs-refresh)',
+  badgeBorder:      'rgba(249, 115, 22, 0.45)',
+  badgeBg:          'rgba(249, 115, 22, 0.12)',
   cardBg:           '#0e0e18',
   cardBorder:       '1px solid #1e1e2a',
   cardBorderEdit:   '1px solid rgba(124,58,237,0.55)',

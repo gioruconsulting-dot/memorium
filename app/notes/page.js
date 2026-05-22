@@ -351,10 +351,24 @@ function NotesPageContent() {
           const displayTitle = (note.title && note.title.trim()) || 'Untitled';
           const staleCount = Number(note.stale_block_count) || 0;
           const dueCount   = Number(note.due_question_count) || 0;
-          const metaParts = [`updated ${formatRelative(ts)}`];
-          if (note.has_draft) metaParts.push('Draft in progress');
-          if (staleCount > 0) metaParts.push(`${staleCount} block${staleCount === 1 ? '' : 's'} need${staleCount === 1 ? 's' : ''} refresh`);
-          if (dueCount > 0)   metaParts.push(`${dueCount} due`);
+          // Colored chips per personal-use tweak: orange for "needs refresh",
+          // amber for "due" — separators stay muted. "updated X ago" and
+          // "Draft in progress" stay muted too.
+          const chips = [
+            { text: `updated ${formatRelative(ts)}`, color: null },
+          ];
+          if (note.has_draft) {
+            chips.push({ text: 'Draft in progress', color: null });
+          }
+          if (staleCount > 0) {
+            chips.push({
+              text:  `${staleCount} block${staleCount === 1 ? '' : 's'} need${staleCount === 1 ? 's' : ''} refresh`,
+              color: 'var(--color-needs-refresh)',
+            });
+          }
+          if (dueCount > 0) {
+            chips.push({ text: `${dueCount} due`, color: '#EEFF99' });
+          }
           return (
             <Link
               key={note.id}
@@ -390,7 +404,12 @@ function NotesPageContent() {
                     lineHeight:  1.5,
                     wordBreak:   'break-word',
                   }}>
-                    {metaParts.join(' · ')}
+                    {chips.map((c, i) => (
+                      <span key={i}>
+                        {i > 0 && <span style={{ color: '#8a8880' }}>{' · '}</span>}
+                        <span style={c.color ? { color: c.color } : undefined}>{c.text}</span>
+                      </span>
+                    ))}
                   </p>
                 </div>
                 <OverflowMenu

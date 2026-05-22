@@ -16,6 +16,10 @@
   --color-easy-bg: #1a2e18;
   --color-hard-bg: #2e2510;
   --color-forgot-bg: #2e1714;
+  /* "Needs refresh" signal — used on the per-block badge in the note editor
+     AND the "N block(s) need refresh" chip on the notes list. Single source
+     of truth so both pages stay visually identical. */
+  --color-needs-refresh: #f97316;
 }
 
 @layer base {
