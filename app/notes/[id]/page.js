@@ -183,7 +183,13 @@ export default function NoteEditorPage() {
   // hides/reveals the toast without unmounting it (toastScrollHidden).
   const [postGen, setPostGen] = useState(null);
   const [toastScrollHidden, setToastScrollHidden] = useState(false);
-  const scrollAccumRef = useRef({ y: 0, cumulative: 0, direction: 0 });
+  // Pivot for the post-Generate toast's scroll-driven show/hide. `y` tracks
+  // the extremum of the current direction (the max scrollY visited while
+  // hidden, or the min scrollY visited while visible). The visibility toggles
+  // when the user reverses by THRESHOLD_PX from that extremum — so "scroll up
+  // 50px from wherever you are" reveals the toast anywhere on a long note, not
+  // just by returning to the original Generate position.
+  const scrollPivotRef = useRef({ y: 0, hidden: false });
   const scrollFrameRef = useRef(null);
 
   // ── Recovery panel (Chunk 5) ───────────────────────────────────────────
@@ -487,35 +493,43 @@ export default function NoteEditorPage() {
     }
   }, [postGen, dirty]);
 
-  // Scroll-direction hides / re-shows the post-Generate toast. Uses
-  // requestAnimationFrame as a built-in throttle (one read per frame, no
-  // listener thrash) and accumulates distance in the current direction until
-  // it exceeds POST_GEN_SCROLL_THRESHOLD_PX — that hysteresis stops mobile
-  // momentum scrolls from flickering the toast on and off.
+  // Scroll-driven hide/show of the post-Generate toast. Rubber-band model:
+  // pivot.y is the extremum of the current "extending" direction (max scrollY
+  // while hidden, min scrollY while visible). The toggle fires when the user
+  // reverses by THRESHOLD_PX from that extremum, then the pivot resets to the
+  // new position. rAF coalesces multiple events to one read per frame.
   useEffect(() => {
     if (!postGen) return;
-    scrollAccumRef.current = { y: window.scrollY, cumulative: 0, direction: 0 };
+    scrollPivotRef.current = { y: window.scrollY, hidden: false };
 
     function onScroll() {
       if (scrollFrameRef.current) return;
       scrollFrameRef.current = requestAnimationFrame(() => {
         scrollFrameRef.current = null;
-        const acc = scrollAccumRef.current;
+        const pivot = scrollPivotRef.current;
         const newY = window.scrollY;
-        const delta = newY - acc.y;
+        const delta = newY - pivot.y;
         if (delta === 0) return;
-        const dir = delta > 0 ? 1 : -1;
-        if (dir === acc.direction) {
-          acc.cumulative += Math.abs(delta);
+        if (pivot.hidden) {
+          // Hidden: extend pivot downward as user scrolls further down;
+          // reveal when they reverse > THRESHOLD upward from the pivot.
+          if (delta > 0) {
+            pivot.y = newY;
+          } else if (-delta > POST_GEN_SCROLL_THRESHOLD_PX) {
+            setToastScrollHidden(false);
+            pivot.hidden = false;
+            pivot.y = newY;
+          }
         } else {
-          acc.direction = dir;
-          acc.cumulative = Math.abs(delta);
-        }
-        acc.y = newY;
-        if (dir === 1 && acc.cumulative > POST_GEN_SCROLL_THRESHOLD_PX) {
-          setToastScrollHidden(true);
-        } else if (dir === -1 && acc.cumulative > POST_GEN_SCROLL_THRESHOLD_PX) {
-          setToastScrollHidden(false);
+          // Visible: extend pivot upward as user scrolls further up; hide
+          // when they reverse > THRESHOLD downward from the pivot.
+          if (delta < 0) {
+            pivot.y = newY;
+          } else if (delta > POST_GEN_SCROLL_THRESHOLD_PX) {
+            setToastScrollHidden(true);
+            pivot.hidden = true;
+            pivot.y = newY;
+          }
         }
       });
     }
