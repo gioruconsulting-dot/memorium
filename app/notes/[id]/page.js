@@ -813,7 +813,7 @@ export default function NoteEditorPage() {
         }
         .v5-sticky-header {
           position: sticky;
-          top: 0;
+          top: 10px; /* breathing room from the viewport edge when scrolled */
           z-index: 12;
           background: rgba(14, 14, 24, 0.94);
           backdrop-filter: saturate(180%) blur(10px);
@@ -837,7 +837,7 @@ export default function NoteEditorPage() {
         }
         .v5-block-content-collapsed {
           display: -webkit-box;
-          -webkit-line-clamp: 4;
+          -webkit-line-clamp: 3;
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
@@ -1070,7 +1070,7 @@ export default function NoteEditorPage() {
             display:       'flex',
             alignItems:    'center',
             gap:           10,
-            margin:        '24px 0 10px',
+            margin:        '16px 0 6px',
             color:         COLOR.pageMuted,
             fontSize:      '0.72rem',
             letterSpacing: '0.08em',
@@ -1166,7 +1166,7 @@ export default function NoteEditorPage() {
       <div
         className="v5-generate-footer"
         style={{
-          marginTop:      24,
+          marginTop:      14,
           display:        'flex',
           justifyContent: 'flex-end',
         }}
