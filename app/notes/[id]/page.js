@@ -1,5 +1,13 @@
 'use client';
 
+// v5 journal canvas — masterplan §2.6.
+// - Title (autosaved, debounced) + save indicator
+// - Sealed blocks render read-only, oldest first, with optional "Needs refresh" badge
+// - Draft textarea is the visual hero; autosaves on a 3s debounce shared with title
+// - Generate button is state-aware (label + disabled), sticks to bottom on mobile
+// - Block editing is Chunk 5; recovery-panel + sessionStorage is Chunk 5;
+//   post-Generate animation + Study/Keep-writing CTAs are Chunk 6.
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -7,68 +15,129 @@ import StarryBackground from '@/components/StarryBackground';
 import { countWords, NOTE_MIN_WORDS } from '@/lib/upload-limits';
 import { pickNotesError } from '@/lib/notes/ui-errors';
 
-const MAX_TITLE_CHARS = 200;
-const MAX_COMBINED_CHARS = 50000;
-const SOFT_WARN_THRESHOLD = 45000;  // 90% of 50000
-const HARD_WARN_THRESHOLD = 47500;  // 95% of 50000
+const AUTOSAVE_DEBOUNCE_MS = 3000;
+const LONG_DRAFT_THRESHOLD_WORDS = 1000;
 
-const wrapperStyle = { position: 'relative', zIndex: 1, paddingTop: '24px', paddingBottom: '40px' };
+// ── tokens ───────────────────────────────────────────────────────────────
+// Match adjacent components (StreakCard / OnboardingCard): #0e0e18 card on
+// the dark page background, #1e1e2a / rgba(255,255,255,0.08) for muted
+// borders, violet accent reserved for the Generate button (one violet-glow
+// per page).
+const COLOR = {
+  pageMuted:        '#8a8880',
+  text:             '#e8e6e1',
+  textDim:          'rgba(232, 230, 225, 0.7)',
+  badgeFg:          'rgba(238, 255, 153, 0.85)', // muted amber — "needs refresh"
+  badgeBorder:      'rgba(238, 255, 153, 0.30)',
+  badgeBg:          'rgba(238, 255, 153, 0.10)',
+  cardBg:           '#0e0e18',
+  cardBorder:       '1px solid #1e1e2a',
+  draftBg:          '#10101e',
+  fieldBorder:      '1px solid rgba(255,255,255,0.15)',
+  divider:          'rgba(255,255,255,0.08)',
+  saved:            'var(--color-easy)',
+  err:              'var(--color-forgot)',
+};
 
-function todayYMD() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
+const wrapperStyle = {
+  position:      'relative',
+  zIndex:        1,
+  paddingTop:    24,
+  paddingBottom: 140, // headroom for sticky mobile footer
+  maxWidth:      720,
+  marginLeft:    'auto',
+  marginRight:   'auto',
+  paddingLeft:   16,
+  paddingRight:  16,
+};
 
-const fieldStyle = {
-  width:        '100%',
-  padding:      '10px 14px',
-  borderRadius: '10px',
-  border:       '1px solid rgba(255,255,255,0.15)',
+const titleFieldStyle = {
+  flex:         1,
+  minWidth:     0,
+  padding:      '8px 12px',
+  borderRadius: 10,
+  border:       COLOR.fieldBorder,
   background:   '#0f0f22',
-  color:        '#e8e6e1',
+  color:        '#ffffff',
+  fontSize:     '1.15rem',
+  fontWeight:   600,
+  lineHeight:   1.3,
+  fontFamily:   'inherit',
+  outline:      'none',
+};
+
+const draftFieldStyle = {
+  width:        '100%',
+  padding:      '14px 16px',
+  borderRadius: 12,
+  border:       '1px solid rgba(255,255,255,0.18)',
+  background:   COLOR.draftBg,
+  color:        COLOR.text,
   fontSize:     '0.9375rem',
-  lineHeight:   1.5,
+  lineHeight:   1.7,
   fontFamily:   'inherit',
   outline:      'none',
   resize:       'vertical',
   display:      'block',
 };
 
+// "May 18" — locale-aware short month + day.
+function formatBlockDate(unixSec) {
+  if (!unixSec) return '';
+  const d = new Date(Number(unixSec) * 1000);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+// "09:42" — 24h, local. Used in the "Saved · 09:42" indicator.
+function formatClock(unixMs) {
+  const d = new Date(unixMs);
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
 export default function NoteEditorPage() {
   const params = useParams();
   const id = params?.id;
 
+  // ── Load lifecycle ─────────────────────────────────────────────────────
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [loadError, setLoadError] = useState('');
 
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [draft, setDraft] = useState('');
-  const [questionCount, setQuestionCount] = useState(0);
+  // ── Editor state ───────────────────────────────────────────────────────
+  const [title, setTitle]             = useState('');
+  const [draft, setDraft]             = useState('');
+  const [noteVersion, setNoteVersion] = useState(0);
+  const [blocks, setBlocks]           = useState([]);
 
-  // Baseline for dirty tracking. Mirrors the server's current persisted state.
-  const [baseline, setBaseline] = useState(null);
+  // Baseline = last known server-persisted (title, draft). Compared against
+  // local state to compute `dirty`. Kept in a ref so it doesn't trigger
+  // re-renders when we update it from save responses.
+  const baselineRef = useRef({ title: '', draft: '' });
 
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState('');
-  const [savedFlash, setSavedFlash] = useState(false);
-  const [contentFocused, setContentFocused] = useState(false);
+  // ── Save state ─────────────────────────────────────────────────────────
+  const [saving, setSaving]         = useState(false);
+  const [saveError, setSaveError]   = useState('');
+  const [lastSavedAt, setLastSavedAt] = useState(null);
+  const debounceTimerRef = useRef(null);
 
-  const [generating, setGenerating] = useState(false);
+  // ── Generate state ─────────────────────────────────────────────────────
+  const [generating, setGenerating]     = useState(false);
   const [generateError, setGenerateError] = useState('');
-  const [generateFlash, setGenerateFlash] = useState('');
-  const [generatingMessage, setGeneratingMessage] = useState('Generating…');
 
-  const [prioritizing, setPrioritizing] = useState(false);
-  const [prioritizeDone, setPrioritizeDone] = useState(false);
-  const [prioritizeError, setPrioritizeError] = useState('');
+  // ── Banners ────────────────────────────────────────────────────────────
+  // Conflict banner is the Chunk 4 minimum for 409 handling. Chunk 5 swaps
+  // this for the sessionStorage-backed recovery panel.
+  // TODO(chunk-5): replace with sessionStorage recovery panel.
+  const [conflictBanner, setConflictBanner] = useState('');
 
-  const titleInputRef = useRef(null);
+  const draftRef = useRef(null);
+  const isMountedRef = useRef(false);
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Load
+  // ─────────────────────────────────────────────────────────────────────────
   const loadNote = useCallback(async ({ silent = false } = {}) => {
     if (!id) return;
     if (!silent) setLoading(true);
@@ -80,24 +149,26 @@ export default function NoteEditorPage() {
         return;
       }
       if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        setLoadError(pickNotesError('load', res.status, errBody?.error));
+        const body = await res.json().catch(() => ({}));
+        setLoadError(pickNotesError('load', res.status, body?.error));
         return;
       }
       const data = await res.json();
+      const nextTitle = data.title ?? '';
+      const nextDraft = data.draft ?? '';
+      setTitle(nextTitle);
+      setDraft(nextDraft);
+      setNoteVersion(Number(data.note_version ?? 0));
+      setBlocks(Array.isArray(data.blocks) ? data.blocks : []);
+      baselineRef.current = { title: nextTitle, draft: nextDraft };
 
-      const t = data.title ?? '';
-      const c = data.content ?? '';
-      const d = data.note_draft_content ?? '';
-      setTitle(t);
-      setContent(c);
-      setDraft(d);
-      setQuestionCount(Number(data.question_count ?? 0));
-      setBaseline({ title: t, content: c, note_draft_content: d });
-
-      if (!silent && t === '') {
-        // Wait for the input to mount before focusing.
-        setTimeout(() => titleInputRef.current?.focus(), 0);
+      if (!silent) {
+        // Auto-scroll to the draft once paint lands. "instant" avoids a long
+        // visible scroll on an existing note with many blocks.
+        setTimeout(() => {
+          draftRef.current?.scrollIntoView({ behavior: 'instant', block: 'end' });
+          draftRef.current?.focus();
+        }, 0);
       }
     } catch {
       setLoadError(pickNotesError('load', 0));
@@ -106,101 +177,176 @@ export default function NoteEditorPage() {
     }
   }, [id]);
 
-  useEffect(() => {
-    loadNote();
-  }, [loadNote]);
+  useEffect(() => { loadNote(); }, [loadNote]);
 
-  // Rotating status while generating. Interval ticks every 1s and updates
-  // the message based on elapsed time. handleGenerate resets to 'Generating…'
-  // before flipping generating=true so a previous "Almost there…" doesn't leak in.
-  useEffect(() => {
-    if (!generating) return;
-    const startedAt = Date.now();
-    const interval = setInterval(() => {
-      const elapsedSec = (Date.now() - startedAt) / 1000;
-      if (elapsedSec < 15) setGeneratingMessage('Generating…');
-      else if (elapsedSec < 45) setGeneratingMessage('Reading your draft…');
-      else setGeneratingMessage('Almost there…');
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [generating]);
+  useEffect(() => { isMountedRef.current = true; }, []);
 
-  const dirty = !!baseline && (
-    title !== baseline.title ||
-    content !== baseline.content ||
-    draft !== baseline.note_draft_content
-  );
+  // ─────────────────────────────────────────────────────────────────────────
+  // Autosave — single 3s debounce timer for (title, draft) combined
+  // ─────────────────────────────────────────────────────────────────────────
 
-  async function handleSave() {
-    if (!dirty || saving) return;
+  const dirty =
+    title !== baselineRef.current.title ||
+    draft !== baselineRef.current.draft;
+
+  // The actual PATCH. Always called via the debounce or via flushPending().
+  // Reads CURRENT state at fire-time (via the parent closure), so a save
+  // started while the user is still typing carries the latest content.
+  const fireSaveRef = useRef(null);
+  fireSaveRef.current = async function fireSave() {
+    if (saving) return; // single in-flight — the post-save dirty check
+                        // will schedule the next one.
+    const baseline = baselineRef.current;
+    const payload = {};
+    if (title !== baseline.title) payload.title = title;
+    if (draft !== baseline.draft) payload.draft  = draft;
+    if (Object.keys(payload).length === 0) return; // nothing to send
+    payload.note_version = noteVersion;
+
     setSaving(true);
     setSaveError('');
     try {
       const res = await fetch(`/api/notes/${id}`, {
-        method: 'PATCH',
+        method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          content,
-          note_draft_content: draft,
-        }),
+        body:    JSON.stringify(payload),
       });
+      const body = await res.json().catch(() => ({}));
+
+      if (res.status === 200 && body?.note) {
+        baselineRef.current = {
+          title: body.note.title ?? '',
+          draft: body.note.draft ?? '',
+        };
+        setNoteVersion(Number(body.note.note_version ?? 0));
+        if (Array.isArray(body.note.blocks)) setBlocks(body.note.blocks);
+        setLastSavedAt(Date.now());
+        return;
+      }
       if (res.status === 404) {
-        // Note was deleted in another tab. Swap to the not-found screen
-        // (same UX as initial loadNote → 404) rather than showing "Not found"
-        // as an inline saveError.
         setNotFound(true);
         return;
       }
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setSaveError(pickNotesError('save', res.status, data?.error));
+      if (res.status === 409) {
+        // Chunk 4 minimum: replace state with server's current and show a
+        // brief banner. Chunk 5 will preserve the unsent draft via
+        // sessionStorage and render a real recovery panel.
+        // TODO(chunk-5): sessionStorage-backed recovery panel.
+        setConflictBanner('This note changed elsewhere. Reloading…');
+        if (body?.current) {
+          const cur = body.current;
+          setTitle(cur.title ?? '');
+          setDraft(cur.draft ?? '');
+          setNoteVersion(Number(cur.note_version ?? 0));
+          if (Array.isArray(cur.blocks)) setBlocks(cur.blocks);
+          baselineRef.current = {
+            title: cur.title ?? '',
+            draft: cur.draft ?? '',
+          };
+        }
+        setTimeout(() => setConflictBanner(''), 3000);
         return;
       }
-
-      await loadNote({ silent: true });
-      setSavedFlash(true);
-      setTimeout(() => setSavedFlash(false), 1500);
+      if (res.status === 422 && body?.error === 'size_exceeded') {
+        const limit = body?.limit ?? 50000;
+        setSaveError(`Note is too long. Combined content can't exceed ${limit} characters.`);
+        return;
+      }
+      setSaveError(pickNotesError('save', res.status, body?.error));
     } catch {
       setSaveError(pickNotesError('save', 0));
     } finally {
       setSaving(false);
     }
+  };
+
+  // Schedule a save 3s after the last keystroke. Single timer; user typing
+  // during in-flight save lands in the next save (post-save dirty check
+  // re-arms the timer via this same effect).
+  useEffect(() => {
+    if (loading) return;
+    if (!dirty) {
+      // Nothing pending — cancel any timer.
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+      return;
+    }
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = null;
+      fireSaveRef.current?.();
+    }, AUTOSAVE_DEBOUNCE_MS);
+  }, [title, draft, dirty, loading]);
+
+  // Cleanup on unmount.
+  useEffect(() => () => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+  }, []);
+
+  // Flush-before-Generate: synchronously cancel any pending debounce and
+  // fire an immediate save when dirty. Returns true on clean state.
+  async function flushPending() {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    if (dirty && !saving) {
+      await fireSaveRef.current?.();
+    }
+    // If still dirty after fire (e.g., 409), bail.
+    return !(title !== baselineRef.current.title || draft !== baselineRef.current.draft);
   }
 
+  // Tappable retry on a failed save — clears error and re-fires.
+  async function retrySave() {
+    setSaveError('');
+    await fireSaveRef.current?.();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Generate
+  // ─────────────────────────────────────────────────────────────────────────
   async function handleGenerate() {
+    if (generating) return;
     setGenerateError('');
-    setGeneratingMessage('Generating…');
+
+    const flushedClean = await flushPending();
+    if (!flushedClean) return; // surfaces via saveError / conflictBanner
+
     setGenerating(true);
     try {
       const res = await fetch(`/api/notes/${id}/generate`, { method: 'POST' });
-      const data = await res.json().catch(() => ({}));
+      const body = await res.json().catch(() => ({}));
 
       if (res.status === 200) {
-        setGenerateFlash(`${data.questionsAdded} questions added ✓`);
-        setTimeout(() => setGenerateFlash(''), 3000);
         await loadNote({ silent: true });
-      } else if (res.status === 401 || res.status === 403) {
-        setGenerateError(pickNotesError('generate', res.status));
-      } else if (res.status === 404) {
-        setGenerateError(pickNotesError('generate', 404));
-      } else if (res.status === 409) {
-        setGenerateError('Your note changed while generating. Refreshing…');
-        await loadNote({ silent: true });
-        setGenerateError('');
-      } else if (res.status === 422 && data?.error === 'draft_too_short') {
-        setGenerateError(`Add more content — at least ${data.minWords} words needed.`);
-      } else if (res.status === 422 && data?.error === 'no_distinct_material') {
-        setGenerateError('Not enough new material to generate questions. Add more content.');
-      } else if (res.status === 422 && data?.error === 'size_exceeded') {
-        setGenerateError(`Note is too long to generate from. Cap is ${data.cap} characters.`);
-      } else if (res.status === 429) {
-        setGenerateError('Hourly limit reached. Try again in an hour.');
-      } else if (res.status === 502) {
-        setGenerateError('Generation failed. Please try again.');
-      } else {
-        setGenerateError(pickNotesError('generate', res.status));
+        return;
       }
+      if (res.status === 404) {
+        setNotFound(true);
+        return;
+      }
+      if (res.status === 409) {
+        setGenerateError('Note changed elsewhere — refreshed.');
+        await loadNote({ silent: true });
+        setTimeout(() => setGenerateError(''), 3000);
+        return;
+      }
+      if (res.status === 422 && body?.error === 'nothing_to_do') {
+        setGenerateError('Nothing to generate yet.');
+        return;
+      }
+      if (res.status === 429) {
+        setGenerateError('Rate limit reached. Try again later.');
+        return;
+      }
+      if (res.status === 502) {
+        setGenerateError('Generation failed. Please try again.');
+        return;
+      }
+      setGenerateError(pickNotesError('generate', res.status, body?.error));
     } catch {
       setGenerateError(pickNotesError('generate', 0));
     } finally {
@@ -208,34 +354,61 @@ export default function NoteEditorPage() {
     }
   }
 
-  async function handleReviewFirst() {
-    if (prioritizing) return;
-    setPrioritizeError('');
-    setPrioritizing(true);
-    try {
-      const res = await fetch('/api/questions/prioritize', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ documentId: id, mode: 'queue-front' }),
-      });
-      if (!res.ok) {
-        if (res.status === 401 || res.status === 403) {
-          setPrioritizeError('Please refresh and sign in.');
-        } else {
-          setPrioritizeError("Couldn't queue this note. Try again.");
-        }
-        return;
-      }
-      setPrioritizeDone(true);
-    } catch {
-      setPrioritizeError("Couldn't queue this note. Try again.");
-    } finally {
-      setPrioritizing(false);
-    }
+  // ─────────────────────────────────────────────────────────────────────────
+  // Derived UI
+  // ─────────────────────────────────────────────────────────────────────────
+  const draftWords    = countWords(draft);
+  const staleBlocks   = blocks.filter((b) => b.is_stale === 1);
+  const hasDraftToSeal = draftWords >= NOTE_MIN_WORDS;
+  const hasStale      = staleBlocks.length > 0;
+
+  // Save indicator — single text + tone, near the title.
+  let saveIndicatorText = '';
+  let saveIndicatorTone = COLOR.pageMuted;
+  let saveIndicatorClickable = false;
+  if (saveError) {
+    saveIndicatorText = 'Save failed — retry';
+    saveIndicatorTone = COLOR.err;
+    saveIndicatorClickable = true;
+  } else if (saving || (dirty && !loading)) {
+    saveIndicatorText = 'Saving…';
+  } else if (lastSavedAt) {
+    saveIndicatorText = `Saved · ${formatClock(lastSavedAt)}`;
+    saveIndicatorTone = COLOR.saved;
   }
 
-  // ── Loading ────────────────────────────────────────────────────────────────
+  // Generate button — state-aware label + disabled.
+  const flushBlocked = dirty || saving || saveError;
+  let generateLabel;
+  let generateDisabled;
+  if (generating) {
+    generateLabel    = 'Generating…';
+    generateDisabled = true;
+  } else if (flushBlocked) {
+    generateLabel    = hasDraftToSeal || hasStale
+      ? 'Generate'
+      : 'Write a little more to generate questions';
+    generateDisabled = true;
+  } else if (hasDraftToSeal && !hasStale) {
+    generateLabel    = `Generate · ${draftWords} new word${draftWords === 1 ? '' : 's'}`;
+    generateDisabled = false;
+  } else if (!hasDraftToSeal && hasStale) {
+    const n = staleBlocks.length;
+    generateLabel    = `Refresh ${n} block${n === 1 ? '' : 's'} · old questions will be replaced`;
+    generateDisabled = false;
+  } else if (hasDraftToSeal && hasStale) {
+    // Mixed case — Chunk 6 turns this into progressive disclosure preview.
+    generateLabel    = 'Generate';
+    generateDisabled = false;
+  } else {
+    // Nothing to do.
+    generateLabel    = 'Write a little more to generate questions';
+    generateDisabled = true;
+  }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Loading / not-found / load-error
+  // ─────────────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div style={wrapperStyle}>
@@ -244,9 +417,6 @@ export default function NoteEditorPage() {
       </div>
     );
   }
-
-  // ── Not found ──────────────────────────────────────────────────────────────
-
   if (notFound) {
     return (
       <div style={wrapperStyle}>
@@ -254,258 +424,263 @@ export default function NoteEditorPage() {
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ffffff', marginBottom: 12 }}>
           Note not found
         </h1>
-        <Link
-          href="/notes"
-          style={{ color: '#60A5FA', fontSize: '0.9rem', textDecoration: 'none' }}
-        >
+        <Link href="/notes" style={{ color: '#60A5FA', fontSize: '0.9rem', textDecoration: 'none' }}>
           ← Back to Notes
         </Link>
       </div>
     );
   }
-
-  // ── Load error ─────────────────────────────────────────────────────────────
-
   if (loadError) {
     return (
       <div style={wrapperStyle}>
         <StarryBackground />
-        <p style={{ color: 'var(--color-forgot)', fontSize: '0.875rem', marginBottom: 12 }}>
-          {loadError}
-        </p>
-        <Link
-          href="/notes"
-          style={{ color: '#60A5FA', fontSize: '0.9rem', textDecoration: 'none' }}
-        >
+        <p style={{ color: COLOR.err, fontSize: '0.875rem', marginBottom: 12 }}>{loadError}</p>
+        <Link href="/notes" style={{ color: '#60A5FA', fontSize: '0.9rem', textDecoration: 'none' }}>
           ← Back to Notes
         </Link>
       </div>
     );
   }
 
-  // ── Editor ─────────────────────────────────────────────────────────────────
-
-  const draftWords = countWords(draft);
-  const combinedChars = content.length + draft.length;
-  // Brand-new notes have empty saved content. The textarea and the
-  // "Draft · YYYY-MM-DD" divider only make sense once at least one
-  // generate cycle has sealed something into content.
-  const hasSavedContent = content.trim() !== '';
-  const showCapWarning = combinedChars >= SOFT_WARN_THRESHOLD;
-  const isHardWarning = combinedChars >= HARD_WARN_THRESHOLD;
-
-  const generateDisabled =
-    !baseline || dirty || saving || generating || draftWords < NOTE_MIN_WORDS;
-
-  const prioritizeDisabled =
-    !baseline || dirty || saving || generating || prioritizing || questionCount === 0;
-
-  // Single consolidated footer hint. At most one hint visible at any time, by
-  // priority — the highest-priority blocked action wins, not every disabled
-  // button. Mid-flight actions (saving/generating/prioritizing) suppress all
-  // hints; the active button label conveys the state.
-  //
-  // 1. dirty + has words           → save first so the next generate is clean
-  // 2. draft below NOTE_MIN_WORDS  → keep writing (count is in the hint, so the
-  //                                  standalone word counter is suppressed too)
-  // 3. generate enabled, no Q's    → nudge toward generate so review can act
-  const footerHint = (() => {
-    if (!baseline) return '';
-    if (saving || generating || prioritizing) return '';
-    if (dirty && draftWords > 0) return 'Save before generating.';
-    if (draftWords < NOTE_MIN_WORDS) return `Draft needs ${NOTE_MIN_WORDS - draftWords} more words.`;
-    if (questionCount === 0) return 'Generate questions first to prioritize them.';
-    return '';
-  })();
-
+  // ─────────────────────────────────────────────────────────────────────────
+  // Editor
+  // ─────────────────────────────────────────────────────────────────────────
   return (
     <div style={wrapperStyle}>
       <StarryBackground />
 
+      <style suppressHydrationWarning>{`
+        @media (max-width: 640px) {
+          .v5-generate-footer {
+            position: fixed;
+            bottom: env(safe-area-inset-bottom, 0px);
+            left: 0;
+            right: 0;
+            padding: 12px 16px;
+            background: rgba(14, 14, 24, 0.96);
+            backdrop-filter: saturate(180%) blur(10px);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            z-index: 10;
+          }
+        }
+      `}</style>
+
+      {/* Back link */}
       <Link
         href="/notes"
         style={{
-          color:          '#8a8880',
+          color:          COLOR.pageMuted,
           fontSize:       '0.8rem',
           textDecoration: 'none',
-          marginBottom:   16,
+          marginBottom:   12,
           display:        'inline-block',
         }}
       >
         ← Notes
       </Link>
 
-      {/* Title */}
-      <input
-        ref={titleInputRef}
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        maxLength={MAX_TITLE_CHARS}
-        placeholder="Give this note a title…"
+      {/* Title + save indicator */}
+      <div
         style={{
-          ...fieldStyle,
-          fontSize:     '1.2rem',
-          fontWeight:   600,
+          display:      'flex',
+          alignItems:   'center',
+          gap:          12,
           marginBottom: 18,
+          flexWrap:     'wrap',
         }}
-      />
+      >
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Give this note a title…"
+          style={titleFieldStyle}
+        />
+        <button
+          type="button"
+          onClick={saveIndicatorClickable ? retrySave : undefined}
+          disabled={!saveIndicatorClickable}
+          style={{
+            fontSize:    '0.78rem',
+            color:       saveIndicatorTone,
+            background:  'transparent',
+            border:      'none',
+            padding:     0,
+            cursor:      saveIndicatorClickable ? 'pointer' : 'default',
+            minHeight:   24,
+            whiteSpace:  'nowrap',
+          }}
+          aria-live="polite"
+        >
+          {saveIndicatorText}
+        </button>
+      </div>
 
-      {hasSavedContent && (
-        <>
-          {/* Focus-banner for saved-content edits */}
-          {contentFocused && (
-            <div
-              style={{
-                background:   'rgba(96,165,250,0.08)',
-                border:       '1px solid rgba(96,165,250,0.25)',
-                color:        '#cbd5e1',
-                fontSize:     '0.78rem',
-                padding:      '8px 12px',
-                borderRadius: '8px',
-                marginBottom: 8,
-              }}
-            >
-              Editing previous content. Questions already generated from this section won&apos;t change.
-            </div>
-          )}
-
-          {/* Saved content */}
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            onFocus={() => setContentFocused(true)}
-            onBlur={() => setContentFocused(false)}
-            rows={10}
-            placeholder=""
-            style={{ ...fieldStyle, marginBottom: 18 }}
-          />
-
-          {/* Draft boundary marker — visual divider with today's date */}
-          <div
-            aria-hidden="true"
-            style={{
-              display:       'flex',
-              alignItems:    'center',
-              gap:           10,
-              marginBottom:  10,
-              color:         '#8a8880',
-              fontSize:      '0.72rem',
-              letterSpacing: '0.04em',
-            }}
-          >
-            <span style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.10)' }} />
-            <span>Draft · {todayYMD()}</span>
-          </div>
-        </>
+      {/* 409 banner (Chunk 4 minimum; Chunk 5 replaces with a recovery panel) */}
+      {conflictBanner && (
+        <div
+          style={{
+            background:   'rgba(96,165,250,0.10)',
+            border:       '1px solid rgba(96,165,250,0.30)',
+            color:        '#cbd5e1',
+            fontSize:     '0.82rem',
+            padding:      '10px 14px',
+            borderRadius: 10,
+            marginBottom: 16,
+          }}
+        >
+          {conflictBanner}
+        </div>
       )}
 
-      {/* Draft */}
+      {/* History — sealed blocks (read-only this chunk) */}
+      {blocks.map((b) => (
+        <div key={b.id} style={{ marginBottom: 18 }}>
+          <div
+            style={{
+              display:      'flex',
+              alignItems:   'center',
+              justifyContent: 'space-between',
+              gap:          12,
+              marginBottom: 6,
+              paddingLeft:  4,
+            }}
+          >
+            <span style={{ fontSize: '0.78rem', color: COLOR.pageMuted, letterSpacing: '0.02em' }}>
+              {formatBlockDate(b.sealed_at)}
+            </span>
+            {b.is_stale === 1 && (
+              <span
+                style={{
+                  display:      'inline-flex',
+                  alignItems:   'center',
+                  gap:          6,
+                  fontSize:     '0.72rem',
+                  color:        COLOR.badgeFg,
+                  background:   COLOR.badgeBg,
+                  border:       `1px solid ${COLOR.badgeBorder}`,
+                  borderRadius: 999,
+                  padding:      '2px 10px',
+                  whiteSpace:   'nowrap',
+                }}
+                title="This block was edited since its questions were generated. Generate again to refresh."
+              >
+                <span aria-hidden="true">●</span>
+                Needs refresh
+              </span>
+            )}
+          </div>
+          <div
+            style={{
+              background:   COLOR.cardBg,
+              border:       COLOR.cardBorder,
+              borderRadius: 12,
+              padding:      '14px 16px',
+              color:        COLOR.textDim,
+              fontSize:     '0.9375rem',
+              lineHeight:   1.65,
+              whiteSpace:   'pre-wrap',
+              wordBreak:    'break-word',
+            }}
+          >
+            {b.content}
+          </div>
+        </div>
+      ))}
+
+      {/* Draft divider — only shown when there's history above */}
+      {blocks.length > 0 && (
+        <div
+          aria-hidden="true"
+          style={{
+            display:       'flex',
+            alignItems:    'center',
+            gap:           10,
+            margin:        '24px 0 10px',
+            color:         COLOR.pageMuted,
+            fontSize:      '0.72rem',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}
+        >
+          <span style={{ flex: 1, height: 1, background: COLOR.divider }} />
+          <span>Draft</span>
+          <span style={{ flex: 1, height: 1, background: COLOR.divider }} />
+        </div>
+      )}
+
+      {/* Draft — the capture layer */}
       <textarea
+        ref={draftRef}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         rows={12}
-        placeholder="Start typing your notes here..."
-        style={{ ...fieldStyle, marginBottom: 12 }}
+        placeholder="Jot the ideas you want to remember…"
+        style={draftFieldStyle}
       />
 
-      {/* Footer */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          {draftWords >= NOTE_MIN_WORDS && (
-            <span style={{ fontSize: '0.78rem', color: 'var(--color-muted)' }}>
-              {draftWords} word{draftWords === 1 ? '' : 's'}
-            </span>
-          )}
-          {showCapWarning && (
-            <span style={{
-              fontSize: '0.78rem',
-              color:    isHardWarning ? 'var(--color-forgot)' : 'var(--color-hard)',
-            }}>
-              {combinedChars} / {MAX_COMBINED_CHARS} chars{isHardWarning ? ' · approaching cap' : ''}
-            </span>
-          )}
-        </div>
+      {/* Word count + soft guidance + errors */}
+      <div
+        style={{
+          marginTop:    8,
+          display:      'flex',
+          alignItems:   'center',
+          justifyContent: 'space-between',
+          gap:          12,
+          flexWrap:     'wrap',
+          minHeight:    20,
+        }}
+      >
+        <span style={{ fontSize: '0.78rem', color: COLOR.pageMuted }}>
+          {draftWords} word{draftWords === 1 ? '' : 's'}
+        </span>
+        {draftWords > LONG_DRAFT_THRESHOLD_WORDS && (
+          <span style={{ fontSize: '0.78rem', color: COLOR.pageMuted, fontStyle: 'italic' }}>
+            Smaller batches often produce sharper questions.
+          </span>
+        )}
+      </div>
+      {(saveError && !saveIndicatorClickable) ? null : null}
+      {generateError && (
+        <p style={{ fontSize: '0.82rem', color: COLOR.err, marginTop: 10 }}>
+          {generateError}
+        </p>
+      )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {footerHint && (
-            <span style={{
-              fontSize:  '0.78rem',
-              color:     'var(--color-muted)',
-              maxWidth:  220,
-              textAlign: 'right',
-            }}>
-              {footerHint}
-            </span>
-          )}
-          {savedFlash && (
-            <span style={{ fontSize: '0.78rem', color: 'var(--color-easy)' }}>Saved ✓</span>
-          )}
-          {saveError && (
-            <span style={{ fontSize: '0.78rem', color: 'var(--color-forgot)' }}>{saveError}</span>
-          )}
-          {generateFlash && (
-            <span style={{ fontSize: '0.78rem', color: 'var(--color-easy)' }}>{generateFlash}</span>
-          )}
-          {generateError && (
-            <span style={{ fontSize: '0.78rem', color: 'var(--color-forgot)' }}>{generateError}</span>
-          )}
-          {prioritizeError && (
-            <span style={{ fontSize: '0.78rem', color: 'var(--color-forgot)' }}>{prioritizeError}</span>
-          )}
-          <button
-            onClick={handleSave}
-            disabled={!dirty || saving}
-            style={{
-              padding:      '8px 18px',
-              borderRadius: '8px',
-              fontWeight:   600,
-              fontSize:     '0.875rem',
-              background:   dirty && !saving ? 'rgba(124,58,237,0.22)' : 'rgba(255,255,255,0.06)',
-              border:       dirty && !saving ? '1px solid rgba(124,58,237,0.5)' : '1px solid rgba(255,255,255,0.10)',
-              color:        dirty && !saving ? '#ffffff' : 'var(--color-muted)',
-              cursor:       !dirty || saving ? 'not-allowed' : 'pointer',
-              opacity:      saving ? 0.6 : 1,
-              transition:   'opacity 0.15s ease',
-            }}
-          >
-            {saving ? 'Saving…' : 'Save'}
-          </button>
-          <button
-            onClick={handleReviewFirst}
-            disabled={prioritizeDisabled}
-            style={{
-              padding:      '8px 14px',
-              borderRadius: '8px',
-              fontWeight:   600,
-              fontSize:     '0.875rem',
-              background:   'rgba(124,58,237,0.15)',
-              border:       '1px solid rgba(124,58,237,0.3)',
-              color:        prioritizeDone ? 'var(--color-easy)' : '#ffffff',
-              cursor:       prioritizing ? 'progress' : prioritizeDisabled ? 'not-allowed' : 'pointer',
-              opacity:      prioritizeDisabled && !prioritizing ? 0.5 : 1,
-              transition:   'opacity 0.15s ease',
-            }}
-          >
-            {prioritizing ? '…' : prioritizeDone ? 'Queued ✓' : 'Review this first'}
-          </button>
-          <button
-            onClick={handleGenerate}
-            disabled={generateDisabled}
-            style={{
-              padding:      '8px 18px',
-              borderRadius: '8px',
-              fontWeight:   600,
-              fontSize:     '0.875rem',
-              background:   generating || !generateDisabled ? 'rgba(124,58,237,0.22)' : 'rgba(255,255,255,0.06)',
-              border:       generating || !generateDisabled ? '1px solid rgba(124,58,237,0.5)' : '1px solid rgba(255,255,255,0.10)',
-              color:        generating || !generateDisabled ? '#ffffff' : 'var(--color-muted)',
-              cursor:       generating ? 'progress' : generateDisabled ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {generating ? generatingMessage : 'Generate'}
-          </button>
-        </div>
+      {/* Generate — sticky on mobile, inline on desktop */}
+      <div
+        className="v5-generate-footer"
+        style={{
+          marginTop:  24,
+          display:    'flex',
+          justifyContent: 'flex-end',
+        }}
+      >
+        <button
+          onClick={handleGenerate}
+          disabled={generateDisabled}
+          style={{
+            padding:      '12px 22px',
+            borderRadius: 10,
+            fontWeight:   600,
+            fontSize:     '0.9rem',
+            background:   generateDisabled
+              ? 'rgba(255,255,255,0.04)'
+              : 'rgba(124,58,237,0.22)',
+            border:       generateDisabled
+              ? '1px solid rgba(255,255,255,0.10)'
+              : '1px solid rgba(124,58,237,0.55)',
+            color:        generateDisabled ? COLOR.pageMuted : '#ffffff',
+            cursor:       generateDisabled ? 'not-allowed' : 'pointer',
+            boxShadow:    generateDisabled
+              ? 'none'
+              : '0 0 16px rgba(124,58,237,0.30), 0 0 32px rgba(124,58,237,0.10)',
+            transition:   'opacity 0.15s ease',
+            minWidth:     160,
+          }}
+        >
+          {generateLabel}
+        </button>
       </div>
     </div>
   );
