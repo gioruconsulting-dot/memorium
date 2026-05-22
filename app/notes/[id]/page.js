@@ -74,18 +74,24 @@ const wrapperStyle = {
 };
 
 const titleFieldStyle = {
-  flex:         1,
-  minWidth:     0,
-  padding:      '8px 12px',
-  borderRadius: 10,
-  border:       COLOR.fieldBorder,
-  background:   '#0f0f22',
-  color:        '#ffffff',
-  fontSize:     '1.15rem',
-  fontWeight:   600,
-  lineHeight:   1.3,
-  fontFamily:   'inherit',
-  outline:      'none',
+  flex:            1,
+  minWidth:        0,
+  padding:         '8px 12px',
+  borderRadius:    10,
+  border:          COLOR.fieldBorder,
+  background:      '#0f0f22',
+  color:           '#ffffff',
+  fontSize:        '1.15rem',
+  fontWeight:      600,
+  lineHeight:      1.3,
+  fontFamily:      'inherit',
+  outline:         'none',
+  // Explicit selectability + horizontal-pan touch action so iOS Safari
+  // treats drags inside the field as cursor moves / text selection (not
+  // page scrolls), letting the user reach truncated text in long titles.
+  WebkitUserSelect: 'text',
+  userSelect:      'text',
+  touchAction:     'pan-x',
 };
 
 const draftFieldStyle = {
@@ -903,7 +909,7 @@ export default function NoteEditorPage() {
           href="/notes"
           style={{
             color:          COLOR.pageMuted,
-            fontSize:       '0.8rem',
+            fontSize:       '1rem',
             textDecoration: 'none',
             marginBottom:   8,
             display:        'inline-block',
@@ -932,7 +938,7 @@ export default function NoteEditorPage() {
             onClick={saveIndicatorClickable ? retrySave : undefined}
             disabled={!saveIndicatorClickable}
             style={{
-              fontSize:    '1.17rem', // 50% bigger than the prior 0.78rem
+              fontSize:    '0.82rem',
               color:       saveIndicatorTone,
               background:  'transparent',
               border:      'none',
