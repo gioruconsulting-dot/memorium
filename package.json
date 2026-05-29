@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "db:migrate": "node --env-file=.env.local scripts/migrate.js",
@@ -15,13 +15,15 @@
   "dependencies": {
     "@clerk/nextjs": "^7.0.7",
     "@libsql/client": "^0.17.2",
+    "@serwist/next": "^9.5.11",
     "github-slugger": "^2.0.0",
     "next": "~16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-markdown": "^10.1.0",
     "rehype-slug": "^6.0.0",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "serwist": "^9.5.11"
   },
   "devDependencies": {
     "@clerk/backend": "^3.4.10",
