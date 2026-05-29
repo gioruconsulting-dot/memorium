@@ -2,6 +2,7 @@ import { DM_Sans, DM_Serif_Display } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
+import OfflineCacheManager from "@/components/OfflineCacheManager";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -38,6 +39,7 @@ export default function RootLayout({ children }) {
           className="min-h-dvh"
           style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}
         >
+          <OfflineCacheManager />
           <Navigation />
           <main className="max-w-2xl mx-auto px-4 pb-24 md:pt-20">
             {children}
