@@ -168,3 +168,29 @@ The Apr 27 incident was not caused by a single bad decision but by a stack of sm
 - **Logging the userId on every invocation is observability debt; logging it on rare events is observability investment.** Volume × sensitivity is the real cost function for logs, not the presence of an identifier alone. Scrutinize `console.log` calls that fire on every request; tolerate `console.log` calls that fire on rare diagnostic-worthy events.
 
 - **"Diagnose before propose" applies to security deploys, not just incidents.** During the Next.js bump, a sign-out RSC error surfaced in dev logs. The instinct under pressure would have been to assume the patch caused the error and roll back. The right move was to characterize the error (RSC fetch race during sign-out, fallback navigation succeeds, sign-out actually completed correctly), confirm it was benign, and ship the patch. A strange log line during a security deploy is not automatically a regression. Characterize first; decide second.
+
+### From the Notes v5 ship (May 22, 2026)
+
+- "Stale documentation can be load-bearing. The masterplan named one user as 'at-risk' and that ID got hardcoded into the snapshot script. The real at-risk user had changed. When a script hardcodes an identifier that originated in documentation, treat the hardcode as a stale-doc risk surface, not an implementation detail. Re-verify against current truth before running."
+
+- "Schema column audits before any restore. The first draft of the restore script missed 5 columns on documents, 2 on questions, 1 on session_answers, including interval_days. The masterplan was correct about WHICH tables to restore but not exhaustive about WHICH columns. Reading `PRAGMA table_info()` on every restored table before writing the INSERT statements is non-optional. Cost: 1 minute. Cost of skipping: silent data degradation that count-based verification can't catch."
+
+- "The two-clock rule catches the things the database can't see. Counts matched the contract. Restore script reported success. Only when we asked 'who else is in this database right now?' did the smoke-test note appear in the anomaly. Only when we asked the actual user 'can you see your note?' did we get end-of-loop confirmation. Database verification is necessary but not sufficient."
+
+- "The Apr 27 controls actually held in practice. No improvisation. Multiple stop conditions used. Three copies of the snapshot. PITR confirmed but unneeded. Expected-delta manifest written before execution and checked after. Two-clock verification. The pre-mortem culture paid for itself in a single session — a Tier 4 destructive operation on a Sacred parent table, completed with zero data loss and no surprises."
+
+---
+
+## Working-relationship learnings
+
+These are not technical lessons. They are about HOW the chat assistant and operator work together when a session involves real risk.
+
+- "One step at a time, with output verified before the next step. Most catches in a high-stakes session come from this single discipline. Chaining steps is what produces 'where did this go wrong' investigations. Refusing to chain produces 30-second corrections instead."
+
+- "Plain-language risk statements before destructive steps. 'If this goes wrong, the user's notes vanish; we have 3 recovery paths' is something the operator can evaluate and push back on. 'This is a Tier 4 schema contract operation' is jargon that requires trust without comprehension. Always render risk in terms the operator can independently judge."
+
+- "Copy-pasteable commands, no improvisation. The chat assistant gives commands the operator pastes verbatim. This removes an entire category of 'I think this is what they meant' errors. If the assistant ever finds itself writing 'now do something like...', that's a signal to slow down and write the actual command."
+
+- "Meta-questions from the operator are the most valuable signal. 'Have you made assumptions about data we might miss?' caught the schema audit that prevented silent column loss. The assistant should welcome and reinforce these — they are the operator's most powerful contribution to safety, more useful than any individual technical check."
+
+- "Stops are cheap; investigations after assumptions are expensive. When a number was off by 1 (documents_note=2 vs expected 1), stopping immediately took 90 seconds to resolve. Assuming it was fine and moving on could have produced a confused incident later. Default to STOP on any deviation, however small, however plausibly explained."
