@@ -8,7 +8,7 @@
 // Run: node scripts/test-sync-replay.mjs    (exits non-zero on first failure)
 
 import assert from "node:assert/strict";
-import { existsSync, rmSync } from "node:fs";
+import { existsSync, rmSync, readFileSync } from "node:fs";
 import { createClient } from "@libsql/client";
 import { SCHEMA_SQL } from "../lib/db/schema.js";
 import { replayGradeEvents } from "../lib/offline/sync-replay.js";
@@ -17,11 +17,22 @@ import { isWellFormedEvent } from "../lib/offline/validate-event.js";
 import { midnightLondonPlus } from "../lib/sr/calc.js";
 
 // ---------------------------------------------------------------------------
+// Default: throwaway LOCAL SQLite file. Opt-in: set SYNC_TEST_DB_URL to a
+// (throwaway) remote branch — token then read from /tmp/spk.tok. Used by the
+// Phase-C verification gate to run this same matrix against the real driver.
 const DB_PATH = "/tmp/repetita-sync-replay-test.db";
-for (const f of [DB_PATH, `${DB_PATH}-wal`, `${DB_PATH}-shm`]) {
-  if (existsSync(f)) rmSync(f);
+const BRANCH_URL = process.env.SYNC_TEST_DB_URL || null;
+let client;
+if (BRANCH_URL) {
+  const authToken = readFileSync("/tmp/spk.tok", "utf8").trim();
+  client = createClient({ url: BRANCH_URL, authToken });
+  console.log("RUNNING AGAINST BRANCH:", BRANCH_URL);
+} else {
+  for (const f of [DB_PATH, `${DB_PATH}-wal`, `${DB_PATH}-shm`]) {
+    if (existsSync(f)) rmSync(f);
+  }
+  client = createClient({ url: `file:${DB_PATH}` });
 }
-const client = createClient({ url: `file:${DB_PATH}` });
 
 const USER = "user_test";
 const OTHER_USER = "user_other";
@@ -94,8 +105,12 @@ async function main() {
   } catch {
     fkEnforced = true;
   }
-  console.log(`FK enforcement on local harness: ${fkEnforced ? "ON" : "OFF"}`);
-  assert.equal(fkEnforced, true, "FK enforcement must be ON for these tests to be meaningful");
+  console.log(`FK enforcement on ${BRANCH_URL ? "branch" : "local"} harness: ${fkEnforced ? "ON" : "OFF"}`);
+  if (!BRANCH_URL) {
+    assert.equal(fkEnforced, true, "FK enforcement must be ON for the local harness to be meaningful");
+  } else if (!fkEnforced) {
+    console.log("  NOTE: remote branch did not enforce FK over the pooled connection. No correctness check depends on FK *throwing* — group 6 still passes via existing-parent inserts, and the zero-orphan invariants (group 12) are checked explicitly.");
+  }
 
   // --- seed users + document ---
   for (const u of [USER, OTHER_USER]) {
@@ -363,7 +378,88 @@ async function main() {
   });
 
   // =========================================================================
-  group("10 — DATA-SANCTITY invariants after the full matrix: zero orphans");
+  group("10 — conflict/duplicate breadth on the rows=0 path (vary ONE immutable field at a time)");
+
+  // b1: user_attempt differs ONLY by a normalization canonicalize.js erases (CRLF vs LF).
+  await seedQuestion("q_b1", { streak: 0, interval: 1 });
+  await replayGradeEvents(client, USER, [
+    mkEvent({ eventId: "e_b1", sessionId: "sess_b1", questionId: "q_b1", grade: "easy", userAttempt: "L1\nL2" }),
+  ]);
+  const g_b1 = await replayGradeEvents(client, USER, [
+    mkEvent({ eventId: "e_b1", sessionId: "sess_b1", questionId: "q_b1", grade: "easy", userAttempt: "L1\r\nL2" }),
+  ]);
+  console.log("  b1:", JSON.stringify(g_b1));
+  await check("b1: user_attempt differing only by CRLF vs LF -> duplicate_same_payload (compare runs on canonicalized value, not raw)", async () => {
+    assert.equal(g_b1[0].status, "duplicate_same_payload");
+    const q = await getQ("q_b1");
+    assert.equal(Number(q.current_interval_days), 2); // unchanged from first apply
+    assert.equal(Number(q.review_count), 1);
+  });
+
+  // b2: user_attempt differs in actual CONTENT -> conflict, nothing mutated.
+  await seedQuestion("q_b2", { streak: 0, interval: 1 });
+  await replayGradeEvents(client, USER, [
+    mkEvent({ eventId: "e_b2", sessionId: "sess_b2", questionId: "q_b2", grade: "easy", userAttempt: "answer one" }),
+  ]);
+  const q_b2_before = await getQ("q_b2");
+  const a_b2_before = await getAns("e_b2");
+  const g_b2 = await replayGradeEvents(client, USER, [
+    mkEvent({ eventId: "e_b2", sessionId: "sess_b2", questionId: "q_b2", grade: "easy", userAttempt: "answer two" }),
+  ]);
+  console.log("  b2:", JSON.stringify(g_b2));
+  await check("b2: user_attempt content differs -> conflict; questions + stored answer unchanged", async () => {
+    assert.equal(g_b2[0].status, "error");
+    assert.equal(g_b2[0].reason, "conflict");
+    const q = await getQ("q_b2");
+    assert.equal(Number(q.current_interval_days), Number(q_b2_before.current_interval_days));
+    assert.equal(Number(q.review_count), Number(q_b2_before.review_count));
+    assert.equal((await getAns("e_b2")).user_attempt, a_b2_before.user_attempt); // still canonicalize("answer one")
+  });
+
+  // b3: question_id differs, same eventId -> conflict, no mutation.
+  await seedQuestion("q_b3a", { streak: 0, interval: 1 });
+  await seedQuestion("q_b3b", { streak: 0, interval: 1 });
+  await replayGradeEvents(client, USER, [
+    mkEvent({ eventId: "e_b3", sessionId: "sess_b3", questionId: "q_b3a", grade: "easy" }),
+  ]);
+  const q_b3a_before = await getQ("q_b3a");
+  const g_b3 = await replayGradeEvents(client, USER, [
+    mkEvent({ eventId: "e_b3", sessionId: "sess_b3", questionId: "q_b3b", grade: "easy" }),
+  ]);
+  console.log("  b3:", JSON.stringify(g_b3));
+  await check("b3: question_id differs on same eventId -> conflict; neither question mutated, stored answer keeps original question_id", async () => {
+    assert.equal(g_b3[0].status, "error");
+    assert.equal(g_b3[0].reason, "conflict");
+    const qa = await getQ("q_b3a");
+    assert.equal(Number(qa.current_interval_days), Number(q_b3a_before.current_interval_days));
+    assert.equal(Number(qa.review_count), Number(q_b3a_before.review_count));
+    assert.equal(Number((await getQ("q_b3b")).review_count), 0); // never touched
+    assert.equal((await getAns("e_b3")).question_id, "q_b3a");   // stored row unchanged
+  });
+
+  // =========================================================================
+  group("11 — studiedAt-PRIMARY ordering: studiedAt wins over clientSeq when they disagree");
+  await seedQuestion("q_g", { streak: 3, interval: 7 });
+  const T_early = STUDIED - 500;
+  const T_late = STUDIED - 100; // T_late > T_early
+  // A: easy @ T_early, clientSeq 2.  B: forgot @ T_late, clientSeq 1.  Fed B-first (reversed).
+  // studiedAt-primary order = A then B -> final state is forgot's (absolute overwrite).
+  const g_g = await replayGradeEvents(client, USER, [
+    mkEvent({ eventId: "e_gB", sessionId: "sess_g", questionId: "q_g", grade: "forgot", studiedAt: T_late, clientSeq: 1 }),
+    mkEvent({ eventId: "e_gA", sessionId: "sess_g", questionId: "q_g", grade: "easy", studiedAt: T_early, clientSeq: 2 }),
+  ]);
+  console.log("  g:", JSON.stringify(g_g));
+  await check("g: studiedAt-primary order (early easy, then late forgot) -> final = forgot's state, not easy's", async () => {
+    assert.deepEqual(g_g.map((r) => r.status).sort(), ["applied", "applied"]);
+    const q = await getQ("q_g");
+    // A(easy @ early) runs first, then B(forgot @ late) overwrites: streak->0, interval->1, incorrect+1.
+    assert.equal(Number(q.correct_streak), 0);
+    assert.equal(Number(q.current_interval_days), 1);
+    assert.ok(Number(q.incorrect_count) >= 1);
+  });
+
+  // =========================================================================
+  group("12 — DATA-SANCTITY invariants after the full matrix: zero orphans");
   await check("zero session_answers orphaned from questions", async () => {
     assert.equal(await count(`SELECT COUNT(*) c FROM session_answers sa LEFT JOIN questions q ON q.id = sa.question_id WHERE q.id IS NULL`), 0);
   });
