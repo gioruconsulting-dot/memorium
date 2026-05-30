@@ -2,8 +2,13 @@
 
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import CelebrationScene from '@/components/CelebrationScene';
 import StarryBackground from '@/components/StarryBackground';
+import { useAuth } from '@clerk/nextjs';
+import { useOnlineStatus } from '@/lib/offline/useOnlineStatus';
+import { mintEventId, recordReveal, commitGrade, getPendingQuestionIds } from '@/lib/offline/outbox';
+import { readDueSet } from '@/lib/offline/db';
 
 // ── title shortener ───────────────────────────────────────────────────────────
 // Keeps titles short enough to sit on one overline alongside the question type.
@@ -481,6 +486,17 @@ export default function StudyView() {
   const insightDataRef = useRef({ recovered: [], intervalGrowthCount: 0, intervalGrowthDocTitle: null, masteryGained: {}, totalAnswered: 0 });
   const documentStatsRef = useRef({});
 
+  // Offline capture wiring (sub-step 5, chunk 1). online drives the dual-path grade
+  // routing; sessionStartedAt is captured client-side once per session (offline
+  // sessions have no server start row); currentEventIdRef holds the reveal-minted
+  // eventId for the card currently on screen (one user action -> one id).
+  const online = useOnlineStatus();
+  // Same source the cache WRITER (OfflineCacheManager) uses, so the dueCache key
+  // matches. Clerk's useAuth reads the cached client session — available offline.
+  const { userId } = useAuth();
+  const [sessionStartedAt, setSessionStartedAt] = useState(null);
+  const currentEventIdRef = useRef(null);
+
   // On mount: handle FTUE starter entry (welcome CTA / post-celebration
   // continue). Everything else — including ?from_note=<id> from the Notes
   // Study CTAs — falls through to the picker, where the user chooses
@@ -545,6 +561,8 @@ export default function StudyView() {
     clearTimeout(msgTimerRef.current);
     pendingAdvanceRef.current = null;
     try {
+      if (online) {
+      // ===== ONLINE: existing server session start (unchanged) =====
       const url = fromNoteId
         ? `/api/sessions/start?from_note=${encodeURIComponent(fromNoteId)}`
         : '/api/sessions/start';
@@ -562,6 +580,8 @@ export default function StudyView() {
       }
 
       setSessionId(data.sessionId);
+      setSessionStartedAt(Math.floor(Date.now() / 1000)); // stable for the whole session
+      currentEventIdRef.current = null;
       setQuestions(data.questions);
       setIndex(0);
       setRevealed(false);
@@ -569,10 +589,65 @@ export default function StudyView() {
       insightDataRef.current = { recovered: [], intervalGrowthCount: 0, intervalGrowthDocTitle: null, masteryGained: {}, totalAnswered: 0 };
       documentStatsRef.current = data.documentStats || {};
       setPhase('studying');
+      } else {
+        // ===== OFFLINE: build the session from the cached due set (sub-step 5, chunk 2) =====
+        // No network. Read the per-user dueCache, drop already-queued questions, slice
+        // by the picker limit, mint a client sessionId. Cached order is used as-is —
+        // the server owns scheduling and we do NOT reimplement it here.
+        if (!userId) {
+          setErrorMsg('Not signed in');
+          setPhase('error');
+          return;
+        }
+        const cached = await readDueSet(userId);
+        const cachedQuestions = cached?.questions || [];
+        const pending = new Set(await getPendingQuestionIds());
+        const available = cachedQuestions.filter((q) => !pending.has(q.id));
+        const selected = limit == null ? available : available.slice(0, limit); // Heroic = all remaining
+
+        if (selected.length === 0) {
+          // Interim minimal empty state. Polished offline empty UX is a later chunk. [FLAGGED]
+          setPhase('offline-empty');
+          return;
+        }
+
+        setSessionId(crypto.randomUUID()); // client-minted; server creates the row at sync
+        setSessionStartedAt(Math.floor(Date.now() / 1000));
+        currentEventIdRef.current = null;
+        setQuestions(selected);
+        setIndex(0);
+        setRevealed(false);
+        setUserAttempt('');
+        insightDataRef.current = { recovered: [], intervalGrowthCount: 0, intervalGrowthDocTitle: null, masteryGained: {}, totalAnswered: 0 };
+        documentStatsRef.current = cached?.documentStats || {};
+        setPhase('studying');
+      }
     } catch (err) {
       setErrorMsg(err.message);
       setPhase('error');
     }
+  }
+
+  // Reveal seam: always (online or offline) mint a stable eventId and record the
+  // reveal into card_attempts BEFORE showing the answer, so the grade event can
+  // reuse the same id. recordReveal is idempotent on eventId.
+  async function handleReveal() {
+    const question = questions[index];
+    const eventId = mintEventId();
+    currentEventIdRef.current = eventId;
+    try {
+      await recordReveal({
+        eventId,
+        sessionId,
+        questionId: question.id,
+        sessionStartedAt,
+        questionsShown: questions.length,
+      });
+    } catch (err) {
+      // Recording the reveal must never block studying — log and reveal anyway.
+      console.warn('[offline] recordReveal failed:', err);
+    }
+    setRevealed(true);
   }
 
   async function handleGrade(grade) {
@@ -591,6 +666,8 @@ export default function StudyView() {
     recentGradesRef.current = newRecentGrades;
 
     try {
+      if (online) {
+      // ===== ONLINE PATH (frozen B1) — unchanged =====
       const res = await fetch('/api/questions/grade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -658,6 +735,7 @@ export default function StudyView() {
           setShowDetail(false);
           setUserAttempt('');
           setRetireConfirm(false);
+          currentEventIdRef.current = null;
           setFading(false);
         };
         pendingAdvanceRef.current = doAdvance;
@@ -673,7 +751,46 @@ export default function StudyView() {
         setShowDetail(false);
         setUserAttempt('');
         setRetireConfirm(false);
+        currentEventIdRef.current = null;
         setFading(false);
+      }
+      } else {
+        // ===== OFFLINE PATH (sub-step 5, chunk 1) — no network =====
+        // Queue the raw grade (commitGrade canonicalizes userAttempt internally),
+        // then advance the UI locally. No /api/sessions/complete, no fetch.
+        await commitGrade({
+          eventId: currentEventIdRef.current,
+          sessionId,
+          questionId: question.id,
+          grade,
+          userAttempt,
+          studiedAt: Math.floor(Date.now() / 1000),
+          sessionStartedAt,
+          questionsShown: questions.length,
+        });
+
+        setForgotCount(newForgotCount);
+        setGradeHistory((prev) => [...prev, { question, grade }]);
+
+        setFading(true);
+        await new Promise((r) => setTimeout(r, 200));
+
+        if (isLast || earlyEnd) {
+          // Offline end-of-session UX (the completion screen + offline-session
+          // sourcing) is a LATER chunk. Do NOT call /api/sessions/complete and do
+          // NOT advance past the last card — the grade is safely queued; the loop
+          // stops here for now. [FLAGGED — interim behaviour, see report.]
+          currentEventIdRef.current = null;
+          setFading(false);
+        } else {
+          setIndex((i) => i + 1);
+          setRevealed(false);
+          setShowDetail(false);
+          setUserAttempt('');
+          setRetireConfirm(false);
+          currentEventIdRef.current = null;
+          setFading(false);
+        }
       }
     } catch (err) {
       setErrorMsg(err.message);
@@ -798,6 +915,29 @@ export default function StudyView() {
           >
             Upload More Content
           </a>
+        </div>
+      </div>
+    );
+  }
+
+  // Interim offline empty-cache state (sub-step 5, chunk 2). Minimal by design —
+  // the polished offline empty/celebration UX lands in a later chunk. [FLAGGED]
+  if (phase === 'offline-empty') {
+    return (
+      <div className="min-h-dvh flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <div className="text-4xl mb-4">📡</div>
+          <h1 className="text-xl font-semibold text-[#EEFF99] mb-2">Nothing saved to study right now</h1>
+          <p className="mb-6" style={{ color: 'var(--color-muted)' }}>
+            Your saved set is empty or already studied. Reconnect to refresh it.
+          </p>
+          <Link
+            href="/"
+            className="inline-block px-6 py-3 rounded-lg font-medium"
+            style={{ background: 'var(--color-foreground)', color: 'var(--color-background)' }}
+          >
+            Back to Home
+          </Link>
         </div>
       </div>
     );
@@ -1272,7 +1412,7 @@ export default function StudyView() {
               }}
             />
             <button
-              onClick={() => setRevealed(true)}
+              onClick={handleReveal}
               disabled={!canReveal}
               className="w-full py-4 rounded-xl font-medium text-base disabled:opacity-40 disabled:cursor-not-allowed"
               style={{
