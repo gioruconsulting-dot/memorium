@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import OfflineCacheManager from "@/components/OfflineCacheManager";
+import OfflineFlushManager from "@/components/OfflineFlushManager";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({ children }) {
           className="min-h-dvh"
           style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}
         >
+          <OfflineFlushManager />
           <OfflineCacheManager />
           <Navigation />
           <main className="max-w-2xl mx-auto px-4 pb-24 md:pt-20">
