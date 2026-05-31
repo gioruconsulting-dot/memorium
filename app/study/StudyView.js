@@ -162,13 +162,40 @@ function pickHeadline(streak, correctCount, incorrectCount) {
 
 // ── sub-components ────────────────────────────────────────────────────────────
 
-function ProgressBar({ current, total }) {
+function ProgressBar({ current, total, online = true }) {
   const pct = total > 0 ? Math.round((current / total) * 100) : 0;
   return (
     <div className="mb-3 sm:mb-6">
       <div className="flex justify-between text-sm mb-1.5" style={{ color: 'var(--color-muted)' }}>
         <span>Question {current + 1} of {total}</span>
-        <span style={{ color: '#4ADE80' }}>{pct}%</span>
+        {online ? (
+          <span style={{ color: '#4ADE80' }}>{pct}%</span>
+        ) : (
+          // Offline: the live % is replaced by Study's only offline indicator — the
+          // "Off the grid" pill (same cool-cyan language as components/OfflinePill.js,
+          // which is suppressed on /study so there's no double pill).
+          <span style={{
+            display:       'inline-flex',
+            alignItems:    'center',
+            gap:           '5px',
+            fontSize:      '10.5px',
+            fontWeight:    700,
+            letterSpacing: '0.02em',
+            color:         '#9fd4e6',
+            border:        '1px solid rgba(120, 190, 215, 0.35)',
+            background:    'rgba(120, 190, 215, 0.08)',
+            borderRadius:  '999px',
+            padding:       '3px 8px',
+          }}>
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <path d="M2 8.8a16 16 0 0 1 20 0" />
+              <path d="M5 12.6a11 11 0 0 1 14 0" />
+              <path d="M8.5 16.2a6 6 0 0 1 7 0" />
+              <line x1="3" y1="3" x2="21" y2="21" strokeWidth="2.4" />
+            </svg>
+            Off the grid
+          </span>
+        )}
       </div>
       <div className="h-1.5 rounded-full" style={{ background: 'var(--color-border)' }}>
         <div
@@ -769,19 +796,41 @@ export default function StudyView() {
           questionsShown: questions.length,
         });
 
+        // Full grade list including this last grade (state setter is async, so
+        // compute the final list locally for the summary below).
+        const finalHistory = [...gradeHistory, { question, grade }];
         setForgotCount(newForgotCount);
-        setGradeHistory((prev) => [...prev, { question, grade }]);
+        setGradeHistory(finalHistory);
 
         setFading(true);
         await new Promise((r) => setTimeout(r, 200));
 
         if (isLast || earlyEnd) {
-          // Offline end-of-session UX (the completion screen + offline-session
-          // sourcing) is a LATER chunk. Do NOT call /api/sessions/complete and do
-          // NOT advance past the last card — the grade is safely queued; the loop
-          // stops here for now. [FLAGGED — interim behaviour, see report.]
+          // Offline session completion (sub-step 5, chunk 4c-i). NO network, NO
+          // completeSession() / /api/sessions/complete — completion is derived
+          // server-side at sync. Build a LOCAL summary from data already held and
+          // reuse the existing phase==='complete' render via the `offline` marker.
+          const correctCount = finalHistory.filter((h) => h.grade === 'easy' || h.grade === 'hard').length;
+
+          // "Keep going" offline only if cards remain in the cache after pending.
+          let offlineHasMore = false;
+          try {
+            const cached = await readDueSet(userId);
+            const pending = new Set(await getPendingQuestionIds());
+            offlineHasMore = (cached?.questions || []).filter((q) => !pending.has(q.id)).length > 0;
+          } catch { offlineHasMore = false; }
+
           currentEventIdRef.current = null;
+          setSummary({
+            offline: true,
+            questionsAnswered: finalHistory.length,
+            correctCount,
+            incorrectCount: newForgotCount,
+            durationSeconds: Math.max(0, Math.floor(Date.now() / 1000) - sessionStartedAt),
+            offlineHasMore,
+          });
           setFading(false);
+          setPhase('complete');
         } else {
           setIndex((i) => i + 1);
           setRevealed(false);
@@ -946,9 +995,11 @@ export default function StudyView() {
   // Existing complete-screen render — unchanged
   if (phase === 'complete' && summary) {
     const remembered = summary.correctCount;
-    const headline = pickHeadline(summary.currentStreak, remembered, summary.incorrectCount);
+    const headline = summary.offline
+      ? 'Session complete — saved for later'
+      : pickHeadline(summary.currentStreak, remembered, summary.incorrectCount);
     const toRevisit = gradeHistory.filter(({ grade }) => grade === 'hard' || grade === 'forgot');
-    const hasMore = summary.remainingDueCount > 0;
+    const hasMore = summary.offline ? summary.offlineHasMore : summary.remainingDueCount > 0;
     return (
       <>
         <style suppressHydrationWarning>{`
@@ -1005,6 +1056,30 @@ export default function StudyView() {
               }}>
                 {summary.questionsAnswered} reviewed · {remembered} recalled · {Math.max(1, Math.round(summary.durationSeconds / 60))} min
               </p>
+
+              {/* Offline reassurance chip — load-bearing "did it count?" answer. Cyan
+                  to match the in-header pill; NO lock icon (the mockup's 🔒 is removed). */}
+              {summary.offline && (
+                <p className="text-center mb-4" style={{
+                  animation: 'completeReveal 0.2s ease 0.65s both',
+                }}>
+                  <span style={{
+                    display:       'inline-flex',
+                    alignItems:    'center',
+                    gap:           '6px',
+                    fontSize:      '0.72rem',
+                    fontWeight:    600,
+                    letterSpacing: '0.01em',
+                    color:         '#9fd4e6',
+                    border:        '1px solid rgba(120, 190, 215, 0.35)',
+                    background:    'rgba(120, 190, 215, 0.08)',
+                    borderRadius:  '999px',
+                    padding:       '5px 11px',
+                  }}>
+                    {"Saved on your device · syncs when you're back"}
+                  </span>
+                </p>
+              )}
 
               {/* Review + CTAs — fade in at 0.7s */}
               <div style={{ animation: 'completeReveal 0.3s ease 0.7s both', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
@@ -1071,7 +1146,9 @@ export default function StudyView() {
                 {/* CTAs — picker-card style: overline + title, left-aligned, same font size */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingBottom: '24px' }}>
 
-                  {/* Primary: See your progress — green glow, darker bg (#08080f) */}
+                  {/* Primary: See your progress — green glow, darker bg (#08080f).
+                      Dropped offline: /progress shows only the "taking a breather" line. */}
+                  {!summary.offline && (
                   <a
                     href="/progress"
                     style={{
@@ -1090,6 +1167,7 @@ export default function StudyView() {
                     <div style={{ fontSize: '0.64rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(74,222,128,0.85)', marginBottom: '6px' }}>Your stats</div>
                     <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#e8e6e1' }}>See your progress</p>
                   </a>
+                  )}
 
                   {/* Secondary: Keep going — purple glow, lighter bg (#0e0e18), only when more due */}
                   {hasMore && (
@@ -1367,7 +1445,7 @@ export default function StudyView() {
           <div className="max-w-2xl mx-auto px-4">
             <div className="px-4">
               <div className="w-full max-w-xl mx-auto pt-3 pb-2 space-y-3">
-                <ProgressBar current={index} total={questions.length} />
+                <ProgressBar current={index} total={questions.length} online={online} />
 
                 {index === 0 && (
                   <p className="text-base text-center" style={{ color: '#4ADE80' }}>
@@ -1451,7 +1529,7 @@ export default function StudyView() {
         <div className="max-w-2xl mx-auto px-4">
           <div className="px-4">
             <div className="w-full max-w-xl mx-auto pt-3 pb-2 space-y-3">
-              <ProgressBar current={index} total={questions.length} />
+              <ProgressBar current={index} total={questions.length} online={online} />
 
               <div ref={cardRef} style={questionCardStyle}>
                 <div style={typeOverlineStyle}>
