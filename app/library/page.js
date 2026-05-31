@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import StarryBackground from '@/components/StarryBackground';
+import { useOnlineStatus } from '@/lib/offline/useOnlineStatus';
 
 const SORT_OPTIONS = [
   { key: 'recent_study',  label: 'Recently studied' },
@@ -172,6 +173,45 @@ const actionRows = (
   </div>
 );
 
+// Offline variant of the action block: read-only, greyed, tagged ONLINE ONLY.
+// Non-interactive (plain divs, no Link/onClick) so it can't navigate to the
+// upload/browse pages, which need the network.
+const offlineActionRows = (
+  <div style={{
+    background:   '#0e0e18',
+    border:       '1px solid rgba(255,255,255,0.06)',
+    borderRadius: '16px',
+    overflow:     'hidden',
+    marginBottom: '24px',
+    boxShadow:    '0 0 18px rgba(96,165,250,0.189), 0 0 40px rgba(96,165,250,0.074)',
+    opacity:      0.5,
+  }}>
+    {['Upload your own', 'Browse shared content'].map((label, i) => (
+      <div
+        key={label}
+        className="flex items-center justify-between px-5 py-3.5"
+        style={i === 0 ? { borderBottom: '1px solid rgba(255,255,255,0.06)' } : undefined}
+      >
+        <span style={{ fontSize: '0.945rem', fontWeight: 500, color: 'var(--color-foreground)' }}>
+          {label}
+        </span>
+        <span style={{
+          fontSize:      '0.6rem',
+          fontWeight:    700,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color:         'var(--color-foreground)',
+          border:        '1px solid rgba(255,255,255,0.12)',
+          borderRadius:  '999px',
+          padding:       '2px 7px',
+        }}>
+          Online only
+        </span>
+      </div>
+    ))}
+  </div>
+);
+
 // Shared page wrapper style
 const wrapperStyle = { position: 'relative', zIndex: 1, paddingTop: '24px', paddingBottom: '40px' };
 
@@ -186,8 +226,11 @@ export default function LibraryPage() {
   const [prioritizeState, setPrioritizeState] = useState({});
   const [sortIdx,        setSortIdx]        = useState(0);
 
+  const online    = useOnlineStatus();
   const sortMode  = SORT_OPTIONS[sortIdx].key;
   const sortLabel = SORT_OPTIONS[sortIdx].label;
+  // Read-only offline: swap the upload/browse links for the ONLINE ONLY block.
+  const actionBlock = online ? actionRows : offlineActionRows;
 
   async function fetchDocuments() {
     setLoading(true);
@@ -209,6 +252,7 @@ export default function LibraryPage() {
   async function handleDelete(e, doc) {
     e.preventDefault();
     e.stopPropagation();
+    if (!online) return; // read-only offline (button is also disabled)
     const confirmMessage = doc.adopted
       ? `Remove "${doc.title}" from your library? This will delete your study progress for this document.`
       : `Are you sure you want to delete "${doc.title}"? This will also delete all its questions.`;
@@ -235,6 +279,7 @@ export default function LibraryPage() {
   async function handleReviewFirst(e, documentId) {
     e.preventDefault();
     e.stopPropagation();
+    if (!online) return; // read-only offline (button is also disabled)
     if (prioritizeState[documentId] === 'loading') return;
     setPrioritizeState((prev) => ({ ...prev, [documentId]: 'loading' }));
     try {
@@ -252,6 +297,7 @@ export default function LibraryPage() {
   async function handleToggleShare(e, doc) {
     e.preventDefault();
     e.stopPropagation();
+    if (!online) return; // read-only offline (button is also disabled)
     const nextPublic = !doc.is_public;
     setTogglingShare(doc.id);
     try {
@@ -280,7 +326,7 @@ export default function LibraryPage() {
         <StarryBackground />
 
         {heading}
-        {actionRows}
+        {actionBlock}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {[0, 1, 2].map((i) => (
             <div key={i} className="animate-pulse" style={{
@@ -304,7 +350,7 @@ export default function LibraryPage() {
         <StarryBackground />
 
         {heading}
-        {actionRows}
+        {actionBlock}
         <p style={{ color: 'var(--color-forgot)', marginBottom: '16px', fontSize: '0.875rem' }}>
           {error}
         </p>
@@ -335,7 +381,7 @@ export default function LibraryPage() {
         <StarryBackground />
 
         {heading}
-        {actionRows}
+        {actionBlock}
         <p style={{ color: 'var(--color-muted)', fontSize: '0.875rem' }}>
           No documents yet. Upload your first or browse shared content above.
         </p>
@@ -352,7 +398,7 @@ export default function LibraryPage() {
       <StarryBackground />
 
       {heading}
-      {actionRows}
+      {actionBlock}
 
       {/* Sort control */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '14px' }}>
@@ -399,7 +445,7 @@ export default function LibraryPage() {
                 {!doc.adopted && (
                   <button
                     onClick={(e) => handleToggleShare(e, doc)}
-                    disabled={togglingShare === doc.id}
+                    disabled={togglingShare === doc.id || !online}
                     style={{
                       fontSize:     '0.725rem',
                       fontWeight:   500,
@@ -408,8 +454,8 @@ export default function LibraryPage() {
                       border:       'none',
                       borderRadius: '6px',
                       padding:      '3px 9px',
-                      cursor:       'pointer',
-                      opacity:      togglingShare === doc.id ? 0.4 : 1,
+                      cursor:       !online ? 'not-allowed' : 'pointer',
+                      opacity:      (togglingShare === doc.id || !online) ? 0.4 : 1,
                       transition:   'opacity 0.15s ease',
                     }}
                   >
@@ -418,7 +464,7 @@ export default function LibraryPage() {
                 )}
                 <button
                   onClick={(e) => handleDelete(e, doc)}
-                  disabled={deleting === doc.id}
+                  disabled={deleting === doc.id || !online}
                   style={{
                     fontSize:     '0.725rem',
                     fontWeight:   500,
@@ -427,8 +473,8 @@ export default function LibraryPage() {
                     border:       'none',
                     borderRadius: '6px',
                     padding:      '3px 9px',
-                    cursor:       'pointer',
-                    opacity:      deleting === doc.id ? 0.4 : 1,
+                    cursor:       !online ? 'not-allowed' : 'pointer',
+                    opacity:      (deleting === doc.id || !online) ? 0.4 : 1,
                     transition:   'opacity 0.15s ease',
                   }}
                 >
@@ -462,7 +508,7 @@ export default function LibraryPage() {
               {/* Right: Review This First — vertically centred by parent alignItems:center */}
               <button
                 onClick={(e) => handleReviewFirst(e, doc.id)}
-                disabled={prioritizeState[doc.id] === 'loading'}
+                disabled={prioritizeState[doc.id] === 'loading' || !online}
                 style={{
                   flexShrink:   0,
                   width:        '82px',
@@ -474,8 +520,8 @@ export default function LibraryPage() {
                   border:       '1px solid rgba(124,58,237,0.3)',
                   borderRadius: '6px',
                   padding:      '8px 6px',
-                  cursor:       prioritizeState[doc.id] === 'loading' ? 'not-allowed' : 'pointer',
-                  opacity:      prioritizeState[doc.id] === 'loading' ? 0.5 : 1,
+                  cursor:       (prioritizeState[doc.id] === 'loading' || !online) ? 'not-allowed' : 'pointer',
+                  opacity:      (prioritizeState[doc.id] === 'loading' || !online) ? 0.5 : 1,
                   transition:   'opacity 0.15s ease',
                   textAlign:    'center',
                 }}

@@ -3,6 +3,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
 import StarryBackground from '@/components/StarryBackground';
+import { useOnlineStatus } from '@/lib/offline/useOnlineStatus';
 
 // ─── localStorage helpers ─────────────────────────────────────────────────────
 
@@ -546,6 +547,7 @@ export default function ProgressPage() {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState('');
+  const online                = useOnlineStatus();
 
   async function fetchData() {
     setLoading(true);
@@ -563,6 +565,21 @@ export default function ProgressPage() {
   }
 
   useEffect(() => { fetchData(); }, []);
+
+  // ── Offline ── one calm line; no stale charts, no fetch state shown. The
+  // "Off the grid" pill (chunk 4a) already marks status top-right. Mirrors the
+  // empty-state styling (wrapper + title + muted line) so it reads native.
+  if (!online) {
+    return (
+      <div style={wrapperStyle}>
+        <StarryBackground />
+        <h1 style={titleStyle}>Progress</h1>
+        <p style={{ color: 'var(--color-foreground)', fontSize: '1rem', lineHeight: 1.55 }}>
+          {"Stats are taking a breather — update when you're back online, including everything you just studied."}
+        </p>
+      </div>
+    );
+  }
 
   // ── Loading ──
   if (loading) {
