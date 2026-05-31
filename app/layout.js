@@ -4,6 +4,7 @@ import "./globals.css";
 import Navigation from "@/components/Navigation";
 import OfflineCacheManager from "@/components/OfflineCacheManager";
 import OfflineFlushManager from "@/components/OfflineFlushManager";
+import OfflinePill from "@/components/OfflinePill";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -42,6 +43,7 @@ export default function RootLayout({ children }) {
         >
           <OfflineFlushManager />
           <OfflineCacheManager />
+          <OfflinePill />
           <Navigation />
           <main className="max-w-2xl mx-auto px-4 pb-24 md:pt-20">
             {children}
