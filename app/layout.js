@@ -1,5 +1,6 @@
 import { DM_Sans, DM_Serif_Display } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Analytics } from '@vercel/analytics/next';
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import OfflineCacheManager from "@/components/OfflineCacheManager";
@@ -22,6 +23,19 @@ export const metadata = {
   appleWebApp: {
     capable: true,
   },
+  metadataBase: new URL('https://www.repetita.org'),
+  openGraph: {
+    title: 'Repetita',
+    description: 'Remember what you read.',
+    url: 'https://www.repetita.org',
+    siteName: 'Repetita',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Repetita',
+    description: 'Remember what you read.',
+  },
 };
 
 export const viewport = {
@@ -43,6 +57,7 @@ export default function RootLayout({ children }) {
           <Navigation />
           <main className="max-w-2xl mx-auto px-4 pb-24 md:pt-20">
             {children}
+            <Analytics />
           </main>
         </body>
       </html>
