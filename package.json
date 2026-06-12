@@ -29,6 +29,7 @@
   "devDependencies": {
     "@clerk/backend": "^3.4.10",
     "@tailwindcss/postcss": "^4",
+    "ajv": "^8.20.0",
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",

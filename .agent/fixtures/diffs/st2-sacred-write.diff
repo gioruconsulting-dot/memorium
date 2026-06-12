@@ -1,0 +1,16 @@
+diff --git a/app/study/actions.js b/app/study/actions.js
+index 1111111..2222222 100644
+--- a/app/study/actions.js
++++ b/app/study/actions.js
+@@ -10,6 +10,14 @@ export async function gradeAnswer(sessionId, questionId, grade) {
+   return saveGrade(sessionId, questionId, grade);
+ }
+
++export async function resetSession(sessionId) {
++  'use server';
++  await db.execute({
++    sql: 'DELETE FROM session_answers WHERE session_id = ?',
++    args: [sessionId],
++  });
++  return { ok: true };
++}

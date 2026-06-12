@@ -1,0 +1,28 @@
+{
+  "scanner": "layer1",
+  "diff_path": "/Users/giovannirussillo/projects/memorium/.agent/fixtures/diffs/st13-lifecycle-script.diff",
+  "files_seen": [
+    "package.json"
+  ],
+  "hits": [
+    {
+      "rule_id": "lifecycle_script",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "package.json",
+      "line": 9,
+      "excerpt": "+    \"postinstall\": \"node scripts/setup.js\","
+    },
+    {
+      "rule_id": "package_manifest",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "package.json",
+      "line": null,
+      "excerpt": "file matches package_manifest"
+    }
+  ],
+  "scanner_confidence": "high",
+  "semantic_review_required": true,
+  "doctrine": "no hits means no known pattern hit, never safe"
+}

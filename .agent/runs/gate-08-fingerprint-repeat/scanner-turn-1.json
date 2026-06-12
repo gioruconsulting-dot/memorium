@@ -1,0 +1,11 @@
+{
+  "scanner": "layer1",
+  "diff_path": "/Users/giovannirussillo/projects/memorium/.agent/fixtures/diffs/clean-ui.diff",
+  "files_seen": [
+    "components/EmptyStateCard.js"
+  ],
+  "hits": [],
+  "scanner_confidence": "high",
+  "semantic_review_required": false,
+  "doctrine": "no hits means no known pattern hit, never safe"
+}

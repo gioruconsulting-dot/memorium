@@ -1,0 +1,126 @@
+{
+  "comment": "Layer 1 scanner pattern set (masterplan §2.6, brief item 8). Content rules run via ripgrep over added lines of a unified diff; path rules match files touched by the diff. Doctrine: 'no hits' means 'no known pattern hit', never 'safe'. Severity → route mapping follows masterplan §5.1. Sacred table list mirrors DATA-SANCTITY.md.",
+  "sacred_tables": "users|questions|study_sessions|session_answers|question_feedback|documents",
+  "content_rules": [
+    {
+      "id": "sacred_table_write",
+      "description": "Write verb and Sacred/Parent-of-Sacred table on the same added line",
+      "pattern": "(?i)((\\b(delete|drop|truncate|update|insert|upsert)\\b).*\\b(users|questions|study_sessions|session_answers|question_feedback|documents)\\b|\\b(users|questions|study_sessions|session_answers|question_feedback|documents)\\b.*(\\b(delete|drop|truncate|update|insert|upsert)\\b))",
+      "severity": "P0",
+      "required_route": "live_human"
+    },
+    {
+      "id": "sacred_table_reference",
+      "description": "Sacred or Parent-of-Sacred table referenced in new code",
+      "pattern": "\\b(users|questions|study_sessions|session_answers|question_feedback|documents)\\b",
+      "severity": "P1A",
+      "required_route": "live_human"
+    },
+    {
+      "id": "auth_clerk_content",
+      "description": "Clerk / auth middleware usage in new code",
+      "pattern": "(@clerk/|clerkMiddleware|clerkClient|CLERK_|authMiddleware)",
+      "severity": "P1A",
+      "required_route": "live_human"
+    },
+    {
+      "id": "db_client_setup",
+      "description": "Database client construction or connection setup",
+      "pattern": "(createClient\\s*\\(|@libsql/client|new\\s+Database\\s*\\(|TURSO_DATABASE_URL)",
+      "severity": "P1B",
+      "required_route": "live_human"
+    },
+    {
+      "id": "raw_sql",
+      "description": "Raw SQL statement in new code",
+      "pattern": "(?i)\\b(select\\s+.+\\s+from|insert\\s+into|update\\s+\\w+\\s+set|delete\\s+from|drop\\s+table|alter\\s+table|create\\s+table)\\b",
+      "severity": "P1B",
+      "required_route": "live_human"
+    },
+    {
+      "id": "lifecycle_script",
+      "description": "npm lifecycle script added (postinstall/preinstall/prepare)",
+      "pattern": "\"(postinstall|preinstall|prepare)\"\\s*:",
+      "severity": "P1A",
+      "required_route": "live_human"
+    },
+    {
+      "id": "env_var_usage",
+      "description": "Environment variable usage in new code",
+      "pattern": "(process\\.env\\.|import\\.meta\\.env)",
+      "severity": "P2",
+      "required_route": "async_card"
+    },
+    {
+      "id": "webhook_url",
+      "description": "Webhook or outbound hook URL in new code",
+      "pattern": "(?i)(webhook|hooks\\.slack\\.com|discord\\.com/api/webhooks)",
+      "severity": "P1B",
+      "required_route": "live_human"
+    },
+    {
+      "id": "platform_cli",
+      "description": "Platform CLI invocation (vercel/clerk/turso)",
+      "pattern": "(?i)\\b(vercel|turso|clerk)\\s+(deploy|db|env|secrets|login|link|pull|push|shell|destroy|create)\\b",
+      "severity": "P1B",
+      "required_route": "live_human"
+    }
+  ],
+  "scoped_content_rules": [
+    {
+      "id": "write_verb_in_api_route",
+      "description": "Write verb inside an API route or server action",
+      "file_pattern": "(^|/)app/api/.*|(^|/)pages/api/.*|.*actions?\\.(js|ts)$",
+      "pattern": "(?i)\\b(delete|update|insert|upsert)\\b",
+      "severity": "P1B",
+      "required_route": "live_human"
+    },
+    {
+      "id": "fetch_in_tests",
+      "description": "Network call (fetch/axios) added inside a test file",
+      "file_pattern": "(\\.test\\.|\\.spec\\.|(^|/)tests?/|(^|/)__tests__/)",
+      "pattern": "(fetch\\s*\\(|axios)",
+      "severity": "P2",
+      "required_route": "async_card"
+    },
+    {
+      "id": "db_touching_test_setup",
+      "description": "Test setup that touches a database",
+      "file_pattern": "(\\.test\\.|\\.spec\\.|(^|/)tests?/|(^|/)__tests__/|setup)",
+      "pattern": "(createClient\\s*\\(|@libsql/client|\\bexecute\\s*\\(|\\bbatch\\s*\\()",
+      "severity": "P2",
+      "required_route": "async_card"
+    }
+  ],
+  "path_rules": [
+    {
+      "id": "migration_file",
+      "description": "Migration file created or modified",
+      "file_pattern": "((^|/)migrations?/|migration.*\\.(sql|js|ts)$|\\.sql$)",
+      "severity": "P1A",
+      "required_route": "live_human"
+    },
+    {
+      "id": "package_manifest",
+      "description": "package.json / lockfile changed",
+      "file_pattern": "((^|/)package\\.json$|(^|/)package-lock\\.json$|(^|/)pnpm-lock\\.yaml$|(^|/)yarn\\.lock$)",
+      "severity": "P1A",
+      "required_route": "live_human"
+    },
+    {
+      "id": "auth_clerk_file",
+      "description": "Auth/Clerk file or middleware touched",
+      "file_pattern": "((^|/)middleware\\.(js|ts)$|clerk|(^|/)auth/|[._-]auth\\.(js|ts)$)",
+      "severity": "P1A",
+      "required_route": "live_human"
+    },
+    {
+      "id": "seed_script",
+      "description": "Seed script touched",
+      "file_pattern": "((^|/)seeds?(/|\\.|-)|seed\\.(js|ts|sql)$)",
+      "severity": "P1B",
+      "required_route": "live_human"
+    }
+  ],
+  "risk_adjacent_paths": "((^|/)lib/|(^|/)app/api/|(^|/)middleware\\.(js|ts)$|clerk|auth|\\bdb\\b|query|sql|schema)"
+}

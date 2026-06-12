@@ -1,0 +1,2 @@
+$ npm test
+all tests passed

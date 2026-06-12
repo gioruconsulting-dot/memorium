@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "CRITIC_VERDICT",
+  "title": "CRITIC_VERDICT",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "verdict",
+    "risk_flags",
+    "failure_classification",
+    "register_updates",
+    "next_executor_prompt",
+    "state_patch_proposal",
+    "evidence",
+    "confidence"
+  ],
+  "properties": {
+    "verdict": { "type": "string", "enum": ["continue", "done", "escalate"] },
+    "risk_flags": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "severity", "reason", "required_route"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "destructive",
+              "irreversible",
+              "architectural",
+              "scope_drift",
+              "repeated_failure",
+              "security_sensitive",
+              "dependency_added",
+              "low_confidence"
+            ]
+          },
+          "severity": { "type": "string", "enum": ["P0", "P1A", "P1B", "P1C", "P2", "P3"] },
+          "reason": { "type": "string", "minLength": 1 },
+          "required_route": { "type": "string", "enum": ["live_human", "async_card", "logged_only"] }
+        }
+      }
+    },
+    "failure_classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["same_root_cause", "matches_failure_id", "evidence"],
+      "properties": {
+        "same_root_cause": { "type": "boolean" },
+        "matches_failure_id": { "type": ["string", "null"] },
+        "evidence": { "type": "string" }
+      }
+    },
+    "register_updates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["action", "id"],
+        "properties": {
+          "action": { "type": "string", "enum": ["create", "update_status"] },
+          "id": { "type": "string", "pattern": "^RISK-[0-9]{4}$" },
+          "type": { "type": "string", "minLength": 1 },
+          "severity": { "type": "string", "enum": ["P0", "P1A", "P1B", "P1C", "P2", "P3"] },
+          "status": { "type": "string", "enum": ["open", "resolved", "accepted", "false_positive"] },
+          "introduced_by": { "type": "string", "enum": ["scanner", "critic", "human"] },
+          "resolution_evidence": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    },
+    "next_executor_prompt": { "type": ["string", "null"] },
+    "state_patch_proposal": {
+      "anyOf": [{ "$ref": "STATE_PATCH" }, { "type": "null" }]
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim", "type", "path", "line_range"],
+        "properties": {
+          "claim": { "type": "string", "minLength": 1 },
+          "type": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 },
+          "line_range": { "type": "string" }
+        }
+      }
+    },
+    "confidence": { "type": "string", "enum": ["high", "medium", "low"] }
+  }
+}
