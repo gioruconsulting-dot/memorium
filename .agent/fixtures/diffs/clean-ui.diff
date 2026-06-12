@@ -1,0 +1,12 @@
+diff --git a/components/EmptyStateCard.js b/components/EmptyStateCard.js
+index 5555555..6666666 100644
+--- a/components/EmptyStateCard.js
++++ b/components/EmptyStateCard.js
+@@ -3,7 +3,7 @@ export default function EmptyStateCard({ title }) {
+   return (
+     <div className="rounded-xl border border-dashed p-8 text-center">
+-      <p className="text-sm text-gray-500">{title}</p>
++      <p className="text-sm text-slate-500">{title}</p>
+     </div>
+   );
+ }

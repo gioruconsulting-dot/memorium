@@ -1,0 +1,94 @@
+# Layer 2 AST-aware scanner rules (masterplan §2.6 Layer 2; brief item 12).
+# Starter set, written inside the Chunk 0 45-minute timebox.
+#
+# Targets the two pattern families Layer 1 grep misses by design:
+#   1. dynamic / concatenated / template-literal table names (stress test 10)
+#   2. user-scope removal — where: {} / dropped userId filters (stress test 9)
+#
+# Doctrine unchanged: "no findings" means "no known pattern hit," never "safe."
+# Severity mapping mirrors layer1-patterns.json conventions.
+
+rules:
+  - id: dynamic-table-name-template-literal
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      SQL keyword followed by a template-literal interpolation — the table or
+      target name is computed at runtime. Layer 1 cannot see which table this
+      touches; treat as P0 until a human confirms the table is not Sacred.
+    metadata:
+      harness_severity: P0
+      required_route: live_human
+    patterns:
+      - pattern-regex: '(?i)(from|into|update|join|table)\s*(`\s*)?\$\{'
+
+  - id: dynamic-table-name-concat-or-join
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Table name assembled by string concatenation or Array.join near a SQL
+      string. '["session","answers"].join("_")' style construction evades
+      pattern scanners by design — flag for semantic review.
+    metadata:
+      harness_severity: P0
+      required_route: live_human
+    patterns:
+      - pattern-either:
+          - pattern: $DB.execute("..." + $X, ...)
+          - pattern: |
+              $DB.execute({ sql: "..." + $X }, ...)
+          - pattern: |
+              $DB.execute({ sql: "..." + $X, args: $A }, ...)
+          - pattern: |
+              $TABLE = [...].join($SEP)
+          - pattern: $DB.execute($SQL + $X, ...)
+
+  - id: sql-in-template-literal-execute
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: >
+      db.execute called with a template literal containing interpolation —
+      values should travel in args, not in the SQL string. Possible injection
+      path and invisible to Layer 1 table matching.
+    metadata:
+      harness_severity: P1B
+      required_route: live_human
+    patterns:
+      - pattern-regex: '\.execute\s*\(\s*`[^`]*\$\{'
+
+  - id: user-scope-removed-empty-where
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Empty where clause on a query object — a previously user-scoped query
+      that now matches every row is the quiet catastrophic case (stress test
+      9). Any where: {} or .where({}) is flagged; narrowing this rule needs
+      diff context that belongs to Layer 3.
+    metadata:
+      harness_severity: P0
+      required_route: live_human
+    patterns:
+      - pattern-either:
+          - patterns:
+              - pattern: |
+                  { ..., where: {}, ... }
+              - pattern-not: |
+                  { ..., where: { $K: $V, ... }, ... }
+          - patterns:
+              - pattern: |
+                  $QB.where({})
+              - pattern-not: |
+                  $QB.where({ $K: $V, ... })
+
+  - id: query-missing-user-scope-on-sacred-table
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: >
+      SQL statement touches a Sacred table but contains no user_id/userId
+      binding on the same statement. Not always wrong (admin paths exist) —
+      flagged so a human or the critic decides, not the executor.
+    metadata:
+      harness_severity: P1A
+      required_route: live_human
+    patterns:
+      - pattern-regex: '(?i)(update|delete\s+from)\s+(users|questions|study_sessions|session_answers|question_feedback|documents)\b(?![^;`"]*(user_id|userid))'

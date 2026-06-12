@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "EXECUTOR_REPORT",
+  "title": "EXECUTOR_REPORT",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "summary",
+    "files_changed",
+    "commands_run",
+    "tests_run",
+    "failures",
+    "risks_noticed",
+    "deviations_from_plan",
+    "questions_for_critic",
+    "git_diff_path"
+  ],
+  "properties": {
+    "summary": { "type": "string", "minLength": 1 },
+    "files_changed": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "commands_run": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "tests_run": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["command", "result", "output_path"],
+        "properties": {
+          "command": { "type": "string", "minLength": 1 },
+          "result": { "type": "string", "enum": ["pass", "fail", "not_run"] },
+          "output_path": { "type": "string" }
+        }
+      }
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["tool", "code_or_rule", "primary_file", "message_normalized"],
+        "properties": {
+          "tool": { "type": "string", "minLength": 1 },
+          "code_or_rule": { "type": "string", "minLength": 1 },
+          "primary_file": { "type": "string", "minLength": 1 },
+          "message_normalized": { "type": "string" }
+        }
+      }
+    },
+    "risks_noticed": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "deviations_from_plan": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "questions_for_critic": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "git_diff_path": { "type": "string", "minLength": 1 }
+  }
+}

@@ -1,0 +1,408 @@
+{"ts":"2026-06-12T12:23:59.303Z","run_id":"GATE-01-ST7-MAIN","event":"run_start"}
+{"ts":"2026-06-12T12:23:59.306Z","run_id":"GATE-01-ST7-MAIN","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01-ST7-MAIN","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01-ST7-MAIN","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01-ST7-MAIN","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01-ST7-MAIN","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01-ST7-MAIN","event":"preflight_result","turn":1,"pass":false,"halts":[{"check":"branch","detail":"current branch is \"main\" — the loop never runs on main/master"}],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-01-st7-main/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01-ST7-MAIN","event":"halt","reason":"preflight failed — executor never starts this turn","state_at_halt":"PRECHECK","turn":1,"halts":[{"check":"branch","detail":"current branch is \"main\" — the loop never runs on main/master"}]}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01-ST7-MAIN","event":"fsm_transition","from":"PRECHECK","to":"HALTED_SAFE","reason":"preflight failed — executor never starts this turn"}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01-ST7-MAIN","event":"run_end","final_state":"HALTED_SAFE","reason":"preflight failed — executor never starts this turn"}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01B-ST7-MIDRUN","event":"run_start"}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01B-ST7-MIDRUN","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01B-ST7-MIDRUN","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01B-ST7-MIDRUN","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:23:59.307Z","run_id":"GATE-01B-ST7-MIDRUN","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-01b-st7-midrun/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.308Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.310Z","run_id":"GATE-01B-ST7-MIDRUN","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.310Z","run_id":"GATE-01B-ST7-MIDRUN","event":"evidence_crosscheck","turn":1,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:23:59.310Z","run_id":"GATE-01B-ST7-MIDRUN","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":0}
+{"ts":"2026-06-12T12:23:59.310Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:23:59.361Z","run_id":"GATE-01B-ST7-MIDRUN","event":"scanner_result","turn":1,"hits":0,"top_severity":null,"scanner_confidence":"high","semantic_review_required":false,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-01b-st7-midrun/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.361Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.365Z","run_id":"GATE-01B-ST7-MIDRUN","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.365Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"REVIEWING","to":"COMMITTING_STATE","turn":1}
+{"ts":"2026-06-12T12:23:59.366Z","run_id":"GATE-01B-ST7-MIDRUN","event":"register_validation","turn":1,"valid":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.366Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","note":"next iteration","turn":1}
+{"ts":"2026-06-12T12:23:59.366Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","turn":2}
+{"ts":"2026-06-12T12:23:59.366Z","run_id":"GATE-01B-ST7-MIDRUN","event":"preflight_result","turn":2,"pass":false,"halts":[{"check":"branch","detail":"current branch is \"main\" — the loop never runs on main/master"}],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-01b-st7-midrun/preflight-turn-2.json"}
+{"ts":"2026-06-12T12:23:59.366Z","run_id":"GATE-01B-ST7-MIDRUN","event":"halt","reason":"preflight failed — executor never starts this turn","state_at_halt":"PRECHECK","turn":2,"halts":[{"check":"branch","detail":"current branch is \"main\" — the loop never runs on main/master"}]}
+{"ts":"2026-06-12T12:23:59.366Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"PRECHECK","to":"HALTED_SAFE","reason":"preflight failed — executor never starts this turn"}
+{"ts":"2026-06-12T12:23:59.366Z","run_id":"GATE-01B-ST7-MIDRUN","event":"run_end","final_state":"HALTED_SAFE","reason":"preflight failed — executor never starts this turn"}
+{"ts":"2026-06-12T12:23:59.366Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"run_start"}
+{"ts":"2026-06-12T12:23:59.366Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.366Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:23:59.366Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.366Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:23:59.366Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:23:59.367Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-02-st2-sacred-write/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.367Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.367Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.367Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"evidence_crosscheck","turn":1,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:23:59.367Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":0}
+{"ts":"2026-06-12T12:23:59.367Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"scanner_result","turn":1,"hits":4,"top_severity":"P0","scanner_confidence":"high","semantic_review_required":true,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-02-st2-sacred-write/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"fsm_transition","from":"REVIEWING","to":"AWAITING_HUMAN","reason":"scanner flagged P0 — human route regardless of critic verdict","turn":1,"critic_verdict":"continue","scanner_report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-02-st2-sacred-write/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"halt","reason":"escalated to human: scanner flagged P0 — human route regardless of critic verdict","state_at_halt":"AWAITING_HUMAN","turn":1,"critic_verdict":"continue","scanner_report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-02-st2-sacred-write/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"run_end","final_state":"AWAITING_HUMAN","reason":"scanner flagged P0 — human route regardless of critic verdict"}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"run_start"}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-03-st13-lifecycle/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"evidence_crosscheck","turn":1,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":0}
+{"ts":"2026-06-12T12:23:59.406Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:23:59.441Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"scanner_result","turn":1,"hits":2,"top_severity":"P1A","scanner_confidence":"high","semantic_review_required":true,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-03-st13-lifecycle/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.441Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.441Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.441Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"fsm_transition","from":"REVIEWING","to":"AWAITING_HUMAN","reason":"scanner flagged P1A — human route regardless of critic verdict","turn":1,"critic_verdict":"continue","scanner_report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-03-st13-lifecycle/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.441Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"halt","reason":"escalated to human: scanner flagged P1A — human route regardless of critic verdict","state_at_halt":"AWAITING_HUMAN","turn":1,"critic_verdict":"continue","scanner_report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-03-st13-lifecycle/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.441Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"run_end","final_state":"AWAITING_HUMAN","reason":"scanner flagged P1A — human route regardless of critic verdict"}
+{"ts":"2026-06-12T12:23:59.442Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"run_start"}
+{"ts":"2026-06-12T12:23:59.442Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.442Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:23:59.442Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.442Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:23:59.442Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:23:59.442Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-04-st3-vanishing-risk/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.442Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.442Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.442Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"evidence_crosscheck","turn":1,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:23:59.442Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":0}
+{"ts":"2026-06-12T12:23:59.442Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:23:59.476Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"scanner_result","turn":1,"hits":0,"top_severity":null,"scanner_confidence":"high","semantic_review_required":false,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-04-st3-vanishing-risk/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.476Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.476Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.476Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"fsm_transition","from":"REVIEWING","to":"COMMITTING_STATE","turn":1}
+{"ts":"2026-06-12T12:23:59.476Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"register_validation","turn":1,"valid":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.477Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"register_validation","turn":1,"artifact":"STATE_PATCH","valid":false,"violations":[{"rule":"open_risk_omitted","id":"RISK-0001","detail":"RISK-0001 is open in the register but missing from STATE_PATCH.open_risk_ids — open risks cannot vanish"}]}
+{"ts":"2026-06-12T12:23:59.477Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"halt","reason":"STATE_PATCH rejected — open risks cannot vanish","state_at_halt":"COMMITTING_STATE","turn":1,"violations":[{"rule":"open_risk_omitted","id":"RISK-0001","detail":"RISK-0001 is open in the register but missing from STATE_PATCH.open_risk_ids — open risks cannot vanish"}]}
+{"ts":"2026-06-12T12:23:59.477Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"fsm_transition","from":"COMMITTING_STATE","to":"HALTED_SAFE","reason":"STATE_PATCH rejected — open risks cannot vanish"}
+{"ts":"2026-06-12T12:23:59.477Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"run_end","final_state":"HALTED_SAFE","reason":"STATE_PATCH rejected — open risks cannot vanish"}
+{"ts":"2026-06-12T12:23:59.477Z","run_id":"GATE-05-ST15-RISK-RENAME","event":"register_validation","valid":false,"violations":[{"rule":"risk_deleted","id":"RISK-0004","detail":"RISK-0004 is missing from the proposed register — risks are never deleted, only change status. A rename or merge must keep the original id."}],"note":"ST-15 seeded rename RISK-0004 → RISK-0017 without continuity"}
+{"ts":"2026-06-12T12:23:59.477Z","run_id":"GATE-05-ST15-RISK-RENAME","event":"halt","reason":"register transition rejected (ST-15 rename)","violations":[{"rule":"risk_deleted","id":"RISK-0004","detail":"RISK-0004 is missing from the proposed register — risks are never deleted, only change status. A rename or merge must keep the original id."}]}
+{"ts":"2026-06-12T12:23:59.478Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"run_start"}
+{"ts":"2026-06-12T12:23:59.478Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.478Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:23:59.478Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.478Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:23:59.478Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:23:59.478Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-06-st12-fake-evidence/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.478Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.478Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.478Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"evidence_crosscheck","turn":1,"downgrades":[{"command":"npm test","output_path":"does-not-exist.txt","reason":"output file missing: does-not-exist.txt"}],"all_passes_evidenced":false}
+{"ts":"2026-06-12T12:23:59.478Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":0}
+{"ts":"2026-06-12T12:23:59.478Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"scanner_result","turn":1,"hits":0,"top_severity":null,"scanner_confidence":"high","semantic_review_required":false,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-06-st12-fake-evidence/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"fsm_transition","from":"REVIEWING","to":"COMMITTING_STATE","turn":1}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"register_validation","turn":1,"valid":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"fsm_transition","from":"COMMITTING_STATE","to":"AWAITING_HUMAN","reason":"done rejected: test claims lack evidence","turn":1,"downgrades":[{"command":"npm test","output_path":"does-not-exist.txt","reason":"output file missing: does-not-exist.txt"}],"non_passing":[{"command":"npm test","result":"not_run"}]}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"halt","reason":"escalated to human: done rejected: test claims lack evidence","state_at_halt":"AWAITING_HUMAN","turn":1,"downgrades":[{"command":"npm test","output_path":"does-not-exist.txt","reason":"output file missing: does-not-exist.txt"}],"non_passing":[{"command":"npm test","result":"not_run"}]}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"run_end","final_state":"AWAITING_HUMAN","reason":"done rejected: test claims lack evidence"}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"run_start"}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-07-malformed-verdict/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"evidence_crosscheck","turn":1,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":0}
+{"ts":"2026-06-12T12:23:59.513Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:23:59.548Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"scanner_result","turn":1,"hits":0,"top_severity":null,"scanner_confidence":"high","semantic_review_required":false,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-07-malformed-verdict/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.548Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.548Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":false,"attempts":2,"errors":["invalid JSON: Expected double-quoted property name in JSON at position 25 (line 1 column 26)"]}
+{"ts":"2026-06-12T12:23:59.548Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"halt","reason":"CRITIC_VERDICT failed fail-closed validation — verdict is never inferred","state_at_halt":"REVIEWING","turn":1,"errors":["invalid JSON: Expected double-quoted property name in JSON at position 25 (line 1 column 26)"]}
+{"ts":"2026-06-12T12:23:59.548Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"fsm_transition","from":"REVIEWING","to":"HALTED_SAFE","reason":"CRITIC_VERDICT failed fail-closed validation — verdict is never inferred"}
+{"ts":"2026-06-12T12:23:59.548Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"run_end","final_state":"HALTED_SAFE","reason":"CRITIC_VERDICT failed fail-closed validation — verdict is never inferred"}
+{"ts":"2026-06-12T12:23:59.548Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"run_start"}
+{"ts":"2026-06-12T12:23:59.549Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.549Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:23:59.549Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.549Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:23:59.549Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:23:59.549Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-08-fingerprint-repeat/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.549Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.549Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.549Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"evidence_crosscheck","turn":1,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:23:59.549Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":1}
+{"ts":"2026-06-12T12:23:59.549Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:23:59.583Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"scanner_result","turn":1,"hits":0,"top_severity":null,"scanner_confidence":"high","semantic_review_required":false,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-08-fingerprint-repeat/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.583Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.583Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.583Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"REVIEWING","to":"COMMITTING_STATE","turn":1}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"register_validation","turn":1,"valid":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","note":"next iteration","turn":1}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","turn":2}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"preflight_result","turn":2,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-08-fingerprint-repeat/preflight-turn-2.json"}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":2,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":2,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"evidence_crosscheck","turn":2,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"breaker_result","turn":2,"escalate":true,"reasons":[{"rule":"fingerprint_repeat","detail":"fingerprint 87d66f8683cb… first failed on turn 1, repeated on turn 2 — same (tool, code, file) root cause twice in one chunk"}],"failed_turn_count":2}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"EXECUTING","to":"AWAITING_HUMAN","reason":"doom-loop breaker fired","turn":2,"reasons":[{"rule":"fingerprint_repeat","detail":"fingerprint 87d66f8683cb… first failed on turn 1, repeated on turn 2 — same (tool, code, file) root cause twice in one chunk"}]}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"halt","reason":"escalated to human: doom-loop breaker fired","state_at_halt":"AWAITING_HUMAN","turn":2,"reasons":[{"rule":"fingerprint_repeat","detail":"fingerprint 87d66f8683cb… first failed on turn 1, repeated on turn 2 — same (tool, code, file) root cause twice in one chunk"}]}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"run_end","final_state":"AWAITING_HUMAN","reason":"doom-loop breaker fired"}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-09-FAILURE-CAP","event":"run_start"}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-09-FAILURE-CAP","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-09-FAILURE-CAP","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-09-FAILURE-CAP","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-09-FAILURE-CAP","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-09-failure-cap/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.584Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.585Z","run_id":"GATE-09-FAILURE-CAP","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.585Z","run_id":"GATE-09-FAILURE-CAP","event":"evidence_crosscheck","turn":1,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:23:59.585Z","run_id":"GATE-09-FAILURE-CAP","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":1}
+{"ts":"2026-06-12T12:23:59.585Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:23:59.619Z","run_id":"GATE-09-FAILURE-CAP","event":"scanner_result","turn":1,"hits":0,"top_severity":null,"scanner_confidence":"high","semantic_review_required":false,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-09-failure-cap/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:23:59.619Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.619Z","run_id":"GATE-09-FAILURE-CAP","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.619Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"REVIEWING","to":"COMMITTING_STATE","turn":1}
+{"ts":"2026-06-12T12:23:59.619Z","run_id":"GATE-09-FAILURE-CAP","event":"register_validation","turn":1,"valid":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.619Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","note":"next iteration","turn":1}
+{"ts":"2026-06-12T12:23:59.619Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","turn":2}
+{"ts":"2026-06-12T12:23:59.619Z","run_id":"GATE-09-FAILURE-CAP","event":"preflight_result","turn":2,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-09-failure-cap/preflight-turn-2.json"}
+{"ts":"2026-06-12T12:23:59.619Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":2,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.619Z","run_id":"GATE-09-FAILURE-CAP","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":2,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.619Z","run_id":"GATE-09-FAILURE-CAP","event":"evidence_crosscheck","turn":2,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:23:59.620Z","run_id":"GATE-09-FAILURE-CAP","event":"breaker_result","turn":2,"escalate":false,"reasons":[],"failed_turn_count":2}
+{"ts":"2026-06-12T12:23:59.620Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":2}
+{"ts":"2026-06-12T12:23:59.654Z","run_id":"GATE-09-FAILURE-CAP","event":"scanner_result","turn":2,"hits":0,"top_severity":null,"scanner_confidence":"high","semantic_review_required":false,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-09-failure-cap/scanner-turn-2.json"}
+{"ts":"2026-06-12T12:23:59.654Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":2,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.654Z","run_id":"GATE-09-FAILURE-CAP","event":"validation_result","artifact":"CRITIC_VERDICT","turn":2,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.654Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"REVIEWING","to":"COMMITTING_STATE","turn":2}
+{"ts":"2026-06-12T12:23:59.654Z","run_id":"GATE-09-FAILURE-CAP","event":"register_validation","turn":2,"valid":true,"violations":[]}
+{"ts":"2026-06-12T12:23:59.654Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","note":"next iteration","turn":2}
+{"ts":"2026-06-12T12:23:59.654Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","turn":3}
+{"ts":"2026-06-12T12:23:59.654Z","run_id":"GATE-09-FAILURE-CAP","event":"preflight_result","turn":3,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-09-failure-cap/preflight-turn-3.json"}
+{"ts":"2026-06-12T12:23:59.654Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":3,"stubbed":true}
+{"ts":"2026-06-12T12:23:59.655Z","run_id":"GATE-09-FAILURE-CAP","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":3,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.655Z","run_id":"GATE-09-FAILURE-CAP","event":"evidence_crosscheck","turn":3,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:23:59.655Z","run_id":"GATE-09-FAILURE-CAP","event":"breaker_result","turn":3,"escalate":true,"reasons":[{"rule":"failure_cap","detail":"3 failed turns in this chunk reaches max_failures=3 — escalating regardless of failure class"}],"failed_turn_count":3}
+{"ts":"2026-06-12T12:23:59.655Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"EXECUTING","to":"AWAITING_HUMAN","reason":"doom-loop breaker fired","turn":3,"reasons":[{"rule":"failure_cap","detail":"3 failed turns in this chunk reaches max_failures=3 — escalating regardless of failure class"}]}
+{"ts":"2026-06-12T12:23:59.655Z","run_id":"GATE-09-FAILURE-CAP","event":"halt","reason":"escalated to human: doom-loop breaker fired","state_at_halt":"AWAITING_HUMAN","turn":3,"reasons":[{"rule":"failure_cap","detail":"3 failed turns in this chunk reaches max_failures=3 — escalating regardless of failure class"}]}
+{"ts":"2026-06-12T12:23:59.655Z","run_id":"GATE-09-FAILURE-CAP","event":"run_end","final_state":"AWAITING_HUMAN","reason":"doom-loop breaker fired"}
+{"ts":"2026-06-12T12:23:59.655Z","run_id":"GATE-10-OVERBROAD-SPEC","event":"run_start"}
+{"ts":"2026-06-12T12:23:59.655Z","run_id":"GATE-10-OVERBROAD-SPEC","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:23:59.655Z","run_id":"GATE-10-OVERBROAD-SPEC","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:23:59.655Z","run_id":"GATE-10-OVERBROAD-SPEC","event":"spec_lint_result","pass":false,"violations":[{"rule":"green_path_overbroad","detail":"green path \"app/**\" contains '**' — green tier must be narrow"},{"rule":"p1c_categorical","detail":"p1c_preapproval \"any test changes\" is categorical — must name one specific file, dependency, or exact change"}]}
+{"ts":"2026-06-12T12:23:59.655Z","run_id":"GATE-10-OVERBROAD-SPEC","event":"halt","reason":"spec lint rejected the TASK_SPEC","state_at_halt":"SPEC_REVIEW","violations":[{"rule":"green_path_overbroad","detail":"green path \"app/**\" contains '**' — green tier must be narrow"},{"rule":"p1c_categorical","detail":"p1c_preapproval \"any test changes\" is categorical — must name one specific file, dependency, or exact change"}]}
+{"ts":"2026-06-12T12:23:59.655Z","run_id":"GATE-10-OVERBROAD-SPEC","event":"fsm_transition","from":"SPEC_REVIEW","to":"HALTED_SAFE","reason":"spec lint rejected the TASK_SPEC"}
+{"ts":"2026-06-12T12:23:59.655Z","run_id":"GATE-10-OVERBROAD-SPEC","event":"run_end","final_state":"HALTED_SAFE","reason":"spec lint rejected the TASK_SPEC"}
+{"ts":"2026-06-12T12:44:51.576Z","run_id":"GATE-01-ST7-MAIN","event":"run_start"}
+{"ts":"2026-06-12T12:44:51.579Z","run_id":"GATE-01-ST7-MAIN","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.579Z","run_id":"GATE-01-ST7-MAIN","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:44:51.579Z","run_id":"GATE-01-ST7-MAIN","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:44:51.579Z","run_id":"GATE-01-ST7-MAIN","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:44:51.579Z","run_id":"GATE-01-ST7-MAIN","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:44:51.580Z","run_id":"GATE-01-ST7-MAIN","event":"preflight_result","turn":1,"pass":false,"halts":[{"check":"branch","detail":"current branch is \"main\" — the loop never runs on main/master"}],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-01-st7-main/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.580Z","run_id":"GATE-01-ST7-MAIN","event":"halt","reason":"preflight failed — executor never starts this turn","state_at_halt":"PRECHECK","turn":1,"halts":[{"check":"branch","detail":"current branch is \"main\" — the loop never runs on main/master"}]}
+{"ts":"2026-06-12T12:44:51.580Z","run_id":"GATE-01-ST7-MAIN","event":"fsm_transition","from":"PRECHECK","to":"HALTED_SAFE","reason":"preflight failed — executor never starts this turn"}
+{"ts":"2026-06-12T12:44:51.580Z","run_id":"GATE-01-ST7-MAIN","event":"run_end","final_state":"HALTED_SAFE","reason":"preflight failed — executor never starts this turn"}
+{"ts":"2026-06-12T12:44:51.580Z","run_id":"GATE-01B-ST7-MIDRUN","event":"run_start"}
+{"ts":"2026-06-12T12:44:51.580Z","run_id":"GATE-01B-ST7-MIDRUN","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.580Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:44:51.580Z","run_id":"GATE-01B-ST7-MIDRUN","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:44:51.580Z","run_id":"GATE-01B-ST7-MIDRUN","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:44:51.580Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:44:51.580Z","run_id":"GATE-01B-ST7-MIDRUN","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-01b-st7-midrun/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.580Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:51.582Z","run_id":"GATE-01B-ST7-MIDRUN","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.582Z","run_id":"GATE-01B-ST7-MIDRUN","event":"evidence_crosscheck","turn":1,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:44:51.582Z","run_id":"GATE-01B-ST7-MIDRUN","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":0}
+{"ts":"2026-06-12T12:44:51.582Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:44:51.649Z","run_id":"GATE-01B-ST7-MIDRUN","event":"scanner_result","turn":1,"hits":0,"top_severity":null,"scanner_confidence":"high","semantic_review_required":false,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-01b-st7-midrun/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.649Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:51.653Z","run_id":"GATE-01B-ST7-MIDRUN","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.653Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"REVIEWING","to":"COMMITTING_STATE","turn":1}
+{"ts":"2026-06-12T12:44:51.654Z","run_id":"GATE-01B-ST7-MIDRUN","event":"register_validation","turn":1,"valid":true,"violations":[]}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","note":"next iteration","turn":1}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","turn":2}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-01B-ST7-MIDRUN","event":"preflight_result","turn":2,"pass":false,"halts":[{"check":"branch","detail":"current branch is \"main\" — the loop never runs on main/master"}],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-01b-st7-midrun/preflight-turn-2.json"}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-01B-ST7-MIDRUN","event":"halt","reason":"preflight failed — executor never starts this turn","state_at_halt":"PRECHECK","turn":2,"halts":[{"check":"branch","detail":"current branch is \"main\" — the loop never runs on main/master"}]}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-01B-ST7-MIDRUN","event":"fsm_transition","from":"PRECHECK","to":"HALTED_SAFE","reason":"preflight failed — executor never starts this turn"}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-01B-ST7-MIDRUN","event":"run_end","final_state":"HALTED_SAFE","reason":"preflight failed — executor never starts this turn"}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"run_start"}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-02-st2-sacred-write/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"evidence_crosscheck","turn":1,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":0}
+{"ts":"2026-06-12T12:44:51.655Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:44:51.714Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"scanner_result","turn":1,"hits":4,"top_severity":"P0","scanner_confidence":"high","semantic_review_required":true,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-02-st2-sacred-write/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.714Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:51.714Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.714Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"fsm_transition","from":"REVIEWING","to":"AWAITING_HUMAN","reason":"scanner flagged P0 — human route regardless of critic verdict","turn":1,"critic_verdict":"continue","scanner_report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-02-st2-sacred-write/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.714Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"halt","reason":"escalated to human: scanner flagged P0 — human route regardless of critic verdict","state_at_halt":"AWAITING_HUMAN","turn":1,"critic_verdict":"continue","scanner_report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-02-st2-sacred-write/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.714Z","run_id":"GATE-02-ST2-SACRED-WRITE","event":"run_end","final_state":"AWAITING_HUMAN","reason":"scanner flagged P0 — human route regardless of critic verdict"}
+{"ts":"2026-06-12T12:44:51.714Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"run_start"}
+{"ts":"2026-06-12T12:44:51.714Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.715Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:44:51.715Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:44:51.715Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:44:51.715Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:44:51.715Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-03-st13-lifecycle/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.715Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:51.715Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.715Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"evidence_crosscheck","turn":1,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:44:51.715Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":0}
+{"ts":"2026-06-12T12:44:51.715Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:44:51.774Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"scanner_result","turn":1,"hits":2,"top_severity":"P1A","scanner_confidence":"high","semantic_review_required":true,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-03-st13-lifecycle/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.774Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:51.774Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.774Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"fsm_transition","from":"REVIEWING","to":"AWAITING_HUMAN","reason":"scanner flagged P1A — human route regardless of critic verdict","turn":1,"critic_verdict":"continue","scanner_report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-03-st13-lifecycle/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.774Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"halt","reason":"escalated to human: scanner flagged P1A — human route regardless of critic verdict","state_at_halt":"AWAITING_HUMAN","turn":1,"critic_verdict":"continue","scanner_report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-03-st13-lifecycle/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.774Z","run_id":"GATE-03-ST13-LIFECYCLE","event":"run_end","final_state":"AWAITING_HUMAN","reason":"scanner flagged P1A — human route regardless of critic verdict"}
+{"ts":"2026-06-12T12:44:51.775Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"run_start"}
+{"ts":"2026-06-12T12:44:51.775Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.775Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:44:51.775Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:44:51.775Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:44:51.775Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:44:51.775Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-04-st3-vanishing-risk/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.775Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:51.775Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.775Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"evidence_crosscheck","turn":1,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:44:51.775Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":0}
+{"ts":"2026-06-12T12:44:51.775Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:44:51.835Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"scanner_result","turn":1,"hits":0,"top_severity":null,"scanner_confidence":"high","semantic_review_required":false,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-04-st3-vanishing-risk/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.835Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:51.835Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.835Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"fsm_transition","from":"REVIEWING","to":"COMMITTING_STATE","turn":1}
+{"ts":"2026-06-12T12:44:51.835Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"register_validation","turn":1,"valid":true,"violations":[]}
+{"ts":"2026-06-12T12:44:51.836Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"register_validation","turn":1,"artifact":"STATE_PATCH","valid":false,"violations":[{"rule":"open_risk_omitted","id":"RISK-0001","detail":"RISK-0001 is open in the register but missing from STATE_PATCH.open_risk_ids — open risks cannot vanish"}]}
+{"ts":"2026-06-12T12:44:51.836Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"halt","reason":"STATE_PATCH rejected — open risks cannot vanish","state_at_halt":"COMMITTING_STATE","turn":1,"violations":[{"rule":"open_risk_omitted","id":"RISK-0001","detail":"RISK-0001 is open in the register but missing from STATE_PATCH.open_risk_ids — open risks cannot vanish"}]}
+{"ts":"2026-06-12T12:44:51.836Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"fsm_transition","from":"COMMITTING_STATE","to":"HALTED_SAFE","reason":"STATE_PATCH rejected — open risks cannot vanish"}
+{"ts":"2026-06-12T12:44:51.836Z","run_id":"GATE-04-ST3-VANISHING-RISK","event":"run_end","final_state":"HALTED_SAFE","reason":"STATE_PATCH rejected — open risks cannot vanish"}
+{"ts":"2026-06-12T12:44:51.836Z","run_id":"GATE-05-ST15-RISK-RENAME","event":"register_validation","valid":false,"violations":[{"rule":"risk_deleted","id":"RISK-0004","detail":"RISK-0004 is missing from the proposed register — risks are never deleted, only change status. A rename or merge must keep the original id."}],"note":"ST-15 seeded rename RISK-0004 → RISK-0017 without continuity"}
+{"ts":"2026-06-12T12:44:51.836Z","run_id":"GATE-05-ST15-RISK-RENAME","event":"halt","reason":"register transition rejected (ST-15 rename)","violations":[{"rule":"risk_deleted","id":"RISK-0004","detail":"RISK-0004 is missing from the proposed register — risks are never deleted, only change status. A rename or merge must keep the original id."}]}
+{"ts":"2026-06-12T12:44:51.836Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"run_start"}
+{"ts":"2026-06-12T12:44:51.836Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.836Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:44:51.836Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:44:51.836Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:44:51.836Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:44:51.836Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-06-st12-fake-evidence/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.836Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:51.837Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.837Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"evidence_crosscheck","turn":1,"downgrades":[{"command":"npm test","output_path":"does-not-exist.txt","reason":"output file missing: does-not-exist.txt"}],"all_passes_evidenced":false}
+{"ts":"2026-06-12T12:44:51.837Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":0}
+{"ts":"2026-06-12T12:44:51.837Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:44:51.898Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"scanner_result","turn":1,"hits":0,"top_severity":null,"scanner_confidence":"high","semantic_review_required":false,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-06-st12-fake-evidence/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"fsm_transition","from":"REVIEWING","to":"COMMITTING_STATE","turn":1}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"register_validation","turn":1,"valid":true,"violations":[]}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"fsm_transition","from":"COMMITTING_STATE","to":"AWAITING_HUMAN","reason":"done rejected: test claims lack evidence","turn":1,"downgrades":[{"command":"npm test","output_path":"does-not-exist.txt","reason":"output file missing: does-not-exist.txt"}],"non_passing":[{"command":"npm test","result":"not_run"}]}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"halt","reason":"escalated to human: done rejected: test claims lack evidence","state_at_halt":"AWAITING_HUMAN","turn":1,"downgrades":[{"command":"npm test","output_path":"does-not-exist.txt","reason":"output file missing: does-not-exist.txt"}],"non_passing":[{"command":"npm test","result":"not_run"}]}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-06-ST12-FAKE-EVIDENCE","event":"run_end","final_state":"AWAITING_HUMAN","reason":"done rejected: test claims lack evidence"}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"run_start"}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-07-malformed-verdict/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"evidence_crosscheck","turn":1,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":0}
+{"ts":"2026-06-12T12:44:51.899Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:44:51.960Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"scanner_result","turn":1,"hits":0,"top_severity":null,"scanner_confidence":"high","semantic_review_required":false,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-07-malformed-verdict/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.960Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:51.960Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":false,"attempts":2,"errors":["invalid JSON: Expected double-quoted property name in JSON at position 25 (line 1 column 26)"]}
+{"ts":"2026-06-12T12:44:51.960Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"halt","reason":"CRITIC_VERDICT failed fail-closed validation — verdict is never inferred","state_at_halt":"REVIEWING","turn":1,"errors":["invalid JSON: Expected double-quoted property name in JSON at position 25 (line 1 column 26)"]}
+{"ts":"2026-06-12T12:44:51.960Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"fsm_transition","from":"REVIEWING","to":"HALTED_SAFE","reason":"CRITIC_VERDICT failed fail-closed validation — verdict is never inferred"}
+{"ts":"2026-06-12T12:44:51.960Z","run_id":"GATE-07-MALFORMED-VERDICT","event":"run_end","final_state":"HALTED_SAFE","reason":"CRITIC_VERDICT failed fail-closed validation — verdict is never inferred"}
+{"ts":"2026-06-12T12:44:51.960Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"run_start"}
+{"ts":"2026-06-12T12:44:51.961Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.961Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:44:51.961Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:44:51.961Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:44:51.961Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:44:51.961Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-08-fingerprint-repeat/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:44:51.961Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:51.961Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:51.961Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"evidence_crosscheck","turn":1,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:44:51.962Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":1}
+{"ts":"2026-06-12T12:44:51.962Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"scanner_result","turn":1,"hits":0,"top_severity":null,"scanner_confidence":"high","semantic_review_required":false,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-08-fingerprint-repeat/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"REVIEWING","to":"COMMITTING_STATE","turn":1}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"register_validation","turn":1,"valid":true,"violations":[]}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","note":"next iteration","turn":1}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","turn":2}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"preflight_result","turn":2,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-08-fingerprint-repeat/preflight-turn-2.json"}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":2,"stubbed":true}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":2,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"evidence_crosscheck","turn":2,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"breaker_result","turn":2,"escalate":true,"reasons":[{"rule":"fingerprint_repeat","detail":"fingerprint 87d66f8683cb… first failed on turn 1, repeated on turn 2 — same (tool, code, file) root cause twice in one chunk"}],"failed_turn_count":2}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"fsm_transition","from":"EXECUTING","to":"AWAITING_HUMAN","reason":"doom-loop breaker fired","turn":2,"reasons":[{"rule":"fingerprint_repeat","detail":"fingerprint 87d66f8683cb… first failed on turn 1, repeated on turn 2 — same (tool, code, file) root cause twice in one chunk"}]}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"halt","reason":"escalated to human: doom-loop breaker fired","state_at_halt":"AWAITING_HUMAN","turn":2,"reasons":[{"rule":"fingerprint_repeat","detail":"fingerprint 87d66f8683cb… first failed on turn 1, repeated on turn 2 — same (tool, code, file) root cause twice in one chunk"}]}
+{"ts":"2026-06-12T12:44:52.019Z","run_id":"GATE-08-FINGERPRINT-REPEAT","event":"run_end","final_state":"AWAITING_HUMAN","reason":"doom-loop breaker fired"}
+{"ts":"2026-06-12T12:44:52.020Z","run_id":"GATE-09-FAILURE-CAP","event":"run_start"}
+{"ts":"2026-06-12T12:44:52.020Z","run_id":"GATE-09-FAILURE-CAP","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:52.020Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:44:52.020Z","run_id":"GATE-09-FAILURE-CAP","event":"spec_lint_result","pass":true,"violations":[]}
+{"ts":"2026-06-12T12:44:52.020Z","run_id":"GATE-09-FAILURE-CAP","event":"validation_result","artifact":"critic_spec_review","ok":true,"stubbed":true,"note":"Chunk 0: critic spec review is a stub; deterministic lint only"}
+{"ts":"2026-06-12T12:44:52.020Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"SPEC_REVIEW","to":"PRECHECK","turn":1}
+{"ts":"2026-06-12T12:44:52.020Z","run_id":"GATE-09-FAILURE-CAP","event":"preflight_result","turn":1,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-09-failure-cap/preflight-turn-1.json"}
+{"ts":"2026-06-12T12:44:52.020Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:52.020Z","run_id":"GATE-09-FAILURE-CAP","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:52.020Z","run_id":"GATE-09-FAILURE-CAP","event":"evidence_crosscheck","turn":1,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:44:52.020Z","run_id":"GATE-09-FAILURE-CAP","event":"breaker_result","turn":1,"escalate":false,"reasons":[],"failed_turn_count":1}
+{"ts":"2026-06-12T12:44:52.020Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":1}
+{"ts":"2026-06-12T12:44:52.080Z","run_id":"GATE-09-FAILURE-CAP","event":"scanner_result","turn":1,"hits":0,"top_severity":null,"scanner_confidence":"high","semantic_review_required":false,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-09-failure-cap/scanner-turn-1.json"}
+{"ts":"2026-06-12T12:44:52.080Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":1,"stubbed":true}
+{"ts":"2026-06-12T12:44:52.080Z","run_id":"GATE-09-FAILURE-CAP","event":"validation_result","artifact":"CRITIC_VERDICT","turn":1,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:52.080Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"REVIEWING","to":"COMMITTING_STATE","turn":1}
+{"ts":"2026-06-12T12:44:52.080Z","run_id":"GATE-09-FAILURE-CAP","event":"register_validation","turn":1,"valid":true,"violations":[]}
+{"ts":"2026-06-12T12:44:52.080Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","note":"next iteration","turn":1}
+{"ts":"2026-06-12T12:44:52.080Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","turn":2}
+{"ts":"2026-06-12T12:44:52.080Z","run_id":"GATE-09-FAILURE-CAP","event":"preflight_result","turn":2,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-09-failure-cap/preflight-turn-2.json"}
+{"ts":"2026-06-12T12:44:52.080Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":2,"stubbed":true}
+{"ts":"2026-06-12T12:44:52.080Z","run_id":"GATE-09-FAILURE-CAP","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":2,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:52.080Z","run_id":"GATE-09-FAILURE-CAP","event":"evidence_crosscheck","turn":2,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:44:52.080Z","run_id":"GATE-09-FAILURE-CAP","event":"breaker_result","turn":2,"escalate":false,"reasons":[],"failed_turn_count":2}
+{"ts":"2026-06-12T12:44:52.080Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"EXECUTING","to":"SCANNING","turn":2}
+{"ts":"2026-06-12T12:44:52.140Z","run_id":"GATE-09-FAILURE-CAP","event":"scanner_result","turn":2,"hits":0,"top_severity":null,"scanner_confidence":"high","semantic_review_required":false,"report":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-09-failure-cap/scanner-turn-2.json"}
+{"ts":"2026-06-12T12:44:52.140Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"SCANNING","to":"REVIEWING","turn":2,"stubbed":true}
+{"ts":"2026-06-12T12:44:52.140Z","run_id":"GATE-09-FAILURE-CAP","event":"validation_result","artifact":"CRITIC_VERDICT","turn":2,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:52.140Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"REVIEWING","to":"COMMITTING_STATE","turn":2}
+{"ts":"2026-06-12T12:44:52.140Z","run_id":"GATE-09-FAILURE-CAP","event":"register_validation","turn":2,"valid":true,"violations":[]}
+{"ts":"2026-06-12T12:44:52.140Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","note":"next iteration","turn":2}
+{"ts":"2026-06-12T12:44:52.140Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"COMMITTING_STATE","to":"PRECHECK","turn":3}
+{"ts":"2026-06-12T12:44:52.141Z","run_id":"GATE-09-FAILURE-CAP","event":"preflight_result","turn":3,"pass":true,"halts":[],"artifact":"/Users/giovannirussillo/projects/memorium/.agent/runs/gate-09-failure-cap/preflight-turn-3.json"}
+{"ts":"2026-06-12T12:44:52.141Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"PRECHECK","to":"EXECUTING","turn":3,"stubbed":true}
+{"ts":"2026-06-12T12:44:52.141Z","run_id":"GATE-09-FAILURE-CAP","event":"validation_result","artifact":"EXECUTOR_REPORT","turn":3,"ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:52.141Z","run_id":"GATE-09-FAILURE-CAP","event":"evidence_crosscheck","turn":3,"downgrades":[],"all_passes_evidenced":true}
+{"ts":"2026-06-12T12:44:52.141Z","run_id":"GATE-09-FAILURE-CAP","event":"breaker_result","turn":3,"escalate":true,"reasons":[{"rule":"failure_cap","detail":"3 failed turns in this chunk reaches max_failures=3 — escalating regardless of failure class"}],"failed_turn_count":3}
+{"ts":"2026-06-12T12:44:52.141Z","run_id":"GATE-09-FAILURE-CAP","event":"fsm_transition","from":"EXECUTING","to":"AWAITING_HUMAN","reason":"doom-loop breaker fired","turn":3,"reasons":[{"rule":"failure_cap","detail":"3 failed turns in this chunk reaches max_failures=3 — escalating regardless of failure class"}]}
+{"ts":"2026-06-12T12:44:52.141Z","run_id":"GATE-09-FAILURE-CAP","event":"halt","reason":"escalated to human: doom-loop breaker fired","state_at_halt":"AWAITING_HUMAN","turn":3,"reasons":[{"rule":"failure_cap","detail":"3 failed turns in this chunk reaches max_failures=3 — escalating regardless of failure class"}]}
+{"ts":"2026-06-12T12:44:52.141Z","run_id":"GATE-09-FAILURE-CAP","event":"run_end","final_state":"AWAITING_HUMAN","reason":"doom-loop breaker fired"}
+{"ts":"2026-06-12T12:44:52.141Z","run_id":"GATE-10-OVERBROAD-SPEC","event":"run_start"}
+{"ts":"2026-06-12T12:44:52.141Z","run_id":"GATE-10-OVERBROAD-SPEC","event":"validation_result","artifact":"TASK_SPEC","ok":true,"attempts":1,"errors":[]}
+{"ts":"2026-06-12T12:44:52.141Z","run_id":"GATE-10-OVERBROAD-SPEC","event":"fsm_transition","from":"INIT","to":"SPEC_REVIEW"}
+{"ts":"2026-06-12T12:44:52.141Z","run_id":"GATE-10-OVERBROAD-SPEC","event":"spec_lint_result","pass":false,"violations":[{"rule":"green_path_overbroad","detail":"green path \"app/**\" contains '**' — green tier must be narrow"},{"rule":"p1c_categorical","detail":"p1c_preapproval \"any test changes\" is categorical — must name one specific file, dependency, or exact change"}]}
+{"ts":"2026-06-12T12:44:52.142Z","run_id":"GATE-10-OVERBROAD-SPEC","event":"halt","reason":"spec lint rejected the TASK_SPEC","state_at_halt":"SPEC_REVIEW","violations":[{"rule":"green_path_overbroad","detail":"green path \"app/**\" contains '**' — green tier must be narrow"},{"rule":"p1c_categorical","detail":"p1c_preapproval \"any test changes\" is categorical — must name one specific file, dependency, or exact change"}]}
+{"ts":"2026-06-12T12:44:52.142Z","run_id":"GATE-10-OVERBROAD-SPEC","event":"fsm_transition","from":"SPEC_REVIEW","to":"HALTED_SAFE","reason":"spec lint rejected the TASK_SPEC"}
+{"ts":"2026-06-12T12:44:52.142Z","run_id":"GATE-10-OVERBROAD-SPEC","event":"run_end","final_state":"HALTED_SAFE","reason":"spec lint rejected the TASK_SPEC"}

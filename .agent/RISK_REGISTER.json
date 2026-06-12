@@ -1,0 +1,37 @@
+{
+  "risks": [
+    {
+      "id": "RISK-0001",
+      "type": "dependency_added",
+      "severity": "P1A",
+      "status": "accepted",
+      "introduced_at": "CHUNK0-BUILD-2026-06-12",
+      "introduced_by": "human",
+      "resolution_evidence": [
+        "ajv ^8.20.0 added as devDependency for fail-closed JSON Schema validation (.agent/harness/validate.js). Flagged to Gio before install per chunk-0-handoff-brief.md §3; explicitly approved by Gio in-session 2026-06-12. Installed with --ignore-scripts."
+      ]
+    },
+    {
+      "id": "RISK-0002",
+      "type": "dependency_added",
+      "severity": "P1A",
+      "status": "accepted",
+      "introduced_at": "CHUNK0-BUILD-2026-06-12",
+      "introduced_by": "human",
+      "resolution_evidence": [
+        "ripgrep 15.1.0 installed system-wide via Homebrew as the Layer 1 scanner engine (.agent/harness/scanner.js). Flagged to Gio when discovered absent (only Claude Code's internal copy existed); explicitly approved by Gio in-session 2026-06-12."
+      ]
+    },
+    {
+      "id": "RISK-0003",
+      "type": "dependency_added",
+      "severity": "P1A",
+      "status": "accepted",
+      "introduced_at": "CHUNK0-BUILD-2026-06-12",
+      "introduced_by": "human",
+      "resolution_evidence": [
+        "semgrep 1.165.0 installed system-wide via Homebrew as the Layer 2 AST scanner engine (.agent/rules/layer2-semgrep.yml). Flagged to Gio before the item-12 timebox; explicitly approved by Gio in-session 2026-06-12."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+diff --git a/lib/format.js b/lib/format.js
+index 7777777..8888888 100644
+--- a/lib/format.js
++++ b/lib/format.js
+@@ -1,5 +1,9 @@
+ export function formatStreak(count) {
+   return `${count} day streak`;
+ }
++
++export function formatPercent(value) {
++  return `${Math.round(value * 100)}%`;
++}

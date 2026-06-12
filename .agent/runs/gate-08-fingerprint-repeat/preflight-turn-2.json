@@ -1,0 +1,15 @@
+{
+  "env_policy": "allowlist",
+  "env_vars_present": [
+    "NODE_ENV"
+  ],
+  "forbidden_env_detected": [],
+  "network_policy": "registry_only",
+  "branch": "agentic-harness-chunk0",
+  "allow_push": false,
+  "changed_files_tiers": {
+    "components/LibraryEmptyState.js": "green"
+  },
+  "pass": true,
+  "halts": []
+}

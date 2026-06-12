@@ -1,0 +1,20 @@
+{
+  "env_policy": "allowlist",
+  "env_vars_present": [
+    "NODE_ENV"
+  ],
+  "forbidden_env_detected": [],
+  "network_policy": "registry_only",
+  "branch": "main",
+  "allow_push": false,
+  "changed_files_tiers": {
+    "components/LibraryEmptyState.js": "green"
+  },
+  "pass": false,
+  "halts": [
+    {
+      "check": "branch",
+      "detail": "current branch is \"main\" — the loop never runs on main/master"
+    }
+  ]
+}

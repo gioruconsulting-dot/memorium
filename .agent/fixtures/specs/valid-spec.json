@@ -1,0 +1,25 @@
+{
+  "objective": "Add an empty-state illustration to the Library page",
+  "acceptance_criteria": [
+    "Library page shows the illustration when the user has zero documents",
+    "Existing populated Library rendering is unchanged"
+  ],
+  "green_paths": ["components/LibraryEmptyState.js", "app/library/page.js"],
+  "yellow_paths": ["lib/**"],
+  "red_paths": ["app/api/**", "middleware.js", "package.json"],
+  "black_paths": [
+    ".env*",
+    "migrations/**",
+    ".agent/**",
+    "MASTERPLAN.md",
+    "STATE.md",
+    "DECISIONS.log",
+    "EVIDENCE.log"
+  ],
+  "risk_level": "P3",
+  "p1c_preapprovals": [],
+  "network_policy": "registry_only",
+  "requires_live_human": false,
+  "max_iterations": 5,
+  "max_failures": 3
+}

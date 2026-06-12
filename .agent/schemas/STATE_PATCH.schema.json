@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "STATE_PATCH",
+  "title": "STATE_PATCH",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["current_chunk", "objective", "open_risk_ids", "decisions_refs", "next_action"],
+  "properties": {
+    "current_chunk": { "type": "string", "minLength": 1 },
+    "objective": { "type": "string", "minLength": 1 },
+    "open_risk_ids": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^RISK-[0-9]{4}$" }
+    },
+    "decisions_refs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "next_action": { "type": "string", "minLength": 1 }
+  }
+}
