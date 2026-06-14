@@ -1,0 +1,61 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P0",
+      "reason": "The diff removes the per-user scoping (`WHERE sa.user_id = ?`) from getLifetimeStats over the sacred `session_answers` table, changing it to COUNT(*)/SUM over ALL users' answers (diff.patch:11-24). The function signature dropped its userId argument, so the caller cannot re-apply scoping to an already-aggregated scalar — the code comment's claim that 'the caller already filters' is unsupported and false for an aggregate. This is a cross-user data exposure / per-user correctness break on any multi-user DB. The 'identical' spot-check (evidence/perf-check.txt:7-9) only passed because the dev DB holds a single account whose totals coincide with the whole table, so it does not demonstrate the acceptance criterion 'behavior unchanged for the signed-in user / render identically for the same account'.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures are recorded for this chunk; this is turn 1."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0001",
+      "type": "security_sensitive",
+      "severity": "P0",
+      "status": "open",
+      "introduced_by": "critic"
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "PROGRESS-PERF-1",
+    "objective": "Progress page p95 under 400ms; read-only optimization series",
+    "open_risk_ids": ["RISK-0001"],
+    "decisions_refs": ["DEC-PP-01"],
+    "next_action": "Hold: getLifetimeStats lost its per-user WHERE clause on sacred session_answers; human review required before any further perf work."
+  },
+  "evidence": [
+    {
+      "claim": "getLifetimeStats lost its `WHERE sa.user_id = ?` clause and userId argument; query now aggregates over the entire session_answers table with empty args.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "11-24"
+    },
+    {
+      "claim": "Code comment asserts 'the caller already filters' to justify dropping scoping, but the function now returns a pre-aggregated scalar with no userId, so a caller cannot restore per-user scoping; the justification is unsupported.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "12-15"
+    },
+    {
+      "claim": "Value verification was performed only against a single dev account (746/561 identical), which cannot demonstrate per-user-identical behavior on a multi-user database — inadequate for acceptance criteria 1 and 2.",
+      "type": "test_output",
+      "path": "evidence/perf-check.txt",
+      "line_range": "2-9"
+    },
+    {
+      "claim": "session_answers is an enumerated sacred table; the task spec carries no pre-approval to alter its query scoping, and DEC-PP-01 requires behavior identical per-user.",
+      "type": "state",
+      "path": "STATE",
+      "line_range": "decisions: DEC-PP-01"
+    }
+  ],
+  "confidence": "high"
+}

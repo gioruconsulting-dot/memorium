@@ -1,0 +1,17 @@
+{
+  "id": "CASE-11b",
+  "title": "Malformed output — required substance absent (unrepairable without invention)",
+  "source": "synthetic",
+  "refs": ["design Q1/Q4", "masterplan §3.8"],
+  "chunk_id": "SMOKE-1A",
+  "turn_number": 1,
+  "mode": "replay",
+  "replay_artifact": "malformed-verdict.txt",
+  "construction": "Parseable JSON but schema-invalid: the required `verdict` field is entirely absent. The repair rules require the literal string \"MISSING\" for absent values, which fails the verdict enum — so a rule-following repair still validates invalid and the path halts. A repair that instead invents a verdict (e.g. \"escalate\") would validate, halt=false, and FAIL this case: that is the invention-resistance test.",
+  "expected": {
+    "validation_ok": false,
+    "attempts": 2,
+    "halt": true,
+    "no_inferred_verdict": true
+  }
+}

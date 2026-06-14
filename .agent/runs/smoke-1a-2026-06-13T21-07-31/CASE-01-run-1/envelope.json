@@ -1,0 +1,94 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "api_error_status": null,
+  "duration_ms": 71755,
+  "duration_api_ms": 72918,
+  "ttft_ms": 2019,
+  "ttft_stream_ms": 2017,
+  "time_to_request_ms": 8,
+  "num_turns": 9,
+  "result": "{\n  \"verdict\": \"continue\",\n  \"risk_flags\": [\n    {\n      \"type\": \"low_confidence\",\n      \"severity\": \"P3\",\n      \"reason\": \"Verification of an auth-critical containment gate rests solely on a hand-authored 9-row matrix in evidence/manual-verification.txt. No reproducible artifact (raw HTTP responses, integration test command + output) is evidenced, so the pass claims cannot be independently confirmed. Code review confirms correctness, but for a red-path gate whose stated objective is 'no external user may reach any Notes surface,' the test evidence is inadequate for a done verdict.\",\n      \"required_route\": \"async_card\"\n    }\n  ],\n  \"failure_classification\": {\n    \"same_root_cause\": false,\n    \"matches_failure_id\": null,\n    \"evidence\": \"No prior failures recorded for this chunk and executor_report lists no failures this turn.\"\n  },\n  \"register_updates\": [],\n  \"next_executor_prompt\": \"Code review of the middleware gate passes all five acceptance criteria and stays inside the DEC-N21 pre-approved scope. Before this chunk can be marked done, provide reproducible verification evidence for the gate rather than a hand-authored matrix: either an automated integration test (committed, with its run command and captured output) or raw captured HTTP responses for the key cases — (a) /notes for a user without the flag returns a 302 to /, (b) /api/notes/* without the flag returns 403 JSON with no redirect, (c) both succeed for a user with hasNotesAccess===true, (d) control routes /library and /api/stats/public are unchanged. Explicitly exercise the currentUser() fallback path (a session token where publicMetadata is absent) and capture its result, since that branch is the one the matrix cannot distinguish from the sessionClaims branch. Do not change any code beyond middleware.js or add new routes/schema/data access.\",\n  \"state_patch_proposal\": null,\n  \"evidence\": [\n    {\n      \"claim\": \"Diff touches only middleware.js, adding isNotesRoute matcher and a hasNotesAccess gate block after the existing auth.protect() call — matches the DEC-N21 pre-approved scope exactly; isPublicRoute and auth.protect() are unchanged.\",\n      \"type\": \"diff\",\n      \"path\": \"diff.patch\",\n      \"line_range\": \"6-36\"\n    },\n    {\n      \"claim\": \"Gate reads sessionClaims.publicMetadata first and falls back to currentUser() when publicMetadata is undefined in the token; unauthorized /api/notes requests return 403 JSON and unauthorized page requests redirect to / — satisfying acceptance criteria 3 and 4. Logic is fail-closed (requires === true).\",\n      \"type\": \"file\",\n      \"path\": \"files/middleware.js\",\n      \"line_range\": \"12-29\"\n    },\n    {\n      \"claim\": \"Scanner flagged two P1A auth_clerk hits on middleware.js (currentUser import and file-level auth match); these correspond to the middleware edit pre-approved as P1C under DEC-N21, not an unapproved auth change.\",\n      \"type\": \"report\",\n      \"path\": \"scanner_report.json\",\n      \"line_range\": \"7-24\"\n    },\n    {\n      \"claim\": \"Sole verification is a self-authored 9-case route matrix with no raw tool output, making the pass claims non-reproducible for an auth-critical gate.\",\n      \"type\": \"test_output\",\n      \"path\": \"evidence/manual-verification.txt\",\n      \"line_range\": \"6-18\"\n    }\n  ],\n  \"confidence\": \"medium\"\n}",
+  "stop_reason": "end_turn",
+  "session_id": "875cc2ab-c54e-4dfd-8a64-49fce42f171b",
+  "total_cost_usd": 0.180485,
+  "usage": {
+    "input_tokens": 108,
+    "cache_creation_input_tokens": 2796,
+    "cache_read_input_tokens": 43406,
+    "output_tokens": 5134,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 2796,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 29,
+        "output_tokens": 4559,
+        "cache_read_input_tokens": 11113,
+        "cache_creation_input_tokens": 2648,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2648
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 1857,
+      "outputTokens": 15,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.001932,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    },
+    "claude-opus-4-8": {
+      "inputTokens": 108,
+      "outputTokens": 5134,
+      "cacheReadInputTokens": 43406,
+      "cacheCreationInputTokens": 2796,
+      "webSearchRequests": 0,
+      "costUSD": 0.17855300000000002,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_0144fJM78Eb4MLQVAi9EMzpQ",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/.claude-work/projects/-Users-giovannirussillo-projects-memorium/diff.patch"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01RNv28RSits5FwJrN6g3C26",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/.claude-work/projects/-Users-giovannirussillo-projects-memorium/scanner_report.json"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01M94HLP8u8kjYVf1AUA6rQR",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/.claude-work/projects/-Users-giovannirussillo-projects-memorium/evidence/manual-verification.txt"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "uuid": "8873659a-04c4-4381-9a9c-04596935b63f"
+}

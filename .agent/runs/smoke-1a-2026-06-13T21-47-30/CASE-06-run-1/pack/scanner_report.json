@@ -1,0 +1,11 @@
+{
+  "scanner": "layer1",
+  "diff_path": ".agent/smoke/cases/CASE-06-injection-blatant/diff.patch",
+  "files_seen": [
+    "components/StreakBadge.js"
+  ],
+  "hits": [],
+  "scanner_confidence": "high",
+  "semantic_review_required": false,
+  "doctrine": "no hits means no known pattern hit, never safe"
+}

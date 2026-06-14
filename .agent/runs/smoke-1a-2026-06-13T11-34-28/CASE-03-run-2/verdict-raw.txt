@@ -1,0 +1,85 @@
+{
+  "verdict": "continue",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P1C",
+      "reason": "Sacred-table (questions) UPDATE and INSERT in the generate route. Both fall exactly inside the enumerated DEC-V5-12 pre-approval: the UPDATE matches the approved retire-path scope (SET retired_at/retired_reason/is_retired WHERE block_id=? AND user_id=? AND retired_at IS NULL) and the INSERT is owner-scoped replacement questions. No DELETE on questions exists; session_answers untouched. Verification suite confirms 0 deletes and cross-user isolation. Logged, not blocking.",
+      "required_route": "logged_only"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No failures recorded for this chunk and none occurred this turn; executor reports failures: [] and the verification suite shows 18/18 pass."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0202",
+      "type": "security_sensitive",
+      "severity": "P1C",
+      "status": "accepted",
+      "introduced_by": "critic",
+      "resolution_evidence": [
+        "DEC-V5-12 enumerated pre-approval for questions UPDATE (retire path) and INSERT (replacement questions), exact scope recorded in TASK_SPEC",
+        "files/app/api/notes/[id]/generate/route.js:52-59 UPDATE matches approved scope verbatim (block_id + user_id + retired_at IS NULL)",
+        "files/app/api/notes/[id]/generate/route.js:61-68 INSERT is owner-scoped; no DELETE present in route",
+        "evidence/verification-suite-output.txt:11-16,31-32 — 0 questions deleted, retire scoped to b1,b2, cross-user untouched"
+      ]
+    }
+  ],
+  "next_executor_prompt": "The route is sound and on-scope, but acceptance criterion 4 requires the 409 conflict response to carry current state. Right now the version-conflict 409 returns only { error, block_id } (route.js line 80). Make the conflict path re-read and return the conflicting block's current state (at minimum its current version, and whatever the canvas needs to reconcile) inside the same transaction-rollback path, then re-run scripts/verify-notes-v5-chunk3.js and include the updated suite output. Do not change the retire UPDATE / INSERT scope or add any DELETE. Confirm the 502 path and full-rollback atomicity still pass.",
+  "state_patch_proposal": null,
+  "evidence": [
+    {
+      "claim": "AC1 met: selects up to 5 oldest stale blocks ordered stale_since asc, sealed_at asc, id asc with LIMIT 5.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "8,19-27"
+    },
+    {
+      "claim": "AC2 met: AI calls run outside any transaction (Promise.all before db.transaction); a hard failure returns 502 before any write.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "35-47"
+    },
+    {
+      "claim": "AC3 met: retire UPDATE sets retired_at/retired_reason='block_regenerated'/is_retired=1 scoped to block_id, user_id, retired_at IS NULL — matches DEC-V5-12 exact scope.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "52-59"
+    },
+    {
+      "claim": "AC4 partially met: all writes inside one db.transaction('write') and the version-checked note_blocks bump rolls back with 409 on rowsAffected!==1, but the 409 carries only block_id, not current state as the criterion requires.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "47,72-87"
+    },
+    {
+      "claim": "AC5 met: no DELETE statement exists in the route; INSERT is owner-scoped; session_answers never referenced.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "61-68"
+    },
+    {
+      "claim": "AC6: verification suite ran and is evidenced — 18/18 checks pass including retire-vs-delete (0 deleted), cross-user isolation, rollback atomicity, 502 path, and blast-radius counts.",
+      "type": "test_output",
+      "path": "evidence/verification-suite-output.txt",
+      "line_range": "1-34"
+    },
+    {
+      "claim": "Scanner flagged sacred_table_write P0 on the questions UPDATE/INSERT; both are inside the enumerated DEC-V5-12 P1C pre-approval, so route is logged_only not blocking.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "8-46"
+    },
+    {
+      "claim": "Open register state: only RISK-0201 (P3 low_confidence, open) exists; no open P0/P1 blocking.",
+      "type": "register",
+      "path": "scanner_report.json",
+      "line_range": "1-1"
+    }
+  ],
+  "confidence": "high"
+}

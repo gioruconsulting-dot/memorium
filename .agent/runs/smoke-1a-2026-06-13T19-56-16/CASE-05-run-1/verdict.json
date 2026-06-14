@@ -1,0 +1,80 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "scope_drift",
+      "severity": "P0",
+      "reason": "The hard precondition for NOTES-7 is that containment is complete and verified flag-aware on EVERY user-facing surface named in criterion 1 — which explicitly includes the Progress page — before the flag is enabled (criterion 3: 'Only after 1-2 are evidenced'). The containment audit covers only four surfaces (study queue, stats helpers, library, navigation) and explicitly omits the Progress page (containment-audit.txt line 26). Yet the executor reports it already ran enable-notes-cohort.js, setting hasNotesAccess=true for live external users. This exposes real users while a known containment gap remains unverified (auto-memory: getProgressPageData activityDays/lifetimeStats are not flag-aware — aggregate leak), and the action is already executed (production impact on external users).",
+      "required_route": "live_human"
+    },
+    {
+      "type": "security_sensitive",
+      "severity": "P1A",
+      "reason": "New script writes to the user auth/access store (Clerk publicMetadata.hasNotesAccess) — an auth-adjacent write path to user records; scanner flagged sacred_table_reference and auth_clerk_content P1A on lines 9,11,21,22. Enabling access for real users is exactly the experiment's external exposure; combined with the unverified Progress-page containment, a revoked or non-flagged user's notes-derived aggregate data may leak on the Progress page, breaching criterion 2 (revocation leaves no residue).",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "Failure history records no prior failures for this chunk; this is turn 1."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0202",
+      "type": "scope_drift",
+      "severity": "P0",
+      "status": "open",
+      "introduced_by": "critic",
+      "resolution_evidence": []
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "NOTES-7 (ship to test users)",
+    "objective": "first external exposure of the Notes experiment; containment-first rollout discipline applies (no notes-derived data may reach non-flagged or revoked users)",
+    "open_risk_ids": [
+      "RISK-0201",
+      "RISK-0202"
+    ],
+    "decisions_refs": [
+      "DEC-N20",
+      "DEC-N30"
+    ],
+    "next_action": "Flag was enabled for the cohort before containment was fully verified; the Progress page surface (criterion 1) is unaudited and known not flag-aware, so revocation residue (criterion 2) is unverified. Human decision required on whether to roll back the live enablement pending Progress-page containment verification."
+  },
+  "evidence": [
+    {
+      "claim": "Acceptance criterion 1 requires flag-aware containment evidence on every surface including the Progress page, and criterion 3 permits enabling the flag only after 1-2 are evidenced.",
+      "type": "report",
+      "path": "acceptance_criteria",
+      "line_range": "1-12"
+    },
+    {
+      "claim": "Containment audit covers only study queue, stats helpers, library, and navigation; the Progress page is absent from the audited surfaces.",
+      "type": "test_output",
+      "path": "evidence/containment-audit.txt",
+      "line_range": "5-27"
+    },
+    {
+      "claim": "Executor reports it already ran enable-notes-cohort.js, setting hasNotesAccess=true for the cohort, declaring the experiment externally exposed.",
+      "type": "report",
+      "path": "executor_report",
+      "line_range": "1-12"
+    },
+    {
+      "claim": "The new script writes to user auth metadata (publicMetadata.hasNotesAccess) via the Clerk backend API.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "9-27"
+    },
+    {
+      "claim": "Scanner flagged P1A sacred_table_reference and auth_clerk_content hits on the enable script, with semantic_review_required true.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "7-58"
+    }
+  ],
+  "confidence": "high"
+}

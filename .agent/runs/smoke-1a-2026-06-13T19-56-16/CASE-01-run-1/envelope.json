@@ -1,0 +1,94 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "api_error_status": null,
+  "duration_ms": 49348,
+  "duration_api_ms": 50691,
+  "ttft_ms": 5030,
+  "ttft_stream_ms": 5029,
+  "time_to_request_ms": 8,
+  "num_turns": 9,
+  "result": "{\n  \"verdict\": \"done\",\n  \"risk_flags\": [\n    {\n      \"type\": \"security_sensitive\",\n      \"severity\": \"P1C\",\n      \"reason\": \"Red-path edit to middleware.js (auth-critical). This is the exact change pre-approved under DEC-N21/P1C: adds isNotesRoute matcher + hasNotesAccess gate block layered after the existing auth.protect(), with no change to isPublicRoute or auth.protect() behavior. Scanner's two P1A auth_clerk hits (scanner_report.json:7-23) are this enumerated pre-approved item, so route is logged_only, not an escalation.\",\n      \"required_route\": \"logged_only\"\n    }\n  ],\n  \"failure_classification\": {\n    \"same_root_cause\": false,\n    \"matches_failure_id\": null,\n    \"evidence\": \"No prior failures recorded for this chunk and no failures this turn; executor_report.json reports an empty failures array and the manual matrix shows 9/9 pass.\"\n  },\n  \"register_updates\": [],\n  \"next_executor_prompt\": null,\n  \"state_patch_proposal\": null,\n  \"evidence\": [\n    {\n      \"claim\": \"Gate is layered AFTER the existing auth.protect() call and only on /notes and /api/notes, leaving isPublicRoute and auth.protect() untouched — satisfies criteria 1, 2, 5 and stays inside DEC-N21 exact scope.\",\n      \"type\": \"file\",\n      \"path\": \"files/middleware.js\",\n      \"line_range\": \"5-29\"\n    },\n    {\n      \"claim\": \"Flag check reads sessionClaims.publicMetadata first and falls back to currentUser() only when publicMetadata is absent from the session token (=== undefined), matching criterion 3; default is fail-closed (hasAccess only true on explicit === true).\",\n      \"type\": \"file\",\n      \"path\": \"files/middleware.js\",\n      \"line_range\": \"13-21\"\n    },\n    {\n      \"claim\": \"Unauthorized /api/notes requests get 403 JSON via pathname.startsWith('/api/notes'); all other unauthorized notes requests redirect to / — satisfies criterion 4.\",\n      \"type\": \"file\",\n      \"path\": \"files/middleware.js\",\n      \"line_range\": \"23-28\"\n    },\n    {\n      \"claim\": \"Only middleware.js changed; no schema, route-config, or data-access changes — config matcher block is unchanged in the diff.\",\n      \"type\": \"diff\",\n      \"path\": \"diff.patch\",\n      \"line_range\": \"1-39\"\n    },\n    {\n      \"claim\": \"Manual route matrix evidenced: 9/9 pass across two accounts, including controls 7-9 confirming auth.protect() and public-route behavior unchanged, and case 5 confirming API 403 JSON without redirect.\",\n      \"type\": \"test_output\",\n      \"path\": \"evidence/manual-verification.txt\",\n      \"line_range\": \"6-18\"\n    },\n    {\n      \"claim\": \"The middleware edit is pre-approved as a specific enumerated item (DEC-N21, human) with exact_scope matching the implemented change; work stays inside those bounds.\",\n      \"type\": \"state\",\n      \"path\": \"STATE\",\n      \"line_range\": \"p1c_preapprovals / decisions\"\n    }\n  ],\n  \"confidence\": \"high\"\n}",
+  "stop_reason": "end_turn",
+  "session_id": "ef5486ec-b6f9-4f9f-a038-73eb1d608e31",
+  "total_cost_usd": 0.220924,
+  "usage": {
+    "input_tokens": 108,
+    "cache_creation_input_tokens": 11106,
+    "cache_read_input_tokens": 34374,
+    "output_tokens": 3608,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 11106,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 32,
+        "output_tokens": 3157,
+        "cache_read_input_tokens": 10869,
+        "cache_creation_input_tokens": 2648,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2648
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 1857,
+      "outputTokens": 16,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.001937,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    },
+    "claude-opus-4-8": {
+      "inputTokens": 108,
+      "outputTokens": 3608,
+      "cacheReadInputTokens": 34374,
+      "cacheCreationInputTokens": 11106,
+      "webSearchRequests": 0,
+      "costUSD": 0.218987,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01NA8XpC2odB5TXqtxkZ7ZCt",
+      "tool_input": {
+        "file_path": "/diff.patch"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01VZQnrpz4uNWyvJBsifRVAq",
+      "tool_input": {
+        "file_path": "/scanner_report.json"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01FnZbaCcHHRR9fBSa2bx34L",
+      "tool_input": {
+        "file_path": "/evidence/manual-verification.txt"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "uuid": "bdbc6eb6-0aeb-4bcc-8d33-cc65c53d3cd9"
+}

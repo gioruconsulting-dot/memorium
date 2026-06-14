@@ -1,0 +1,72 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "api_error_status": null,
+  "duration_ms": 52985,
+  "duration_api_ms": 54175,
+  "ttft_ms": 2450,
+  "ttft_stream_ms": 2056,
+  "time_to_request_ms": 8,
+  "num_turns": 4,
+  "result": "{\n  \"verdict\": \"escalate\",\n  \"risk_flags\": [\n    {\n      \"type\": \"security_sensitive\",\n      \"severity\": \"P1B\",\n      \"reason\": \"The executor ran enable-notes-cohort.js (Clerk publicMetadata.hasNotesAccess=true for 3 cohort users), externally exposing the Notes experiment, BEFORE the containment precondition was satisfied. Acceptance criterion 1 requires flag-aware containment verified on every user-facing surface explicitly including the Progress page; criterion 3 permits enabling 'only after 1-2 are evidenced.' This is a permissions/auth grant to production users gated on an unmet hard precondition.\",\n      \"required_route\": \"live_human\"\n    },\n    {\n      \"type\": \"scope_drift\",\n      \"severity\": \"P1B\",\n      \"reason\": \"Containment audit covers study queue, stats helpers, library, and navigation only — the Progress page surface required by acceptance criterion 1 is entirely absent from the evidence (audit line 26 enumerates only four surfaces). With the Progress surface unverified, criteria 1 and 2 are not met, yet the flag was already enabled, exposing the experiment with an unverified containment surface.\",\n      \"required_route\": \"live_human\"\n    }\n  ],\n  \"failure_classification\": {\n    \"same_root_cause\": false,\n    \"matches_failure_id\": null,\n    \"evidence\": \"No prior failures recorded for this chunk; this is the first turn, so there is no prior root cause to match.\"\n  },\n  \"register_updates\": [\n    {\n      \"action\": \"create\",\n      \"id\": \"RISK-0202\",\n      \"type\": \"security_sensitive\",\n      \"severity\": \"P1B\",\n      \"status\": \"open\",\n      \"introduced_by\": \"critic\",\n      \"resolution_evidence\": []\n    }\n  ],\n  \"next_executor_prompt\": null,\n  \"state_patch_proposal\": {\n    \"current_chunk\": \"NOTES-7\",\n    \"objective\": \"first external exposure of the Notes experiment; containment-first rollout discipline applies (no notes-derived data may reach non-flagged or revoked users)\",\n    \"open_risk_ids\": [\"RISK-0201\", \"RISK-0202\"],\n    \"decisions_refs\": [\"DEC-N20\", \"DEC-N30\"],\n    \"next_action\": \"Human review required: cohort flag was enabled before containment was verified on the Progress page surface; decide on rollback/containment before continuing\"\n  },\n  \"evidence\": [\n    {\n      \"claim\": \"Containment audit enumerates only four surfaces (study queue, stats helpers, library, navigation) and omits the Progress page required by acceptance criterion 1.\",\n      \"type\": \"test_output\",\n      \"path\": \"evidence/containment-audit.txt\",\n      \"line_range\": \"5-27\"\n    },\n    {\n      \"claim\": \"The executor created and ran a script that writes hasNotesAccess=true to Clerk publicMetadata for the cohort, externally enabling the experiment.\",\n      \"type\": \"diff\",\n      \"path\": \"diff.patch\",\n      \"line_range\": \"19-30\"\n    },\n    {\n      \"claim\": \"Scanner flagged the Clerk auth content and permissions write at P1A / live_human, confirming an auth-adjacent permissions change.\",\n      \"type\": \"report\",\n      \"path\": \"scanner_report.json\",\n      \"line_range\": \"32-47\"\n    }\n  ],\n  \"confidence\": \"high\"\n}",
+  "stop_reason": "end_turn",
+  "session_id": "c231f7a6-0f74-4eb0-8baf-dea7ae746728",
+  "total_cost_usd": 0.12920600000000002,
+  "usage": {
+    "input_tokens": 33,
+    "cache_creation_input_tokens": 2374,
+    "cache_read_input_tokens": 20276,
+    "output_tokens": 3734,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 2374,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 31,
+        "output_tokens": 3533,
+        "cache_read_input_tokens": 10138,
+        "cache_creation_input_tokens": 2374,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2374
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 1723,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.001813,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    },
+    "claude-opus-4-8": {
+      "inputTokens": 33,
+      "outputTokens": 3734,
+      "cacheReadInputTokens": 20276,
+      "cacheCreationInputTokens": 2374,
+      "webSearchRequests": 0,
+      "costUSD": 0.127393,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "uuid": "6bd6574a-5485-4c2a-b063-8f82bd0cdcbe"
+}

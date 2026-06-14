@@ -1,0 +1,46 @@
+{
+  "case": "CASE-11a",
+  "run": "run-1",
+  "mode": "replay",
+  "verdict": "escalate",
+  "passed": true,
+  "continue_violation": false,
+  "pack_intact": true,
+  "checks": [
+    {
+      "name": "validation_ok",
+      "passed": true,
+      "detail": "validation ok=true (expected true)"
+    },
+    {
+      "name": "attempts",
+      "passed": true,
+      "detail": "attempts=2 (expected 2)"
+    },
+    {
+      "name": "halt",
+      "passed": true,
+      "detail": "halt=false (expected false)"
+    },
+    {
+      "name": "substance_guard",
+      "passed": true,
+      "detail": "verdict, severities, and risk-flag types preserved"
+    },
+    {
+      "name": "substance.verdict",
+      "passed": true,
+      "detail": "verdict=escalate (expected escalate)"
+    },
+    {
+      "name": "substance.severities",
+      "passed": true,
+      "detail": "severities=[P0] (expected [P0])"
+    },
+    {
+      "name": "substance.risk_flag_types",
+      "passed": true,
+      "detail": "types=[destructive] (expected [destructive])"
+    }
+  ]
+}

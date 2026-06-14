@@ -1,0 +1,87 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "api_error_status": null,
+  "duration_ms": 78058,
+  "duration_api_ms": 79613,
+  "ttft_ms": 2131,
+  "ttft_stream_ms": 2130,
+  "time_to_request_ms": 12,
+  "num_turns": 8,
+  "result": "{\n  \"verdict\": \"done\",\n  \"risk_flags\": [],\n  \"failure_classification\": {\n    \"same_root_cause\": false,\n    \"matches_failure_id\": null,\n    \"evidence\": \"No failures recorded for this chunk and none observed this turn; verification-suite-output.txt reports 18/18 checks pass with zero deletions and full rollback on conflict.\"\n  },\n  \"register_updates\": [],\n  \"next_executor_prompt\": null,\n  \"state_patch_proposal\": null,\n  \"evidence\": [\n    {\n      \"claim\": \"Stale-block selection orders by stale_since ASC, sealed_at ASC, id ASC with LIMIT 5, satisfying AC1.\",\n      \"type\": \"file\",\n      \"path\": \"files/app/api/notes/[id]/generate/route.js\",\n      \"line_range\": \"19-30\"\n    },\n    {\n      \"claim\": \"AI calls run via Promise.all before any transaction; a rejection returns 502 before db.transaction is opened, so a hard AI failure yields zero DB writes (AC2).\",\n      \"type\": \"file\",\n      \"path\": \"files/app/api/notes/[id]/generate/route.js\",\n      \"line_range\": \"35-47\"\n    },\n    {\n      \"claim\": \"Retire UPDATE on questions matches the DEC-V5-12 pre-approved exact scope verbatim: SET retired_at/retired_reason='block_regenerated'/is_retired=1 WHERE block_id=? AND user_id=? AND retired_at IS NULL; no DELETE on questions exists in the route (AC3, AC5, P1C pre-approval).\",\n      \"type\": \"file\",\n      \"path\": \"files/app/api/notes/[id]/generate/route.js\",\n      \"line_range\": \"52-59\"\n    },\n    {\n      \"claim\": \"Replacement-question INSERT is owner-scoped (user_id=userId, block_id, document_id) and parameterized, within the DEC-V5-12 INSERT pre-approval; all SQL uses ? placeholders so no injection vector despite raw SQL.\",\n      \"type\": \"file\",\n      \"path\": \"files/app/api/notes/[id]/generate/route.js\",\n      \"line_range\": \"61-67\"\n    },\n    {\n      \"claim\": \"All writes occur inside one db.transaction('write'); the version-checked note_blocks bump checks rowsAffected!==1 and rolls back the whole transaction with a 409 (block_id) on miss; outer catch rolls back and rethrows (AC4).\",\n      \"type\": \"file\",\n      \"path\": \"files/app/api/notes/[id]/generate/route.js\",\n      \"line_range\": \"47-87\"\n    },\n    {\n      \"claim\": \"Verification suite is the evidence of record (AC6): 18/18 pass, including 0 questions deleted, b1/b2 retired-and-replaced, b3 untouched, cross-user rows untouched, session_answers 2→2, rollback-on-409 leaves zero new rows, 502 path leaves counts unchanged, and blast-radius counts on documents/session_answers/study_sessions/question_feedback all unchanged.\",\n      \"type\": \"test_output\",\n      \"path\": \"evidence/verification-suite-output.txt\",\n      \"line_range\": \"10-34\"\n    },\n    {\n      \"claim\": \"Sacred-table writes flagged P0/P1A by the scanner are exactly the questions UPDATE and INSERT enumerated in the DEC-V5-12 pre-approval (P1C, logged_only); no sacred-table statement outside that scope. note_blocks is a v5 non-sacred table.\",\n      \"type\": \"register\",\n      \"path\": \"scanner_report.json\",\n      \"line_range\": \"8-46\"\n    }\n  ],\n  \"confidence\": \"high\"\n}",
+  "stop_reason": "end_turn",
+  "session_id": "27b759d8-1a03-4064-9bbb-5b34241154b9",
+  "total_cost_usd": 0.238863,
+  "usage": {
+    "input_tokens": 118,
+    "cache_creation_input_tokens": 6790,
+    "cache_read_input_tokens": 59490,
+    "output_tokens": 5531,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 6790,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 27,
+        "output_tokens": 5085,
+        "cache_read_input_tokens": 15078,
+        "cache_creation_input_tokens": 2624,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2624
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 2253,
+      "outputTokens": 20,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.0023529999999999996,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    },
+    "claude-opus-4-8": {
+      "inputTokens": 118,
+      "outputTokens": 5531,
+      "cacheReadInputTokens": 59490,
+      "cacheCreationInputTokens": 6790,
+      "webSearchRequests": 0,
+      "costUSD": 0.23651,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01TTB5UnarCTNe1oWnGVMRzx",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/projects/memorium/diff.patch"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01HwDSTDwJ9u79hsikT3LyEx",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/projects/memorium/scanner_report.json"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "uuid": "87f5611c-3c31-4cbf-aba1-2d7d0c5ecf21"
+}

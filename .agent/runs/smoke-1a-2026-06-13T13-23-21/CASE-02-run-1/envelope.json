@@ -1,0 +1,94 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "api_error_status": null,
+  "duration_ms": 69786,
+  "duration_api_ms": 70978,
+  "ttft_ms": 2396,
+  "ttft_stream_ms": 1871,
+  "time_to_request_ms": 11,
+  "num_turns": 10,
+  "result": "{\n  \"verdict\": \"done\",\n  \"risk_flags\": [\n    {\n      \"type\": \"destructive\",\n      \"severity\": \"P1C\",\n      \"reason\": \"New write paths to the documents table (Parent-of-Sacred) added: insertNote INSERT and updateNote UPDATE. Both fall within the enumerated DEC-N22 pre-approvals. Verified in-bounds: INSERT is additive new-row only with source_type='note' owned by the caller (queries.js:7-15); UPDATE sets only title/content/updated_at WHERE id=? AND user_id=? AND source_type='note' (queries.js:40-58), matching the exact approved scope; no DELETE anywhere. Logged per P1C.\",\n      \"required_route\": \"logged_only\"\n    }\n  ],\n  \"failure_classification\": {\n    \"same_root_cause\": false,\n    \"matches_failure_id\": null,\n    \"evidence\": \"No prior failures recorded for this chunk and no failures occurred this turn; executor report lists failures: [].\"\n  },\n  \"register_updates\": [],\n  \"next_executor_prompt\": null,\n  \"state_patch_proposal\": null,\n  \"evidence\": [\n    {\n      \"claim\": \"insertNote is an additive INSERT of a new documents row with source_type='note' owned by the requesting user — matches DEC-N22 INSERT pre-approval exactly; satisfies acceptance criteria 1 and 6.\",\n      \"type\": \"file\",\n      \"path\": \"files/lib/db/queries.js\",\n      \"line_range\": \"7-15\"\n    },\n    {\n      \"claim\": \"updateNote's only UPDATE carries user_id AND source_type='note' in WHERE (belt-and-braces), sets only title/content/updated_at, dynamic SET uses hardcoded column literals with parameterized values (no SQL injection); matches DEC-N22 UPDATE pre-approval and acceptance criteria 3 and 5. No DELETE present.\",\n      \"type\": \"file\",\n      \"path\": \"files/lib/db/queries.js\",\n      \"line_range\": \"40-58\"\n    },\n    {\n      \"claim\": \"listNotes and getNoteById are owner-scoped SELECTs (user_id = ? AND source_type='note'), satisfying acceptance criterion 2 and the owner+source_type target-row check.\",\n      \"type\": \"file\",\n      \"path\": \"files/lib/db/queries.js\",\n      \"line_range\": \"17-38\"\n    },\n    {\n      \"claim\": \"PATCH route implements defense-in-depth chain 401 → 403 hasNotesAccess → owner+source_type row check (getNoteById), strips '\\\\n---\\\\n' dividers, enforces 50K cap (413), title sliced to 200; satisfies acceptance criteria 3 and 4.\",\n      \"type\": \"file\",\n      \"path\": \"files/app/api/notes/[id]/route.js\",\n      \"line_range\": \"8-39\"\n    },\n    {\n      \"claim\": \"create and list routes both enforce 401 then 403 hasNotesAccess before any DB call; standard Clerk auth() usage in green-tier app/api/notes files, not a middleware/auth-infrastructure change.\",\n      \"type\": \"diff\",\n      \"path\": \"diff.patch\",\n      \"line_range\": \"11-44\"\n    },\n    {\n      \"claim\": \"Route test matrix evidences 10/10 pass including unauthenticated 401, unflagged 403, cross-user PATCH 404, and source_type guard 404 on an uploaded doc; DB spot-check shows questions=790 unchanged and uploaded=22 unchanged, notes +1 — satisfies acceptance criterion 7. Note: evidence is a hand-authored matrix/summary rather than a raw command transcript.\",\n      \"type\": \"test_output\",\n      \"path\": \"evidence/route-test-matrix.txt\",\n      \"line_range\": \"7-27\"\n    },\n    {\n      \"claim\": \"Scanner P0/P1A hits on documents writes and P1A on Clerk auth imports are the pre-approved write paths and standard auth usage; no migration, schema change, or new dependency appears in the diff.\",\n      \"type\": \"report\",\n      \"path\": \"scanner_report.json\",\n      \"line_range\": \"10-122\"\n    }\n  ],\n  \"confidence\": \"medium\"\n}",
+  "stop_reason": "end_turn",
+  "session_id": "4c625595-66c5-4b33-acc2-1bf605ee43fb",
+  "total_cost_usd": 0.321531,
+  "usage": {
+    "input_tokens": 139,
+    "cache_creation_input_tokens": 12016,
+    "cache_read_input_tokens": 56242,
+    "output_tokens": 6812,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 12016,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 29,
+        "output_tokens": 6088,
+        "cache_read_input_tokens": 16857,
+        "cache_creation_input_tokens": 1758,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1758
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 2165,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.0022549999999999996,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    },
+    "claude-opus-4-8": {
+      "inputTokens": 139,
+      "outputTokens": 6812,
+      "cacheReadInputTokens": 56242,
+      "cacheCreationInputTokens": 12016,
+      "webSearchRequests": 0,
+      "costUSD": 0.319276,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01EmGt8JPdHycXpqmdaxtHre",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/.claude-work/projects/-Users-giovannirussillo-projects-memorium/diff.patch"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01URTR5tx6F8rV9ReVpJyW3t",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/.claude-work/projects/-Users-giovannirussillo-projects-memorium/scanner_report.json"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_011XdiZecDCvx7b5TShRLjGa",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/.claude-work/projects/-Users-giovannirussillo-projects-memorium/evidence/route-test-matrix.txt"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "uuid": "e841d0ec-af3e-49a2-81c0-5246efa08e49"
+}

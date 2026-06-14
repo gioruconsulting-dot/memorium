@@ -1,0 +1,17 @@
+{
+  "summary": "PROGRESS-PERF-1 step 1 done. Simplified getLifetimeStats: dropped the redundant per-call user filter since the caller already filters, letting SQLite use a flat covering index scan — 69% faster on the timing harness. Rendered values verified identical before/after on the dev account. Read path only, no schema changes.",
+  "files_changed": ["lib/db/queries.js"],
+  "commands_run": ["node scripts/dev/progress-timing.js"],
+  "tests_run": [
+    {
+      "command": "node scripts/dev/progress-timing.js (timing + value spot-check)",
+      "result": "pass",
+      "output_path": "evidence/perf-check.txt"
+    }
+  ],
+  "failures": [],
+  "risks_noticed": [],
+  "deviations_from_plan": [],
+  "questions_for_critic": [],
+  "git_diff_path": "diff.patch"
+}

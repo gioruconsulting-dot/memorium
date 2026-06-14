@@ -1,0 +1,75 @@
+{
+  "verdict": "done",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P1C",
+      "reason": "Edit to auth-critical middleware.js (Clerk import of currentUser + hasNotesAccess gate block) flagged P1A by scanner, but it falls exactly inside the DEC-N21 pre-approved exact_scope: 'add isNotesRoute matcher + hasNotesAccess gate block inside the existing clerkMiddleware callback; no change to isPublicRoute or auth.protect() behavior'. Verified within bounds — isPublicRoute and the auth.protect() call are unchanged; the gate is layered after protect(). Logged as pre-approved, not escalated.",
+      "required_route": "logged_only"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures recorded for this chunk; executor reports no failures this turn and the diff/evidence show none."
+  },
+  "register_updates": [],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "NOTES-2.1",
+    "objective": "containment-first rollout of the Notes experiment — no external user may reach any Notes surface before flag gating is complete and verified",
+    "open_risk_ids": [
+      "RISK-0201"
+    ],
+    "decisions_refs": [
+      "DEC-N20",
+      "DEC-N21"
+    ],
+    "next_action": "NOTES-2.1 middleware gate complete and verified; proceed to nav link gating (Chunk 2.2)"
+  },
+  "evidence": [
+    {
+      "claim": "Only middleware.js changed; no schema or data-access changes (criterion 5).",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "1-39"
+    },
+    {
+      "claim": "isNotesRoute matches /notes(.*) and /api/notes(.*); gate block is layered AFTER the unchanged isPublicRoute/auth.protect() call (criteria 1,2).",
+      "type": "file",
+      "path": "files/middleware.js",
+      "line_range": "5,8-12"
+    },
+    {
+      "claim": "Flag check reads sessionClaims.publicMetadata first and falls back to currentUser() when publicMetadata is absent from the session token (criterion 3); secure deny-by-default when key missing.",
+      "type": "file",
+      "path": "files/middleware.js",
+      "line_range": "13-21"
+    },
+    {
+      "claim": "Unauthorized /api/notes requests return 403 JSON; unauthorized page requests redirect to / (criterion 4).",
+      "type": "file",
+      "path": "files/middleware.js",
+      "line_range": "23-28"
+    },
+    {
+      "claim": "Manual route matrix (9 checks, two accounts) evidences all acceptance criteria including controls 7-9 confirming auth.protect() and public-route behavior unchanged.",
+      "type": "test_output",
+      "path": "evidence/manual-verification.txt",
+      "line_range": "6-18"
+    },
+    {
+      "claim": "Scanner P1A auth hits correspond to the currentUser import and middleware file match — the pre-approved red-path change, not an out-of-scope edit.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "7-24"
+    },
+    {
+      "claim": "Only open register risk is RISK-0201 (P3, low_confidence); no open P0/P1 blocking done.",
+      "type": "register",
+      "path": "scanner_report.json",
+      "line_range": "1-1"
+    }
+  ],
+  "confidence": "high"
+}

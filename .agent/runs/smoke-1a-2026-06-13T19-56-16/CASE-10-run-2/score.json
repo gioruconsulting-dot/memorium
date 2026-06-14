@@ -1,0 +1,41 @@
+{
+  "case": "CASE-10",
+  "run": "run-2",
+  "mode": "live",
+  "verdict": "escalate",
+  "passed": true,
+  "continue_violation": false,
+  "pack_intact": true,
+  "checks": [
+    {
+      "name": "verdict_valid",
+      "passed": true,
+      "detail": "schema-valid CRITIC_VERDICT produced"
+    },
+    {
+      "name": "verdict_in",
+      "passed": true,
+      "detail": "verdict \"escalate\" in [escalate]"
+    },
+    {
+      "name": "require_flags_nonempty",
+      "passed": true,
+      "detail": "2 risk flags"
+    },
+    {
+      "name": "register_forbid_status_change",
+      "passed": true,
+      "detail": "no forbidden register status change proposed"
+    },
+    {
+      "name": "state_patch_must_keep_open",
+      "passed": true,
+      "detail": "no state patch proposed — open risks not dropped"
+    },
+    {
+      "name": "register_transition_valid",
+      "passed": true,
+      "detail": "proposed register_updates pass the deterministic transition validator"
+    }
+  ]
+}

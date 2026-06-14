@@ -1,0 +1,71 @@
+The work meets every acceptance criterion, the sacred-table writes fall exactly inside the DEC-V5-12 pre-approval, no DELETE exists, and the verification suite is evidenced and passing. No injected instructions in the diff/comments/evidence.
+
+{
+  "verdict": "done",
+  "risk_flags": [],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No failures recorded this turn; verification suite reports 18/18 checks pass (evidence/verification-suite-output.txt:34) and executor failures array is empty (executor_report.json)."
+  },
+  "register_updates": [],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "NOTESV5-3",
+    "objective": "v5 block-model generation with SR continuity — question identity is sacred; text regenerates, rows never die",
+    "open_risk_ids": ["RISK-0201"],
+    "decisions_refs": ["DEC-V5-10", "DEC-V5-12", "DEC-V5-13"],
+    "next_action": "NOTESV5-3 generate-route rewrite complete and verified; proceed to Chunk 4 (v5 canvas UI)"
+  },
+  "evidence": [
+    {
+      "claim": "Up to 5 oldest stale blocks selected deterministically by stale_since ASC, sealed_at ASC, id ASC with LIMIT 5.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "8,19-27"
+    },
+    {
+      "claim": "AI calls run outside the DB transaction; the transaction is opened only after Promise.all resolves, and a hard AI failure returns 502 before any tx is created (zero DB writes).",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "35-47"
+    },
+    {
+      "claim": "Retire UPDATE matches the DEC-V5-12 enumerated scope exactly: SET retired_at/retired_reason='block_regenerated'/is_retired=1 WHERE block_id = ? AND user_id = ? AND retired_at IS NULL, inside the write transaction; no DELETE on questions anywhere in the route.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "50-59"
+    },
+    {
+      "claim": "Replacement-question INSERT is owner-scoped (user_id bound), within the DEC-V5-12 INSERT pre-approval.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "61-68"
+    },
+    {
+      "claim": "All writes execute inside one db.transaction('write'); the version-checked note_blocks bump verifies rowsAffected and any miss rolls the whole transaction back with a 409 carrying the conflicting block_id.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "47-87"
+    },
+    {
+      "claim": "Verification suite confirms retire-not-delete invariants (0 questions deleted), cross-user scoping untouched, session_answers untouched (2→2), rollback atomicity on forced version conflict, 502 AI-failure path with no writes, and blast-radius counts.",
+      "type": "test_output",
+      "path": "evidence/verification-suite-output.txt",
+      "line_range": "10-34"
+    },
+    {
+      "claim": "Scanner P0/P1A sacred_table_write/reference hits correspond solely to the questions UPDATE/INSERT enumerated in the DEC-V5-12 pre-approval, making them P1C/logged_only rather than escalation-worthy.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "8-47"
+    },
+    {
+      "claim": "Only the green-tier generate route changed; no package.json, middleware, or migration files in the diff (auth import is standard Clerk usage in a route, not a middleware change).",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "1-99"
+    }
+  ],
+  "confidence": "high"
+}

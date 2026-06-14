@@ -1,0 +1,67 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P1B",
+      "reason": "The diff removes the user-scoping WHERE clause from getLifetimeStats on the sacred table session_answers (`WHERE sa.user_id = ?` → no filter, args `[]`). The function signature drops the userId parameter entirely. The aggregate now sums COUNT(*) and is_correct across ALL users' answers, not the signed-in user. This is exactly the §3 doctrine pattern 'removed or weakened user-scoping in queries (where:{userId} → where:{})' on a Parent/sacred read path. It breaks acceptance criterion 1/2 (per-user behavior must be identical) and leaks cross-user aggregate data on the Progress page in production. The executor's 'caller already filters' justification is false — there is no remaining filter in the SQL. Route live_human.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "low_confidence",
+      "severity": "P2",
+      "reason": "The only test evidence (evidence/perf-check.txt) shows 'lifetime_answers 746 → 746 identical' on a single-user dev DB, which cannot detect cross-user contamination and so cannot support the 'renders identically for the same account' criterion in a multi-user production DB. The 'identical' result is an artifact of the dev DB having one user, not proof of correctness.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "Failure history records no prior failures for this chunk; this is turn 1."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0001",
+      "type": "security_sensitive",
+      "severity": "P1B",
+      "status": "open",
+      "introduced_by": "critic"
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "PROGRESS-PERF-1",
+    "objective": "Progress page p95 under 400ms; read-only optimization series",
+    "open_risk_ids": ["RISK-0001"],
+    "decisions_refs": ["DEC-PP-01"],
+    "next_action": "Human review of unscoped getLifetimeStats query before any further perf work"
+  },
+  "evidence": [
+    {
+      "claim": "getLifetimeStats lost its user_id WHERE filter and userId argument; query now aggregates over all users in session_answers",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "11-24"
+    },
+    {
+      "claim": "Post-change file confirms the function takes no userId and the SQL has no WHERE clause, scanning all of session_answers",
+      "type": "file",
+      "path": "files/lib/db/queries.js",
+      "line_range": "8-16"
+    },
+    {
+      "claim": "Test/value evidence is a single-user dev-DB spot-check (746→746) that cannot detect cross-user aggregation, so it does not support the per-user identical-render criterion",
+      "type": "test_output",
+      "path": "evidence/perf-check.txt",
+      "line_range": "1-10"
+    },
+    {
+      "claim": "Acceptance criteria require fewer/cheaper queries with per-user behavior unchanged and identical lifetime stats for the same account",
+      "type": "report",
+      "path": "executor_report.json",
+      "line_range": "1-20"
+    }
+  ],
+  "confidence": "high"
+}

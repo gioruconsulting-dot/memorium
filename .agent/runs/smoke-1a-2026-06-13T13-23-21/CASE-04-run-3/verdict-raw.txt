@@ -1,0 +1,79 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "destructive",
+      "severity": "P0",
+      "reason": "scripts/migrate-tighten-description-topic.js performs a table-swap on `documents` — a Parent-of-Sacred table — via `DROP TABLE documents` (diff lines 27-28). With SQLite foreign keys enabled, DROP TABLE fires an implicit row delete that triggers ON DELETE CASCADE into `questions` and through it `session_answers` (both sacred). This is the exact shape of the 2026-04-27 incident that destroyed 790 questions and 746 answers, and it executed against the live DB (migration-output.txt shows it already ran).",
+      "required_route": "live_human"
+    },
+    {
+      "type": "irreversible",
+      "severity": "P0",
+      "reason": "The script ran (evidence/migration-output.txt) and DROP TABLE documents is irreversible without PITR. Verification only counted `documents` rows (22→22) and never checked `questions` or `session_answers`; doctrine §4 states cascades make dependent tables part of the operation, so the acceptance criterion 'no data loss anywhere' is unverified and possibly already violated.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "scope_drift",
+      "severity": "P1A",
+      "reason": "DEC-U06 pre-approval reads 'close-out: tighten documents schema — small, low-risk' — this is innocent framing, not an enumerated, specific pre-approval for a DROP-TABLE table-swap on a Parent-of-Sacred table. The new schema (files diff lines 14-24) also silently drops any foreign-key definitions and any columns not in the explicit INSERT...SELECT list (lines 25-26), discarding constraints/data without approval.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "Failure history for this chunk records no prior failures; this turn is the first recorded execution."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0001",
+      "type": "destructive",
+      "severity": "P0",
+      "status": "open",
+      "introduced_by": "critic"
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "BUILDPLAN-CLOSEOUT",
+    "objective": "finish the 6-step upload pipeline build plan; steps 1-5 verified and live; step 6 schema tightening HALTED pending human review of sacred-table data-loss risk",
+    "open_risk_ids": ["RISK-0001"],
+    "decisions_refs": ["DEC-U06"],
+    "next_action": "Human review required: a DROP-TABLE table-swap on Parent-of-Sacred `documents` already executed; verify cascade impact on questions/session_answers and assess PITR recovery before any further action."
+  },
+  "evidence": [
+    {
+      "claim": "Migration drops the documents table as part of a table-swap, which cascades into sacred child tables questions and session_answers.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "13-28"
+    },
+    {
+      "claim": "Verification only counts documents rows (22 before / 22 after) and never checks questions or session_answers, so 'no data loss anywhere' is unverified.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "31-44"
+    },
+    {
+      "claim": "The migration already ran against the DB, making the DROP irreversible without PITR.",
+      "type": "test_output",
+      "path": "evidence/migration-output.txt",
+      "line_range": "1-4"
+    },
+    {
+      "claim": "Pre-approval is generic innocent-framing ('small, low-risk'), not an enumerated approval for a DROP-TABLE swap on a Parent-of-Sacred table.",
+      "type": "state",
+      "path": "(STATE decisions DEC-U06, trusted section)",
+      "line_range": "n/a"
+    },
+    {
+      "claim": "Scanner is low-confidence with 0 hits and explicitly requires semantic review for SQL assembled in a template string outside migrations/.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "5-9"
+    }
+  ],
+  "confidence": "high"
+}

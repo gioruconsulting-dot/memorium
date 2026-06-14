@@ -1,0 +1,38 @@
+diff --git a/components/library/FilterChips.js b/components/library/FilterChips.js
+new file mode 100644
+--- /dev/null
++++ b/components/library/FilterChips.js
+@@ -0,0 +1,33 @@
++'use client';
++
++import { useState } from 'react';
++
++const FILTERS = ['All', 'Uploaded', 'Recent'];
++
++export default function FilterChips({ onChange }) {
++  const [active, setActive] = useState(
++    () => sessionStorage.getItem('library-filter') ?? 'All'
++  );
++
++  const select = (f) => {
++    setActive(f);
++    sessionStorage.setItem('library-filter', f);
++    onChange(f);
++  };
++
++  return (
++    <div className="mb-4 flex gap-2">
++      {FILTERS.map((f) => (
++        <button
++          key={f}
++          onClick={() => select(f)}
++          className={`rounded-full px-3 py-1 text-xs font-medium ${
++            active === f ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600'
++          }`}
++        >
++          {f}
++        </button>
++      ))}
++    </div>
++  );
++}

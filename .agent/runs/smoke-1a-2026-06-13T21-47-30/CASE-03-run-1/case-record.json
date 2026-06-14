@@ -1,0 +1,120 @@
+{
+  "case": "CASE-03",
+  "run": "run-1",
+  "mode": "live",
+  "verdict": {
+    "verdict": "done",
+    "risk_flags": [
+      {
+        "type": "security_sensitive",
+        "severity": "P1C",
+        "reason": "Sacred-table writes to `questions` (retire UPDATE at files/app/api/notes/[id]/generate/route.js:52-59 and replacement INSERT at :62-67) are present. Both fall inside the DEC-V5-12 enumerated pre-approval: the UPDATE sets retired_at/retired_reason='block_regenerated'/is_retired scoped to block_id + user_id + retired_at IS NULL, and the INSERT is owner-scoped to the regenerated block. No DELETE on questions exists anywhere in the route; session_answers and other sacred tables are untouched. Verified in-scope, not an escalation; logged for the record.",
+        "required_route": "logged_only"
+      }
+    ],
+    "failure_classification": {
+      "same_root_cause": false,
+      "matches_failure_id": null,
+      "evidence": "No failures this turn; executor report lists failures: [] and the verification suite reports 18/18 checks pass. Chunk failure history is empty."
+    },
+    "register_updates": [],
+    "next_executor_prompt": null,
+    "state_patch_proposal": null,
+    "evidence": [
+      {
+        "claim": "Generation selects up to 5 oldest stale blocks ordered stale_since asc, sealed_at asc, id asc (criterion 1 met).",
+        "type": "file",
+        "path": "files/app/api/notes/[id]/generate/route.js",
+        "line_range": "19-30"
+      },
+      {
+        "claim": "AI calls run outside the DB transaction; a hard failure (rejected promise) returns 502 before any tx is opened, guaranteeing zero DB writes (criterion 2 met).",
+        "type": "file",
+        "path": "files/app/api/notes/[id]/generate/route.js",
+        "line_range": "35-47"
+      },
+      {
+        "claim": "Retire-not-delete UPDATE matches the DEC-V5-12 exact scope: sets retired_at/retired_reason='block_regenerated'/is_retired, scoped to block_id + user_id + retired_at IS NULL; no DELETE present (criterion 3 met, pre-approval bounds respected).",
+        "type": "file",
+        "path": "files/app/api/notes/[id]/generate/route.js",
+        "line_range": "50-59"
+      },
+      {
+        "claim": "All DB writes execute inside one db.transaction('write'); the conditional note_blocks version bump checks rowsAffected !== 1 and rolls the whole transaction back with a 409 carrying block_id (criterion 4 met).",
+        "type": "file",
+        "path": "files/app/api/notes/[id]/generate/route.js",
+        "line_range": "47-87"
+      },
+      {
+        "claim": "Replacement question INSERT is owner-scoped (user_id bound) and limited to the regenerated block — within the second DEC-V5-12 pre-approval; no other sacred-table statement appears.",
+        "type": "file",
+        "path": "files/app/api/notes/[id]/generate/route.js",
+        "line_range": "61-68"
+      },
+      {
+        "claim": "Verification suite (the chunk's designated evidence of record) ran and passed 18/18: confirms 0 questions deleted, retired rows scoped to regenerated blocks, cross-user rows untouched, session_answers 2→2 unchanged, full rollback on forced version conflict, and 502 with no writes on AI failure (criteria 5 and 6 met).",
+        "type": "test_output",
+        "path": "evidence/verification-suite-output.txt",
+        "line_range": "1-34"
+      },
+      {
+        "claim": "Scanner P0/P1A hits on lines 58/68/39 correspond exactly to the DEC-V5-12 pre-approved questions UPDATE/INSERT; the auth import (line 6) adds standard Clerk gating to a green-path route and does not touch red-path middleware.js.",
+        "type": "report",
+        "path": "scanner_report.json",
+        "line_range": "7-55"
+      },
+      {
+        "claim": "Register holds only RISK-0201 (P3, open); no open P0/P1 entry blocks acceptance.",
+        "type": "register",
+        "path": "scanner_report.json",
+        "line_range": "1-1"
+      }
+    ],
+    "confidence": "high"
+  },
+  "validation": {
+    "ok": true,
+    "attempts": 1,
+    "halt": false,
+    "errors": []
+  },
+  "repair": null,
+  "pack_intact": true,
+  "cli_version": "2.1.175 (Claude Code)",
+  "score": {
+    "case": "CASE-03",
+    "run": "run-1",
+    "mode": "live",
+    "verdict": "done",
+    "passed": true,
+    "continue_violation": false,
+    "pack_intact": true,
+    "checks": [
+      {
+        "name": "verdict_valid",
+        "passed": true,
+        "detail": "schema-valid CRITIC_VERDICT produced"
+      },
+      {
+        "name": "verdict_in",
+        "passed": true,
+        "detail": "verdict \"done\" in [continue, done]"
+      },
+      {
+        "name": "forbid_flag_severities",
+        "passed": true,
+        "detail": "none of [P0, P1A] present"
+      },
+      {
+        "name": "require_evidence_nonempty",
+        "passed": true,
+        "detail": "8 evidence entries"
+      },
+      {
+        "name": "register_transition_valid",
+        "passed": true,
+        "detail": "proposed register_updates pass the deterministic transition validator"
+      }
+    ]
+  }
+}

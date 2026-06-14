@@ -1,0 +1,64 @@
+{
+  "verdict": "continue",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P1C",
+      "reason": "Red-path auth edit to middleware.js (Clerk gating, added currentUser/NextResponse imports and a hasNotesAccess gate block). This is pre-approved as a specific enumerated item under DEC-N21; the implementation stays within that exact scope (isNotesRoute matcher + gate block, isPublicRoute and auth.protect() untouched), so it routes logged_only rather than escalating. The two P1A scanner hits are this same pre-approved auth change.",
+      "required_route": "logged_only"
+    },
+    {
+      "type": "low_confidence",
+      "severity": "P3",
+      "reason": "The only verification for an auth-critical containment gate is a hand-authored expected/observed table in evidence/manual-verification.txt. That is untrusted self-reported narrative, not reproducible command output (no captured HTTP status codes, no test runner log). For the containment-layer objective this is inadequate evidence to call the gate verified; code review supports correctness but behavioral claims (302 vs 403, publicMetadata fallback) are unconfirmed by reproducible output.",
+      "required_route": "async_card"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No failures reported this turn (executor_report.json failures: []) and no prior failures recorded for this chunk."
+  },
+  "register_updates": [],
+  "next_executor_prompt": "Code review of the gate is sound and within the DEC-N21 pre-approved scope, but the manual table is not reproducible evidence for an auth-critical containment gate. Add an automated/reproducible verification that captures actual responses for the key behaviors, and commit its raw output as evidence: (a) a user without hasNotesAccess gets a redirect to / on a /notes page request, (b) the same user gets a 403 JSON (no redirect) on a /api/notes request, (c) a user with hasNotesAccess === true is allowed through on both, (d) the publicMetadata-absent fallback path (sessionClaims without publicMetadata) is exercised so the currentUser() branch is proven, and (e) a control route (e.g. /library and a public route) is unchanged. Do not touch any route, schema, or data path beyond middleware.js. Provide the test command and its captured output in the evidence pack.",
+  "state_patch_proposal": {
+    "current_chunk": "NOTES-2.1",
+    "objective": "containment-first rollout of the Notes experiment — no external user may reach any Notes surface before flag gating is complete and verified",
+    "open_risk_ids": ["RISK-0201"],
+    "decisions_refs": ["DEC-N20", "DEC-N21"],
+    "next_action": "produce reproducible automated verification of the middleware gate (redirect vs 403, publicMetadata fallback, controls unchanged) before marking NOTES-2.1 done; then proceed to nav link gating (Chunk 2.2)"
+  },
+  "evidence": [
+    {
+      "claim": "Diff touches only middleware.js: adds isNotesRoute matcher and a hasNotesAccess gate block after auth.protect(), leaving isPublicRoute and auth.protect() behavior unchanged — matches the DEC-N21 pre-approved exact scope.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "1-39"
+    },
+    {
+      "claim": "Gate reads sessionClaims.publicMetadata first and falls back to currentUser() only when publicMetadata is undefined in the session token; default-deny (=== true) when absent. Satisfies acceptance criterion 3.",
+      "type": "file",
+      "path": "files/middleware.js",
+      "line_range": "12-21"
+    },
+    {
+      "claim": "Unauthorized /api/notes requests return 403 JSON via NextResponse.json and unauthorized page requests redirect to /, never a redirect for API — satisfies acceptance criterion 4.",
+      "type": "file",
+      "path": "files/middleware.js",
+      "line_range": "23-28"
+    },
+    {
+      "claim": "Scanner flagged the Clerk auth change as two P1A hits (auth_clerk_content, auth_clerk_file), both routing live_human; these correspond to the pre-approved middleware edit rather than an unapproved auth change.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "7-24"
+    },
+    {
+      "claim": "The sole verification evidence is a hand-authored expected/observed table with no captured command output or HTTP logs; commands_run lists only 'npm run dev' and 'manual route matrix'.",
+      "type": "test_output",
+      "path": "evidence/manual-verification.txt",
+      "line_range": "1-19"
+    }
+  ],
+  "confidence": "medium"
+}

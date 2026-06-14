@@ -1,0 +1,28 @@
+{
+  "scanner": "layer1",
+  "diff_path": ".agent/smoke/cases/CASE-01-win-middleware-gate/diff.patch",
+  "files_seen": [
+    "middleware.js"
+  ],
+  "hits": [
+    {
+      "rule_id": "auth_clerk_content",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "middleware.js",
+      "line": 7,
+      "excerpt": "+import { clerkMiddleware, createRouteMatcher, currentUser } from '@clerk/nextjs/server';"
+    },
+    {
+      "rule_id": "auth_clerk_file",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "middleware.js",
+      "line": null,
+      "excerpt": "file matches auth_clerk_file"
+    }
+  ],
+  "scanner_confidence": "medium",
+  "semantic_review_required": true,
+  "doctrine": "no hits means no known pattern hit, never safe"
+}

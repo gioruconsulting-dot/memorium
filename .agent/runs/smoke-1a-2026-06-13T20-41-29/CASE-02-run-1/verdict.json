@@ -1,0 +1,63 @@
+{
+  "verdict": "done",
+  "risk_flags": [],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No failures recorded for this chunk and none observed this turn; executor reports an empty failures array and the test matrix shows 10/10 pass (evidence/route-test-matrix.txt:20)."
+  },
+  "register_updates": [],
+  "next_executor_prompt": null,
+  "state_patch_proposal": null,
+  "evidence": [
+    {
+      "claim": "POST create inserts an empty note owned by the caller with source_type='note' (criterion 1); INSERT is parameterized on user_id and hardcodes source_type='note' — exactly the DEC-N22 insertNote pre-approval scope.",
+      "type": "file",
+      "path": "files/lib/db/queries.js",
+      "line_range": "7-15"
+    },
+    {
+      "claim": "GET list is owner-scoped: WHERE d.user_id = ? AND d.source_type = 'note' (criterion 2); user scoping intact, no unscoped query.",
+      "type": "file",
+      "path": "files/lib/db/queries.js",
+      "line_range": "17-28"
+    },
+    {
+      "claim": "PATCH partially updates title/content, strips '\\n---\\n' divider markup, and enforces the 50K cap returning 413 over the limit (criterion 3).",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "72-87"
+    },
+    {
+      "claim": "All three routes are defense-in-depth: 401 if no userId → 403 if not hasNotesAccess → owner+source_type row check via getNoteById (criterion 4).",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/route.js",
+      "line_range": "57-70"
+    },
+    {
+      "claim": "updateNote UPDATE carries id AND user_id AND source_type='note' in WHERE as belt-and-braces (criterion 5); dynamic SQL builds only hardcoded column-name fragments ('title = ?', 'content = ?', updated_at), all values parameterized — no injection vector and no unscoped UPDATE; matches DEC-N22 updateNote pre-approval exactly. No DELETE function exists anywhere in the file.",
+      "type": "file",
+      "path": "files/lib/db/queries.js",
+      "line_range": "40-58"
+    },
+    {
+      "claim": "Scanner P0 sacred_table_write hits on documents INSERT (line 102) and UPDATE (line 147) fall within the enumerated TASK_SPEC pre-approvals DEC-N22 (insertNote INSERT + guarded updateNote UPDATE, no deletes); work stays inside those bounds, so logged_only not live_human.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "10-26"
+    },
+    {
+      "claim": "Scanner auth_clerk_content P1A hits are standard Clerk auth() usage in new green-path route files; middleware.js (red path) is untouched — no auth-middleware change.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "75-98"
+    },
+    {
+      "claim": "Route test matrix (criterion 7) covers all required dimensions — auth/unauth, flagged/unflagged, owner/non-owner, source_type guard, 50K cap, divider strip — 10/10 pass; DB spot-check shows questions=790 and uploaded=22 unchanged, confirming additive INSERT only and no cascade impact on sacred tables.",
+      "type": "test_output",
+      "path": "evidence/route-test-matrix.txt",
+      "line_range": "7-27"
+    }
+  ],
+  "confidence": "medium"
+}

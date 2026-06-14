@@ -1,0 +1,70 @@
+{
+  "verdict": "continue",
+  "risk_flags": [
+    {
+      "type": "destructive",
+      "severity": "P1C",
+      "reason": "Sacred-table `questions` write paths present: a retire UPDATE (SET retired_at/retired_reason='block_regenerated'/is_retired=1 WHERE block_id=? AND user_id=? AND retired_at IS NULL) and an owner-scoped INSERT of replacement rows, both inside the single db.transaction('write'). Verified to match the DEC-V5-12 enumerated pre-approval exactly: no DELETE on questions anywhere, no other sacred-table statement, session_answers/study_sessions untouched. Logged per P1C, not a stop.",
+      "required_route": "logged_only"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures recorded for this chunk and none this turn; the AI-failure path returns 502 with no writes and the version-conflict path returns 409 with full rollback, both passing in evidence/verification-suite-output.txt checks [4] and [5]."
+  },
+  "register_updates": [],
+  "next_executor_prompt": "The route is substantially correct and within DEC-V5-12 scope. One acceptance gap remains on criterion 4: the conflict response must be a 409 'carrying current state', but the rollback branch (route.js line 80) returns only { error: 'Conflict', block_id }. Refetch and include the conflicting block's current state (at minimum its current version, plus stale_since) in the 409 body so a client can reconcile without a blind retry, and add a verification-suite assertion that the conflict 409 body carries that current state (not just block_id). Do not change anything else; keep the retire-not-delete UPDATE, the owner-scoped INSERT, AI-outside-transaction, and the single write transaction exactly as they are. Re-run node scripts/verify-notes-v5-chunk3.js and include its output.",
+  "state_patch_proposal": null,
+  "evidence": [
+    {
+      "claim": "Stale-block selection orders by stale_since asc, sealed_at asc, id asc and limits to 5 (MAX_BLOCKS_PER_GENERATE), satisfying AC1.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "8,21-25"
+    },
+    {
+      "claim": "AI calls run via Promise.all before any transaction is opened; a rejection returns 502 before db.transaction('write') is created, satisfying AC2 (zero writes on hard failure).",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "36-47"
+    },
+    {
+      "claim": "Retire UPDATE sets retired_at/retired_reason='block_regenerated'/is_retired=1 scoped to block_id, user_id and retired_at IS NULL — matches the DEC-V5-12 exact pre-approved scope; no DELETE on questions exists in the route.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "52-59"
+    },
+    {
+      "claim": "Replacement questions are INSERTed owner-scoped (user_id=userId) inside the same write transaction, within the DEC-V5-12 INSERT pre-approval.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "61-68"
+    },
+    {
+      "claim": "All writes occur in one db.transaction('write'); the note_blocks version bump checks rowsAffected!==1 and rolls the whole transaction back, but the 409 body carries only block_id, not current state — partial miss of AC4's 'carrying current state'.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "47-87"
+    },
+    {
+      "claim": "Verification suite ran (node scripts/verify-notes-v5-chunk3.js) and reports 18/18 pass including retire-not-delete invariants, cross-user scoping, SR/session_answers continuity, conflict rollback atomicity, AI-failure 502, and blast-radius counts (questions 12→21 active+retired, 0 deleted; session_answers 2→2).",
+      "type": "test_output",
+      "path": "evidence/verification-suite-output.txt",
+      "line_range": "7-34"
+    },
+    {
+      "claim": "Scanner flagged the questions UPDATE/INSERT as P0 sacred_table_write and the clerk auth import as P1A; semantic review confirms the sacred writes fall inside the enumerated DEC-V5-12 pre-approval and middleware.js (red) is untouched.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "8-54"
+    },
+    {
+      "claim": "Open register contains only RISK-0201 (P3 low_confidence); no open P0/P1 risk exists, and it remains open after this turn.",
+      "type": "register",
+      "path": "scanner_report.json",
+      "line_range": "1-1"
+    }
+  ],
+  "confidence": "medium"
+}

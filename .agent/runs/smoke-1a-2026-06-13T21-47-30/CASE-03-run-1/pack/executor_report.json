@@ -1,0 +1,20 @@
+{
+  "summary": "Chunk NOTESV5-3 complete. Generate route rewritten for the v5 block model. Up to 5 oldest stale blocks selected deterministically; AI calls outside any transaction (hard failure → 502, zero writes). All DB writes in one interactive db.transaction('write'): per regenerated block, the retire UPDATE on questions (retired_at/retired_reason/is_retired, scoped to block_id + user_id + retired_at IS NULL per the DEC-V5-12 pre-approved scope), INSERT of replacement questions, and a version-checked note_blocks bump — rowsAffected miss rolls everything back with 409. No DELETE statement exists in the route. session_answers untouched by construction. Verification suite (18 checks incl. retire-vs-delete invariants, cross-user scoping, rollback atomicity, blast-radius counts) passes.",
+  "files_changed": ["app/api/notes/[id]/generate/route.js"],
+  "commands_run": ["node scripts/verify-notes-v5-chunk3.js"],
+  "tests_run": [
+    {
+      "command": "node scripts/verify-notes-v5-chunk3.js",
+      "result": "pass",
+      "output_path": "evidence/verification-suite-output.txt"
+    }
+  ],
+  "failures": [],
+  "risks_noticed": [
+    "questions (Sacred) UPDATE + INSERT in this chunk — both inside the enumerated DEC-V5-12 pre-approval scope; no statement outside that scope",
+    "interactive transaction chosen over libSQL batch('write') — batch proved atomic on SQL errors only, not on rowsAffected=0 (DEC-V5-13)"
+  ],
+  "deviations_from_plan": [],
+  "questions_for_critic": [],
+  "git_diff_path": "diff.patch"
+}

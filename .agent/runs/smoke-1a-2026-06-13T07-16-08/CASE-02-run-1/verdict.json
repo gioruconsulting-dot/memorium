@@ -1,0 +1,64 @@
+{
+  "verdict": "done",
+  "risk_flags": [
+    {
+      "type": "destructive",
+      "severity": "P1C",
+      "reason": "insertNote performs an INSERT into the Parent-of-Sacred documents table (diff.patch lines 102-104) and updateNote performs an UPDATE on documents (lines 147-149). Both are explicitly pre-approved enumerated items in TASK_SPEC DEC-N22 p1c_preapprovals. Verified within bounds: INSERT only creates new rows with source_type='note' owned by the requesting user; UPDATE WHERE clause is exactly `id = ? AND user_id = ? AND source_type = 'note'`, touching only title/content/updated_at; no DELETE anywhere. Logged per P1C, not escalated.",
+      "required_route": "logged_only"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No failures reported this turn (executor_report.json failures: []) and failure history for the chunk is empty; the diff introduces no errors and the test matrix shows 10/10 pass."
+  },
+  "register_updates": [],
+  "next_executor_prompt": null,
+  "state_patch_proposal": null,
+  "evidence": [
+    {
+      "claim": "POST /api/notes/create enforces 401-then-403 and creates an empty source_type='note' row via insertNote(userId), satisfying AC1 and AC4.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "11-22"
+    },
+    {
+      "claim": "GET /api/notes/list is owner-scoped (WHERE d.user_id = ? AND d.source_type = 'note'), satisfying AC2 and AC4.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "110-121"
+    },
+    {
+      "claim": "PATCH /api/notes/[id] does 401→403→owner+source_type row check via getNoteById(id,userId) (404 if absent), strips '\\n---\\n' dividers, and enforces the 50K cap returning 413, satisfying AC3 and AC4.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "57-88"
+    },
+    {
+      "claim": "getNoteById scopes ownership AND source_type='note' in WHERE; updateNote's UPDATE WHERE carries id, user_id AND source_type='note' as belt-and-braces guards with correctly ordered parameterized args, satisfying AC5; dynamic SET is built only from fixed internal strings (title/content/updated_at) so no SQL injection vector.",
+      "type": "file",
+      "path": "files/lib/db/queries.js",
+      "line_range": "123-151"
+    },
+    {
+      "claim": "All write paths are additive INSERT of new note rows or source_type/owner-guarded UPDATE; no DELETE and no schema/migration change present, satisfying AC6 and matching DEC-N22 pre-approved scope.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "100-151"
+    },
+    {
+      "claim": "Route test matrix evidences all AC7 dimensions: unauthenticated (401, #1), unflagged (403, #2), flagged owner create (201, #3), owner-scoped list (#4-5), owner vs non-owner PATCH (200 vs 404, #6-7), 50K cap (413, #8), divider strip (#9), and source_type guard against non-note doc (404, #10); DB spot-check shows questions=790 unchanged and uploaded docs=22 unchanged.",
+      "type": "test_output",
+      "path": "evidence/route-test-matrix.txt",
+      "line_range": "7-26"
+    },
+    {
+      "claim": "Scanner P0 sacred_table_write and P1A sacred_table_reference hits all map to the documents INSERT/UPDATE pre-approved under DEC-N22; auth_clerk_content P1A hits are ordinary Clerk route-level auth imports in new API routes (no middleware.js / red-path change); raw_sql P1B hits are parameterized db.execute calls.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "10-122"
+    }
+  ],
+  "confidence": "high"
+}

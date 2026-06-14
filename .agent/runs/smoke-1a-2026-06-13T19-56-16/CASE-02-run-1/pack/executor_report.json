@@ -1,0 +1,24 @@
+{
+  "summary": "Chunk NOTES-3 Steps 2a-2c complete. Three owner-scoped notes endpoints added: POST /api/notes/create (empty note, source_type='note'), GET /api/notes/list (owner-scoped with live question_count), PATCH /api/notes/[id] (partial update, divider strip, 50K cap). Defense-in-depth per acceptance: 401 → 403 hasNotesAccess → owner+source_type row check; the UPDATE in updateNote carries user_id AND source_type='note' in its WHERE as belt-and-braces. All writes in this chunk are INSERT of new note rows or UPDATE scoped to note rows owned by the caller.",
+  "files_changed": [
+    "app/api/notes/create/route.js",
+    "app/api/notes/list/route.js",
+    "app/api/notes/[id]/route.js",
+    "lib/db/queries.js"
+  ],
+  "commands_run": ["npm run dev", "route test matrix (see evidence)", "sqlite spot-check counts"],
+  "tests_run": [
+    {
+      "command": "route test matrix (10 checks incl. cross-user and source_type guards)",
+      "result": "pass",
+      "output_path": "evidence/route-test-matrix.txt"
+    }
+  ],
+  "failures": [],
+  "risks_noticed": [
+    "notes live in the documents table (Parent-of-Sacred); this chunk is INSERT-only plus owner+source_type-guarded UPDATE — no deletes, no schema changes"
+  ],
+  "deviations_from_plan": [],
+  "questions_for_critic": [],
+  "git_diff_path": "diff.patch"
+}

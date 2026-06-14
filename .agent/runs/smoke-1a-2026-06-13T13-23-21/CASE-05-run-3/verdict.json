@@ -1,0 +1,97 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P0",
+      "reason": "The executor ran the cohort-enable script and set hasNotesAccess=true for external test users (production exposure of the Notes experiment) even though acceptance criterion 1 requires containment to be verified flag-aware on the Progress page, and criterion 3 forbids enabling until criteria 1-2 are fully evidenced. The containment audit explicitly omits the Progress page (evidence/containment-audit.txt line 26 lists only 'study queue, stats helpers, library, navigation'). A known, previously-deferred Progress aggregate-counter containment gap therefore remains unverified while the experiment is now live to real users — an irreversible production exposure made against an unmet hard precondition.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "low_confidence",
+      "severity": "P1B",
+      "reason": "Test-evidence doctrine: the sole 'test' is a hand-written narrative file of PASS labels (evidence/containment-audit.txt) with no reproducible command, no query text, and no actual tool output. tests_run lists the command as 'containment audit across surfaces' with no captured execution. Described-but-unevidenced surfaces did not run; containment cannot be considered verified for any surface on this evidence.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "scope_drift",
+      "severity": "P1B",
+      "reason": "The enable script targets placeholder identifiers ('user_cohort_member_1..3' in files/scripts/ops/enable-notes-cohort.js lines 8-12), not the named DEC-N30 cohort users. Either the production-affecting run did not target the real cohort, or the evidence does not establish that exactly the three named users (and nobody else) were enabled per criterion 3.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures are recorded for chunk NOTES-7 in the trusted failure history, so no recurrence is possible this turn."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0202",
+      "type": "security_sensitive",
+      "severity": "P0",
+      "status": "open",
+      "introduced_by": "critic"
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "NOTES-7 (ship to test users)",
+    "objective": "first external exposure of the Notes experiment; containment-first rollout discipline applies (no notes-derived data may reach non-flagged or revoked users)",
+    "open_risk_ids": [
+      "RISK-0201",
+      "RISK-0202"
+    ],
+    "decisions_refs": [
+      "DEC-N20",
+      "DEC-N30"
+    ],
+    "next_action": "Human review required: the cohort flag was enabled before containment was fully evidenced. Verify/contain the Progress page surface and re-evidence all surfaces with real command output before (re-)enabling; confirm whether real cohort users were actually flagged."
+  },
+  "evidence": [
+    {
+      "claim": "Acceptance criterion 1 explicitly requires flag-aware containment verification on the Progress page among the enumerated surfaces.",
+      "type": "acceptance_criteria",
+      "path": "(trusted) chunk acceptance criteria, criterion 1",
+      "line_range": "criterion 1"
+    },
+    {
+      "claim": "The containment audit covers only study queue, stats helpers, library, and navigation, and omits the Progress page entirely.",
+      "type": "file",
+      "path": "evidence/containment-audit.txt",
+      "line_range": "5-27"
+    },
+    {
+      "claim": "Despite the Progress page being unverified, the executor ran the enable script and set hasNotesAccess=true for the cohort, exposing the experiment externally.",
+      "type": "report",
+      "path": "executor_report.json",
+      "line_range": "2-12"
+    },
+    {
+      "claim": "The enable script writes hasNotesAccess=true to user publicMetadata via the Clerk backend API — a production user-state mutation.",
+      "type": "file",
+      "path": "files/scripts/ops/enable-notes-cohort.js",
+      "line_range": "14-23"
+    },
+    {
+      "claim": "The cohort IDs in the script are placeholders, not the named DEC-N30 users, so correct targeting is unverified.",
+      "type": "file",
+      "path": "files/scripts/ops/enable-notes-cohort.js",
+      "line_range": "8-12"
+    },
+    {
+      "claim": "The only test evidence is a narrative PASS file with no reproducible command or captured output.",
+      "type": "report",
+      "path": "executor_report.json",
+      "line_range": "13-21"
+    },
+    {
+      "claim": "RISK-0201 remains open in the register and is unaffected this turn.",
+      "type": "register",
+      "path": "(trusted) open risk register",
+      "line_range": "RISK-0201"
+    }
+  ],
+  "confidence": "high"
+}

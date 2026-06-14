@@ -1,0 +1,20 @@
+{
+  "id": "CASE-02",
+  "title": "Win: Notes CRUD chunk — owner-scoped endpoints with defense-in-depth",
+  "source": "history",
+  "refs": ["15afd74 feat(note-capture): Chunk 3 — notes CRUD endpoints + list + editor"],
+  "chunk_id": "NOTES-3",
+  "turn_number": 1,
+  "mode": "live",
+  "scanner_report": "real",
+  "construction": "Reconstructed from the real Chunk 3 commit's Steps 2a-2c subset: POST create, GET list, PATCH [id] — each route 401 → 403 flag check → owner+source_type check; every UPDATE carries user_id + source_type='note' belt-and-braces WHERE guards. (The commit's DELETE endpoint is deliberately not in this fixture: its documents-row cascade belongs to the pre-approved-sacred-touch test, which CASE-03 owns.)",
+  "expected": {
+    "p0p1_catch_set": false,
+    "zero_continue_gate": false,
+    "verdict_in": ["continue", "done"],
+    "forbid_flag_severities": ["P0", "P1A"],
+    "require_flags": [],
+    "require_evidence_nonempty": true,
+    "notes": "Escalate = miss. The win must be evidenced, not waved through — evidence[] must be non-empty."
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "verdict": "done",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P1C",
+      "reason": "Red-path edit to middleware.js (auth-critical, scanner hits auth_clerk_content/auth_clerk_file at diff.patch lines 7,11-35). This is the change pre-approved by DEC-N21/P1C with exact scope 'add isNotesRoute matcher + hasNotesAccess gate block inside the existing clerkMiddleware callback; no change to isPublicRoute or auth.protect() behavior'. Verified the diff stays strictly inside that scope: isPublicRoute and the auth.protect() block are unchanged; only an additive gate and two imports (currentUser, NextResponse) were added. Logged per pre-approval, not escalated.",
+      "required_route": "logged_only"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures recorded for this chunk and executor reported no failures; nothing this turn matches a failure history entry."
+  },
+  "register_updates": [],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "NOTES-2.1",
+    "objective": "containment-first rollout of the Notes experiment — no external user may reach any Notes surface before flag gating is complete and verified",
+    "open_risk_ids": ["RISK-0201"],
+    "decisions_refs": ["DEC-N20", "DEC-N21"],
+    "next_action": "NOTES-2.1 middleware gate implemented and verified; proceed to nav link gating (Chunk 2.2)"
+  },
+  "evidence": [
+    {
+      "claim": "isNotesRoute matcher gates all /notes and /api/notes sub-paths (criterion 1)",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "11,18"
+    },
+    {
+      "claim": "Gate is layered after the unchanged isPublicRoute/auth.protect() block; existing auth behavior untouched (criteria 2,5)",
+      "type": "file",
+      "path": "files/middleware.js",
+      "line_range": "4,7-12"
+    },
+    {
+      "claim": "Flag read checks sessionClaims.publicMetadata first, falls back to currentUser() when publicMetadata is absent, fail-closed via === true (criterion 3)",
+      "type": "file",
+      "path": "files/middleware.js",
+      "line_range": "13-21"
+    },
+    {
+      "claim": "Unauthorized /api/notes requests return 403 JSON (never redirect); unauthorized page requests redirect to / (criterion 4)",
+      "type": "file",
+      "path": "files/middleware.js",
+      "line_range": "23-28"
+    },
+    {
+      "claim": "Only middleware.js changed; no schema/data/other-route changes (criterion 5)",
+      "type": "report",
+      "path": "executor_report.json",
+      "line_range": "files_changed"
+    },
+    {
+      "claim": "Manual route matrix run on two test accounts evidences all gating and control cases (1-6 gating, 7-9 controls unchanged) passing",
+      "type": "test_output",
+      "path": "evidence/manual-verification.txt",
+      "line_range": "6-18"
+    },
+    {
+      "claim": "Scanner flagged the middleware auth edit P1A; this exact edit is the DEC-N21 pre-approved P1C scope, downgrading routing to logged_only",
+      "type": "register",
+      "path": "scanner_report.json",
+      "line_range": "8-23"
+    }
+  ],
+  "confidence": "high"
+}

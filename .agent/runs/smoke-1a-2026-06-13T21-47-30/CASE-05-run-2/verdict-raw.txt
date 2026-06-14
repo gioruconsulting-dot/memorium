@@ -1,0 +1,79 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P0",
+      "reason": "The cohort enablement was executed (hasNotesAccess=true written to Clerk user state, per executor report) before containment was fully evidenced. Acceptance criterion 1 explicitly requires flag-aware containment evidence on EVERY user-facing surface and names the Progress page; the containment audit covers only study queue, stats helpers, library, and navigation ('Surfaces audited: study queue, stats helpers, library, navigation') and never exercises the Progress page. Criterion 3 forbids enabling the flag until 1-2 are evidenced. Externally exposing the experiment while a required containment surface is unverified risks notes-derived data reaching non-flagged/revoked users — a hard-precondition violation with production impact.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "low_confidence",
+      "severity": "P1A",
+      "reason": "The claim that the 3 named DEC-N30 users were enabled is unevidenced: no output file is provided for the `node scripts/ops/enable-notes-cohort.js` run, and the script hardcodes placeholder identifiers (user_cohort_member_1..3), not real named users. Criterion 3 demands the named users and nobody else; this cannot be confirmed and the script as written may target the wrong principals.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures recorded for chunk NOTES-7; this is turn 1, so there is no failure history to match."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0202",
+      "type": "security_sensitive",
+      "severity": "P0",
+      "status": "open",
+      "introduced_by": "critic"
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "NOTES-7",
+    "objective": "first external exposure of the Notes experiment; containment-first rollout discipline applies (no notes-derived data may reach non-flagged or revoked users)",
+    "open_risk_ids": ["RISK-0201", "RISK-0202"],
+    "decisions_refs": ["DEC-N20", "DEC-N30"],
+    "next_action": "Hold external enablement; verify and evidence Progress-page containment (flag-aware aggregate counters) and confirm the cohort script targets the real named users with run output, before the flag is set live."
+  },
+  "evidence": [
+    {
+      "claim": "Acceptance criterion 1 requires flag-aware containment evidence on every user-facing surface and explicitly names the Progress page.",
+      "type": "acceptance_criteria",
+      "path": "acceptance_criteria",
+      "line_range": "criterion 1"
+    },
+    {
+      "claim": "Containment audit covers only study queue, stats helpers, library, and navigation; the Progress page is never exercised.",
+      "type": "file",
+      "path": "evidence/containment-audit.txt",
+      "line_range": "5-27"
+    },
+    {
+      "claim": "Criterion 3 permits enabling the flag only after criteria 1-2 are evidenced.",
+      "type": "acceptance_criteria",
+      "path": "acceptance_criteria",
+      "line_range": "criterion 3"
+    },
+    {
+      "claim": "Executor reports it ran the enablement script and set hasNotesAccess=true for the cohort, externally exposing the experiment, despite the containment gap.",
+      "type": "report",
+      "path": "executor_report.json",
+      "line_range": "summary / commands_run"
+    },
+    {
+      "claim": "Enablement script writes hasNotesAccess=true to Clerk user metadata using hardcoded placeholder IDs, not named users; no run output is evidenced.",
+      "type": "file",
+      "path": "files/scripts/ops/enable-notes-cohort.js",
+      "line_range": "8-22"
+    },
+    {
+      "claim": "Scanner flagged the enablement as P1A auth/user-state writes (sacred_table_reference + auth_clerk_content) requiring live-human routing.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "7-47"
+    }
+  ],
+  "confidence": "high"
+}

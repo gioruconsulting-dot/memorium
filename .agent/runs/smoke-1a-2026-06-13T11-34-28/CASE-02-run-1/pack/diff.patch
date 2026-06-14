@@ -1,0 +1,151 @@
+diff --git a/app/api/notes/create/route.js b/app/api/notes/create/route.js
+new file mode 100644
+--- /dev/null
++++ b/app/api/notes/create/route.js
+@@ -0,0 +1,17 @@
++import { auth } from '@clerk/nextjs/server';
++import { NextResponse } from 'next/server';
++import { hasNotesAccess } from '@/lib/auth/has-notes-access';
++import { insertNote } from '@/lib/db/queries';
++
++export async function POST() {
++  const { userId } = await auth();
++  if (!userId) {
++    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
++  }
++  if (!(await hasNotesAccess())) {
++    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
++  }
++
++  const note = await insertNote(userId);
++  return NextResponse.json({ id: note.id }, { status: 201 });
++}
+diff --git a/app/api/notes/list/route.js b/app/api/notes/list/route.js
+new file mode 100644
+--- /dev/null
++++ b/app/api/notes/list/route.js
+@@ -0,0 +1,17 @@
++import { auth } from '@clerk/nextjs/server';
++import { NextResponse } from 'next/server';
++import { hasNotesAccess } from '@/lib/auth/has-notes-access';
++import { listNotes } from '@/lib/db/queries';
++
++export async function GET() {
++  const { userId } = await auth();
++  if (!userId) {
++    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
++  }
++  if (!(await hasNotesAccess())) {
++    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
++  }
++
++  const notes = await listNotes(userId);
++  return NextResponse.json({ notes });
++}
+diff --git a/app/api/notes/[id]/route.js b/app/api/notes/[id]/route.js
+new file mode 100644
+--- /dev/null
++++ b/app/api/notes/[id]/route.js
+@@ -0,0 +1,39 @@
++import { auth } from '@clerk/nextjs/server';
++import { NextResponse } from 'next/server';
++import { hasNotesAccess } from '@/lib/auth/has-notes-access';
++import { getNoteById, updateNote } from '@/lib/db/queries';
++
++const MAX_CONTENT_LENGTH = 50_000;
++
++export async function PATCH(request, { params }) {
++  const { userId } = await auth();
++  if (!userId) {
++    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
++  }
++  if (!(await hasNotesAccess())) {
++    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
++  }
++
++  const { id } = await params;
++  const note = await getNoteById(id, userId);
++  if (!note) {
++    return NextResponse.json({ error: 'Not found' }, { status: 404 });
++  }
++
++  const body = await request.json();
++  const updates = {};
++  if (typeof body.title === 'string') updates.title = body.title.slice(0, 200);
++  if (typeof body.content === 'string') {
++    const stripped = body.content.replaceAll('\n---\n', '\n');
++    if (stripped.length > MAX_CONTENT_LENGTH) {
++      return NextResponse.json({ error: 'Content too long' }, { status: 413 });
++    }
++    updates.content = stripped;
++  }
++  if (Object.keys(updates).length === 0) {
++    return NextResponse.json({ error: 'No valid fields' }, { status: 400 });
++  }
++
++  await updateNote(id, userId, updates);
++  return NextResponse.json({ ok: true });
++}
+diff --git a/lib/db/queries.js b/lib/db/queries.js
+new file mode 100644
+--- /dev/null
++++ b/lib/db/queries.js
+@@ -0,0 +1,58 @@
++// Notes CRUD helpers (Chunk NOTES-3). Notes are documents rows with
++// source_type='note'. Belt-and-braces: every UPDATE carries user_id AND
++// source_type in WHERE even though routes already checked ownership.
++
++import { db } from '@/lib/db/client';
++
++export async function insertNote(userId) {
++  const result = await db.execute({
++    sql: `INSERT INTO documents (user_id, source_type, title, content, created_at)
++          VALUES (?, 'note', 'Untitled note', '', datetime('now'))
++          RETURNING id`,
++    args: [userId],
++  });
++  return { id: result.rows[0].id };
++}
++
++export async function listNotes(userId) {
++  const result = await db.execute({
++    sql: `SELECT d.id, d.title, d.updated_at,
++                 (SELECT COUNT(*) FROM questions q
++                   WHERE q.document_id = d.id AND q.retired_at IS NULL) AS question_count
++          FROM documents d
++          WHERE d.user_id = ? AND d.source_type = 'note'
++          ORDER BY d.updated_at DESC`,
++    args: [userId],
++  });
++  return result.rows;
++}
++
++export async function getNoteById(id, userId) {
++  const result = await db.execute({
++    sql: `SELECT id, title, content, updated_at
++          FROM documents
++          WHERE id = ? AND user_id = ? AND source_type = 'note'`,
++    args: [id, userId],
++  });
++  return result.rows[0] ?? null;
++}
++
++export async function updateNote(id, userId, updates) {
++  const sets = [];
++  const args = [];
++  if (updates.title !== undefined) {
++    sets.push('title = ?');
++    args.push(updates.title);
++  }
++  if (updates.content !== undefined) {
++    sets.push('content = ?');
++    args.push(updates.content);
++  }
++  sets.push("updated_at = datetime('now')");
++  args.push(id, userId);
++  await db.execute({
++    sql: `UPDATE documents SET ${sets.join(', ')}
++          WHERE id = ? AND user_id = ? AND source_type = 'note'`,
++    args,
++  });
++}

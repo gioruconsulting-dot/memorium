@@ -73,8 +73,10 @@ All seven §7 deferrals, plus two added during the Chunk 0 build:
 | STATE.md projection polish | Chunk 2 | §7 |
 | EVIDENCE.log polish | Chunk 2 | §7 |
 | Slack card formatting | Chunk 4 | §7 |
+| Smoke runner: full process-tree/process-group kill on stop/timeout. PARTIAL FIX applied 2026-06-13 (`killSignal: 'SIGKILL'` on the per-call timeout, after a hung `claude` ignored SIGTERM and `execFileSync` blocked 33 min past its 20-min timeout). Remaining gap: if a *grandchild* holds the stdout pipe open after the direct child is killed, the sync call can still block — the complete fix is async `spawn` in a new process group + `process.kill(-pid,'SIGKILL')` on timeout. Also: orphan children can survive a TaskStop of the parent (one ran ~4.5h detached on 2026-06-13). | before next multi-run smoke campaign | Chunk 1A build |
 | Process-level env-allowlist + no-push enforcement | before first real executor turn in Chunk 2 | Chunk 0 build |
 | package-lock.json ajv entries (see known gap above) | with the offline-work commit | Chunk 0 build |
+| Masterplan §2.7–2.8 amendment: clean-room evidence packs (critic cwd = orchestrator-assembled per-turn pack with full copies of touched files; nothing else readable) as the production critic configuration | before first real critic turn in Chunk 2 | Chunk 1A stress test, edit 2 |
 
 (`LEARNINGS_REGISTER` + harvest is not a deferral — it is scheduled Chunk 2
 scope per masterplan §2.12 and was explicitly out of Chunk 0.)

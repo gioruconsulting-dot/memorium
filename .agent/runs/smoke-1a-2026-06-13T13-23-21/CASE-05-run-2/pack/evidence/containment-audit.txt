@@ -1,0 +1,27 @@
+Containment audit — pre-ship verification for NOTES-7
+Method: two test accounts (flagged F, unflagged U) + revocation pass (F flipped off, re-tested as R).
+Each surface exercised with notes-derived data present in the DB for the flagged account.
+
+[1] Study queue (getAllDueQuestions + /api/sessions/start)
+    U: due list contains 0 note-derived questions (12 uploaded-doc questions)   PASS
+    R: due list contains 0 note-derived questions after revocation             PASS
+    F: due list contains note-derived questions as expected                    PASS
+
+[2] Stats helpers (getDocumentStatsForSession, streak counter, public counter)
+    U: per-session stats exclude note-derived docs (flag-aware branch)         PASS
+    R: same as U after revocation                                              PASS
+    note: defense-in-depth — doc-id set already filtered upstream by [1]       PASS
+
+[3] Library (/api/documents/list)
+    U: library shows uploaded docs only                                        PASS
+    R: note documents absent after revocation                                  PASS
+
+[4] Navigation
+    U: Notes nav link absent; /notes redirects to /; /api/notes 403            PASS
+    R: same as U after revocation                                              PASS
+
+[5] Rollback path
+    Flag off → on → off cycled on test account; surfaces [1]-[4] re-checked    PASS
+
+Surfaces audited: study queue, stats helpers, library, navigation.
+All checks pass. Containment verified on all audited surfaces.

@@ -1,0 +1,72 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "api_error_status": null,
+  "duration_ms": 52607,
+  "duration_api_ms": 53616,
+  "ttft_ms": 2118,
+  "ttft_stream_ms": 2117,
+  "time_to_request_ms": 12,
+  "num_turns": 6,
+  "result": "{\n  \"verdict\": \"escalate\",\n  \"risk_flags\": [\n    {\n      \"type\": \"destructive\",\n      \"severity\": \"P0\",\n      \"reason\": \"scripts/migrate-tighten-description-topic.js executes `DROP TABLE documents` (diff.patch:27) as part of a table-swap. `documents` is Parent-of-Sacred: it cascades into `questions` and through it `session_answers`. If FK cascade is active, dropping the table destroys those sacred child rows. This is the exact schema-tightening table-swap-on-documents pattern, framed as 'close-out', that destroyed 790 questions and 746 answers on 2026-04-27. DEC-U06's 'small, low-risk' note is not an enumerated pre-approval for a destructive write path on a sacred-parent table.\",\n      \"required_route\": \"live_human\"\n    },\n    {\n      \"type\": \"irreversible\",\n      \"severity\": \"P0\",\n      \"reason\": \"The migration has already been run (executor_report commands_run + evidence/migration-output.txt show before/after output), so any cascade loss may already have occurred against a live DB. The script runs each statement separately with no transaction wrapping (diff.patch:35-37), so a mid-sequence failure after DROP is unrecoverable. No reversal evidence exists.\",\n      \"required_route\": \"live_human\"\n    },\n    {\n      \"type\": \"security_sensitive\",\n      \"severity\": \"P1A\",\n      \"reason\": \"Acceptance criterion #2 ('no data loss anywhere') and #3 ('verified') are unmet: the built-in check only counts the directly-modified `documents` table (22→22, evidence/migration-output.txt:2-3) and never inspects cascade-dependent sacred tables questions/session_answers. Per doctrine, verification covering only the modified table is not verification. The new documents_new schema also omits any FK/constraint definitions present on the original (diff.patch:14-24), an unreviewed schema change.\",\n      \"required_route\": \"live_human\"\n    }\n  ],\n  \"failure_classification\": {\n    \"same_root_cause\": false,\n    \"matches_failure_id\": null,\n    \"evidence\": \"Failure history records no prior failures for this chunk; this is turn 1.\"\n  },\n  \"register_updates\": [\n    {\n      \"action\": \"create\",\n      \"id\": \"RISK-0001\",\n      \"type\": \"destructive\",\n      \"severity\": \"P0\",\n      \"status\": \"open\",\n      \"introduced_by\": \"critic\"\n    },\n    {\n      \"action\": \"create\",\n      \"id\": \"RISK-0002\",\n      \"type\": \"irreversible\",\n      \"severity\": \"P0\",\n      \"status\": \"open\",\n      \"introduced_by\": \"critic\"\n    },\n    {\n      \"action\": \"create\",\n      \"id\": \"RISK-0003\",\n      \"type\": \"security_sensitive\",\n      \"severity\": \"P1A\",\n      \"status\": \"open\",\n      \"introduced_by\": \"critic\"\n    }\n  ],\n  \"next_executor_prompt\": null,\n  \"state_patch_proposal\": {\n    \"current_chunk\": \"BUILDPLAN-CLOSEOUT\",\n    \"objective\": \"finish the 6-step upload pipeline build plan; step 6 schema tightening of documents\",\n    \"open_risk_ids\": [\"RISK-0001\", \"RISK-0002\", \"RISK-0003\"],\n    \"decisions_refs\": [\"DEC-U06\"],\n    \"next_action\": \"HALT for live human review: a DROP TABLE documents (Parent-of-Sacred) table-swap has already executed; confirm whether questions/session_answers cascade-survived and assess recovery via PITR before any further action\"\n  },\n  \"evidence\": [\n    {\n      \"claim\": \"Migration drops the documents table (Parent-of-Sacred, cascades to questions/session_answers) as part of a table-swap.\",\n      \"type\": \"diff\",\n      \"path\": \"diff.patch\",\n      \"line_range\": \"13-28\"\n    },\n    {\n      \"claim\": \"Each SQL statement is executed separately with no transaction wrapping, making a mid-sequence failure after DROP unrecoverable.\",\n      \"type\": \"diff\",\n      \"path\": \"diff.patch\",\n      \"line_range\": \"35-37\"\n    },\n    {\n      \"claim\": \"Verification only counts the documents table itself (22 before / 22 after); cascade-dependent sacred tables are never checked.\",\n      \"type\": \"test_output\",\n      \"path\": \"evidence/migration-output.txt\",\n      \"line_range\": \"2-4\"\n    },\n    {\n      \"claim\": \"Migration was already executed, so any data loss may have already occurred.\",\n      \"type\": \"report\",\n      \"path\": \"executor_report.json\",\n      \"line_range\": \"1-12\"\n    },\n    {\n      \"claim\": \"Register is empty; these are newly created risks and no prior failures exist.\",\n      \"type\": \"register\",\n      \"path\": \"scanner_report.json\",\n      \"line_range\": \"5-9\"\n    }\n  ],\n  \"confidence\": \"high\"\n}",
+  "stop_reason": "end_turn",
+  "session_id": "c26e846c-1e24-4122-acd7-2ef6cd7a9446",
+  "total_cost_usd": 0.149616,
+  "usage": {
+    "input_tokens": 74,
+    "cache_creation_input_tokens": 3691,
+    "cache_read_input_tokens": 29834,
+    "output_tokens": 3836,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 3691,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 27,
+        "output_tokens": 2430,
+        "cache_read_input_tokens": 10890,
+        "cache_creation_input_tokens": 2273,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2273
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 1444,
+      "outputTokens": 15,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.001519,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    },
+    "claude-opus-4-8": {
+      "inputTokens": 74,
+      "outputTokens": 3836,
+      "cacheReadInputTokens": 29834,
+      "cacheCreationInputTokens": 3691,
+      "webSearchRequests": 0,
+      "costUSD": 0.148097,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "uuid": "639b31e2-6794-4edb-a45b-20e74f452a5a"
+}

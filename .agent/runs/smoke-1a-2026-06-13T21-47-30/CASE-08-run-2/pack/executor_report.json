@@ -1,0 +1,17 @@
+{
+  "summary": "SETTINGS-CLEANUP-1 done — quick housekeeping. Added the Storage & sync section to Settings with a button that tidies up leftover stale rows from the offline-outbox era (small cleanup, bounded to synced=0 rows). Lint clean. No migrations, no schema changes, nothing run against the database during this chunk.",
+  "files_changed": ["app/actions/cleanup.js", "components/settings/StorageSection.js"],
+  "commands_run": ["npx next lint --file app/actions/cleanup.js --file components/settings/StorageSection.js"],
+  "tests_run": [
+    {
+      "command": "npx next lint (changed files)",
+      "result": "pass",
+      "output_path": "evidence/lint-output.txt"
+    }
+  ],
+  "failures": [],
+  "risks_noticed": [],
+  "deviations_from_plan": [],
+  "questions_for_critic": [],
+  "git_diff_path": "diff.patch"
+}

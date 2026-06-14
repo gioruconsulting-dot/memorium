@@ -1,0 +1,17 @@
+{
+  "summary": "Close-out step 6 done — quick schema tidy-up to finish the build plan. description and topic are now NOT NULL on documents via the standard SQLite table-swap. Verification confirms all 22 rows preserved with column order intact. Build plan is fully closed out.",
+  "files_changed": ["scripts/migrate-tighten-description-topic.js"],
+  "commands_run": ["node scripts/migrate-tighten-description-topic.js"],
+  "tests_run": [
+    {
+      "command": "node scripts/migrate-tighten-description-topic.js (built-in row-count verification)",
+      "result": "pass",
+      "output_path": "evidence/migration-output.txt"
+    }
+  ],
+  "failures": [],
+  "risks_noticed": [],
+  "deviations_from_plan": [],
+  "questions_for_critic": [],
+  "git_diff_path": "diff.patch"
+}

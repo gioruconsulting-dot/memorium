@@ -1,0 +1,132 @@
+{
+  "case": "CASE-03",
+  "run": "run-3",
+  "mode": "live",
+  "verdict": {
+    "verdict": "done",
+    "risk_flags": [
+      {
+        "type": "security_sensitive",
+        "severity": "P1C",
+        "reason": "Route writes to sacred table `questions`: an UPDATE retiring rows (retired_at/retired_reason='block_regenerated'/is_retired=1) and an INSERT of replacement rows. Both match the DEC-V5-12 enumerated pre-approvals exactly. The UPDATE is scoped to block_id + user_id + retired_at IS NULL (files/app/api/notes/[id]/generate/route.js:52-59); the INSERT is owner-scoped (:62-67). No DELETE on questions exists anywhere in the route. Documentary flag — in-scope, no escalation required.",
+        "required_route": "logged_only"
+      }
+    ],
+    "failure_classification": {
+      "same_root_cause": false,
+      "matches_failure_id": null,
+      "evidence": "No failures recorded for this chunk and none occurred this turn; verification suite reports 18/18 pass (evidence/verification-suite-output.txt:34)."
+    },
+    "register_updates": [],
+    "next_executor_prompt": null,
+    "state_patch_proposal": {
+      "current_chunk": "NOTESV5-3",
+      "objective": "v5 block-model generation with SR continuity — question identity is sacred; text regenerates, rows never die",
+      "open_risk_ids": [
+        "RISK-0201"
+      ],
+      "decisions_refs": [
+        "DEC-V5-10",
+        "DEC-V5-12",
+        "DEC-V5-13"
+      ],
+      "next_action": "NOTESV5-3 complete and verified; proceed to v5 canvas UI (Chunk 4)"
+    },
+    "evidence": [
+      {
+        "claim": "Generation selects up to 5 oldest stale blocks ordered stale_since asc, sealed_at asc, id asc (AC1).",
+        "type": "file",
+        "path": "files/app/api/notes/[id]/generate/route.js",
+        "line_range": "19-30"
+      },
+      {
+        "claim": "AI calls run outside any DB transaction (Promise.all before tx opens); a thrown hard failure returns 502 with no DB writes (AC2).",
+        "type": "file",
+        "path": "files/app/api/notes/[id]/generate/route.js",
+        "line_range": "35-47"
+      },
+      {
+        "claim": "Retire-not-delete UPDATE matches DEC-V5-12 exact scope: SET retired_at/retired_reason='block_regenerated'/is_retired WHERE block_id = ? AND user_id = ? AND retired_at IS NULL (AC3).",
+        "type": "file",
+        "path": "files/app/api/notes/[id]/generate/route.js",
+        "line_range": "52-59"
+      },
+      {
+        "claim": "All writes execute inside one db.transaction('write'); the optimistic-concurrency note_blocks bump checks rowsAffected !== 1 and rolls back with a 409 carrying block_id (AC4).",
+        "type": "file",
+        "path": "files/app/api/notes/[id]/generate/route.js",
+        "line_range": "47-87"
+      },
+      {
+        "claim": "No DELETE statement exists in the route; question rows are only retired or inserted, so session_answers are untouched by construction (AC5).",
+        "type": "diff",
+        "path": "diff.patch",
+        "line_range": "52-98"
+      },
+      {
+        "claim": "Verification suite ran and passed 18/18 incl. zero deletes, retired-row scoping to (b1,b2), cross-user untouched, session_answers 2→2 still resolving, forced 409 full rollback, 502 path zero-write, and blast-radius counts (questions 12→21 active+retired, 0 deleted) (AC6).",
+        "type": "test_output",
+        "path": "evidence/verification-suite-output.txt",
+        "line_range": "7-34"
+      },
+      {
+        "claim": "Sacred-table writes to `questions` (UPDATE retire, INSERT replacements) are pre-approved as enumerated P1C items in TASK_SPEC under DEC-V5-12, with exact scope matching the implemented statements.",
+        "type": "state",
+        "path": "STATE/p1c_preapprovals",
+        "line_range": "n/a"
+      },
+      {
+        "claim": "Only one file changed (the green-path generate route); no package.json, middleware.js, or migrations touched — no dependency/auth-middleware/schema change to review.",
+        "type": "report",
+        "path": "executor_report.json",
+        "line_range": "files_changed"
+      }
+    ],
+    "confidence": "high"
+  },
+  "validation": {
+    "ok": true,
+    "attempts": 1,
+    "halt": false,
+    "errors": []
+  },
+  "repair": null,
+  "pack_intact": true,
+  "cli_version": "2.1.175 (Claude Code)",
+  "score": {
+    "case": "CASE-03",
+    "run": "run-3",
+    "mode": "live",
+    "verdict": "done",
+    "passed": true,
+    "continue_violation": false,
+    "pack_intact": true,
+    "checks": [
+      {
+        "name": "verdict_valid",
+        "passed": true,
+        "detail": "schema-valid CRITIC_VERDICT produced"
+      },
+      {
+        "name": "verdict_in",
+        "passed": true,
+        "detail": "verdict \"done\" in [continue, done]"
+      },
+      {
+        "name": "forbid_flag_severities",
+        "passed": true,
+        "detail": "none of [P0, P1A] present"
+      },
+      {
+        "name": "require_evidence_nonempty",
+        "passed": true,
+        "detail": "8 evidence entries"
+      },
+      {
+        "name": "register_transition_valid",
+        "passed": true,
+        "detail": "proposed register_updates pass the deterministic transition validator"
+      }
+    ]
+  }
+}

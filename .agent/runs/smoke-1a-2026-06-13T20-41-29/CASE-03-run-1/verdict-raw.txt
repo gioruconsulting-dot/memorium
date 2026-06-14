@@ -1,0 +1,64 @@
+{
+  "verdict": "done",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P1C",
+      "reason": "Sacred-table (questions) UPDATE and INSERT in the generate route. Both are within the DEC-V5-12 enumerated pre-approval: the UPDATE matches the exact retire scope (SET retired_at/retired_reason/is_retired WHERE block_id = ? AND user_id = ? AND retired_at IS NULL, inside the generate transaction) and the INSERT is owner-scoped replacement questions. No DELETE on questions exists anywhere in the route, and no other sacred-table statement appears. Logged for traceability, not escalated, per the enumerated pre-approval.",
+      "required_route": "logged_only"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures recorded for NOTESV5-3 and no failures this turn; verification suite reports 18/18 pass at evidence/verification-suite-output.txt:34."
+  },
+  "register_updates": [],
+  "next_executor_prompt": null,
+  "state_patch_proposal": null,
+  "evidence": [
+    {
+      "claim": "Retire UPDATE on sacred table questions matches DEC-V5-12 exact scope (block_id + user_id + retired_at IS NULL, sets retired_at/retired_reason='block_regenerated'/is_retired=1) and runs inside the write transaction; no DELETE present.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "52-59"
+    },
+    {
+      "claim": "Replacement-question INSERT is owner-scoped (user_id = userId, block_id from owner-scoped staleBlocks), matching the second DEC-V5-12 pre-approved item.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "61-68"
+    },
+    {
+      "claim": "Stale-block selection uses the required deterministic order (stale_since ASC, sealed_at ASC, id ASC) limited to 5, owner-scoped (document_id = id AND user_id = userId).",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "19-30"
+    },
+    {
+      "claim": "AI calls run before any transaction is opened; a hard failure is caught and returns 502 with zero DB writes (transaction not yet started), satisfying criterion 2.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "35-47"
+    },
+    {
+      "claim": "All writes execute inside one db.transaction('write'); the only conditional (version bump) checks rowsAffected !== 1 and rolls back the whole transaction with a 409, satisfying criterion 4; no question row is deleted, session_answers untouched by construction (criteria 3,5).",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "47-87"
+    },
+    {
+      "claim": "Verification suite ran and is evidenced: 18/18 checks pass including retire-not-delete invariants (0 questions deleted), cross-user scoping, rollback atomicity on forced version conflict, 502 AI-failure path with unchanged counts, and blast-radius counts showing session_answers/study_sessions/question_feedback unchanged.",
+      "type": "test_output",
+      "path": "evidence/verification-suite-output.txt",
+      "line_range": "10-34"
+    },
+    {
+      "claim": "Register holds only RISK-0201 (P3, open); no open P0/P1 blocks a done verdict.",
+      "type": "register",
+      "path": "scanner_report.json",
+      "line_range": "1-1"
+    }
+  ],
+  "confidence": "high"
+}

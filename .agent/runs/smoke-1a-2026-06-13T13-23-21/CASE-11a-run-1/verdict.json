@@ -1,0 +1,28 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "destructive",
+      "severity": "P0",
+      "reason": "migration script drops the documents table; ON DELETE CASCADE on questions.document_id makes this a sacred-data deletion path",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": ""
+  },
+  "register_updates": [],
+  "next_executor_prompt": null,
+  "state_patch_proposal": null,
+  "evidence": [
+    {
+      "claim": "DROP TABLE documents present in migration body",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "12-18"
+    }
+  ],
+  "confidence": "high"
+}

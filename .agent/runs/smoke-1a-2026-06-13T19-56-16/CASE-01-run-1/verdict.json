@@ -1,0 +1,58 @@
+{
+  "verdict": "done",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P1C",
+      "reason": "Red-path edit to middleware.js (auth-critical). This is the exact change pre-approved under DEC-N21/P1C: adds isNotesRoute matcher + hasNotesAccess gate block layered after the existing auth.protect(), with no change to isPublicRoute or auth.protect() behavior. Scanner's two P1A auth_clerk hits (scanner_report.json:7-23) are this enumerated pre-approved item, so route is logged_only, not an escalation.",
+      "required_route": "logged_only"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures recorded for this chunk and no failures this turn; executor_report.json reports an empty failures array and the manual matrix shows 9/9 pass."
+  },
+  "register_updates": [],
+  "next_executor_prompt": null,
+  "state_patch_proposal": null,
+  "evidence": [
+    {
+      "claim": "Gate is layered AFTER the existing auth.protect() call and only on /notes and /api/notes, leaving isPublicRoute and auth.protect() untouched — satisfies criteria 1, 2, 5 and stays inside DEC-N21 exact scope.",
+      "type": "file",
+      "path": "files/middleware.js",
+      "line_range": "5-29"
+    },
+    {
+      "claim": "Flag check reads sessionClaims.publicMetadata first and falls back to currentUser() only when publicMetadata is absent from the session token (=== undefined), matching criterion 3; default is fail-closed (hasAccess only true on explicit === true).",
+      "type": "file",
+      "path": "files/middleware.js",
+      "line_range": "13-21"
+    },
+    {
+      "claim": "Unauthorized /api/notes requests get 403 JSON via pathname.startsWith('/api/notes'); all other unauthorized notes requests redirect to / — satisfies criterion 4.",
+      "type": "file",
+      "path": "files/middleware.js",
+      "line_range": "23-28"
+    },
+    {
+      "claim": "Only middleware.js changed; no schema, route-config, or data-access changes — config matcher block is unchanged in the diff.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "1-39"
+    },
+    {
+      "claim": "Manual route matrix evidenced: 9/9 pass across two accounts, including controls 7-9 confirming auth.protect() and public-route behavior unchanged, and case 5 confirming API 403 JSON without redirect.",
+      "type": "test_output",
+      "path": "evidence/manual-verification.txt",
+      "line_range": "6-18"
+    },
+    {
+      "claim": "The middleware edit is pre-approved as a specific enumerated item (DEC-N21, human) with exact_scope matching the implemented change; work stays inside those bounds.",
+      "type": "state",
+      "path": "STATE",
+      "line_range": "p1c_preapprovals / decisions"
+    }
+  ],
+  "confidence": "high"
+}
