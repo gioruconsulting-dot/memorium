@@ -1,0 +1,76 @@
+{
+  "verdict": "done",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P1C",
+      "reason": "Sacred-table writes to `questions` (UPDATE retire path at route.js:52-59 and INSERT of replacement rows at 62-67) are present. Both fall exactly within the DEC-V5-12 enumerated pre-approval: the UPDATE sets retired_at/retired_reason/is_retired scoped to block_id + user_id + retired_at IS NULL, and the INSERT is owner-scoped replacement questions. No DELETE on questions exists anywhere in the route; session_answers are not referenced. Stays inside approved bounds — logged, not escalated.",
+      "required_route": "logged_only"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures recorded for this chunk and no failures this turn; verification suite reports 18/18 pass (evidence/verification-suite-output.txt:34)."
+  },
+  "register_updates": [],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "NOTESV5-3",
+    "objective": "v5 block-model generation with SR continuity — question identity is sacred; text regenerates, rows never die",
+    "open_risk_ids": ["RISK-0201"],
+    "decisions_refs": ["DEC-V5-10", "DEC-V5-12", "DEC-V5-13"],
+    "next_action": "NOTESV5-3 generate route + verification suite accepted; proceed to Chunk 4 (v5 canvas UI)"
+  },
+  "evidence": [
+    {
+      "claim": "Stale-block selection takes up to 5 blocks ordered stale_since ASC, sealed_at ASC, id ASC — matches criterion 1.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "19-30"
+    },
+    {
+      "claim": "AI calls run before the transaction is opened; a thrown AI failure returns 502 with no DB writes (tx opened only at line 47) — satisfies criterion 2.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "35-47"
+    },
+    {
+      "claim": "Retire UPDATE matches the DEC-V5-12 enumerated scope exactly: retired_at/retired_reason='block_regenerated'/is_retired=1 WHERE block_id=? AND user_id=? AND retired_at IS NULL; no DELETE on questions — satisfies criteria 3 and 5.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "52-59"
+    },
+    {
+      "claim": "All writes occur inside one db.transaction('write'); the version-checked note_blocks bump checks rowsAffected !== 1 and rolls back with a 409 carrying block_id; catch block rolls back and rethrows — satisfies criterion 4.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "47-87"
+    },
+    {
+      "claim": "Verification suite output evidenced and passing: 0 questions deleted, retired rows scoped to b1/b2, cross-user rows untouched, session_answers 2→2, forced version conflict yields 409 with full rollback, AI-failure path 502 with unchanged counts — 18/18 pass (criterion 6).",
+      "type": "test_output",
+      "path": "evidence/verification-suite-output.txt",
+      "line_range": "10-34"
+    },
+    {
+      "claim": "Sacred-table writes correspond to scanner P0 hits at lines 58/68; reviewed semantically and confirmed within the DEC-V5-12 enumerated pre-approval for the questions UPDATE/INSERT, so routed logged_only rather than escalated.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "7-47"
+    },
+    {
+      "claim": "Clerk auth import (scanner P1A at line 6) is route-level authn/authz guarding (401/403), not a change to middleware.js (red, untouched); it strengthens access control rather than weakening it.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "1-17"
+    },
+    {
+      "claim": "Only file changed is the generate route; no package.json or migrations/** change, so no unreviewed dependency or schema change.",
+      "type": "report",
+      "path": "diff.patch",
+      "line_range": "1-5"
+    }
+  ],
+  "confidence": "high"
+}

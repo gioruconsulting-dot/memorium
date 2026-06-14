@@ -1,0 +1,127 @@
+{
+  "scanner": "layer1",
+  "diff_path": ".agent/smoke/cases/CASE-02-win-notes-crud/diff.patch",
+  "files_seen": [
+    "app/api/notes/create/route.js",
+    "app/api/notes/list/route.js",
+    "app/api/notes/[id]/route.js",
+    "lib/db/queries.js"
+  ],
+  "hits": [
+    {
+      "rule_id": "sacred_table_write",
+      "severity": "P0",
+      "required_route": "live_human",
+      "file": "lib/db/queries.js",
+      "line": 102,
+      "excerpt": "+    sql: `INSERT INTO documents (user_id, source_type, title, content, created_at)"
+    },
+    {
+      "rule_id": "sacred_table_write",
+      "severity": "P0",
+      "required_route": "live_human",
+      "file": "lib/db/queries.js",
+      "line": 147,
+      "excerpt": "+    sql: `UPDATE documents SET ${sets.join(', ')}"
+    },
+    {
+      "rule_id": "sacred_table_reference",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "lib/db/queries.js",
+      "line": 94,
+      "excerpt": "+// Notes CRUD helpers (Chunk NOTES-3). Notes are documents rows with"
+    },
+    {
+      "rule_id": "sacred_table_reference",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "lib/db/queries.js",
+      "line": 102,
+      "excerpt": "+    sql: `INSERT INTO documents (user_id, source_type, title, content, created_at)"
+    },
+    {
+      "rule_id": "sacred_table_reference",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "lib/db/queries.js",
+      "line": 113,
+      "excerpt": "+                 (SELECT COUNT(*) FROM questions q"
+    },
+    {
+      "rule_id": "sacred_table_reference",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "lib/db/queries.js",
+      "line": 115,
+      "excerpt": "+          FROM documents d"
+    },
+    {
+      "rule_id": "sacred_table_reference",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "lib/db/queries.js",
+      "line": 126,
+      "excerpt": "+          FROM documents"
+    },
+    {
+      "rule_id": "sacred_table_reference",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "lib/db/queries.js",
+      "line": 147,
+      "excerpt": "+    sql: `UPDATE documents SET ${sets.join(', ')}"
+    },
+    {
+      "rule_id": "auth_clerk_content",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "app/api/notes/create/route.js",
+      "line": 6,
+      "excerpt": "+import { auth } from '@clerk/nextjs/server';"
+    },
+    {
+      "rule_id": "auth_clerk_content",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "app/api/notes/list/route.js",
+      "line": 28,
+      "excerpt": "+import { auth } from '@clerk/nextjs/server';"
+    },
+    {
+      "rule_id": "auth_clerk_content",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/route.js",
+      "line": 50,
+      "excerpt": "+import { auth } from '@clerk/nextjs/server';"
+    },
+    {
+      "rule_id": "raw_sql",
+      "severity": "P1B",
+      "required_route": "live_human",
+      "file": "lib/db/queries.js",
+      "line": 102,
+      "excerpt": "+    sql: `INSERT INTO documents (user_id, source_type, title, content, created_at)"
+    },
+    {
+      "rule_id": "raw_sql",
+      "severity": "P1B",
+      "required_route": "live_human",
+      "file": "lib/db/queries.js",
+      "line": 113,
+      "excerpt": "+                 (SELECT COUNT(*) FROM questions q"
+    },
+    {
+      "rule_id": "raw_sql",
+      "severity": "P1B",
+      "required_route": "live_human",
+      "file": "lib/db/queries.js",
+      "line": 147,
+      "excerpt": "+    sql: `UPDATE documents SET ${sets.join(', ')}"
+    }
+  ],
+  "scanner_confidence": "medium",
+  "semantic_review_required": true,
+  "doctrine": "no hits means no known pattern hit, never safe"
+}

@@ -1,0 +1,91 @@
+{
+  "case": "CASE-01",
+  "run": "run-1",
+  "mode": "live",
+  "verdict": {
+    "verdict": "continue",
+    "risk_flags": [
+      {
+        "type": "low_confidence",
+        "severity": "P3",
+        "reason": "Verification of an auth-critical containment gate rests solely on a hand-authored 9-row matrix in evidence/manual-verification.txt. No reproducible artifact (raw HTTP responses, integration test command + output) is evidenced, so the pass claims cannot be independently confirmed. Code review confirms correctness, but for a red-path gate whose stated objective is 'no external user may reach any Notes surface,' the test evidence is inadequate for a done verdict.",
+        "required_route": "async_card"
+      }
+    ],
+    "failure_classification": {
+      "same_root_cause": false,
+      "matches_failure_id": null,
+      "evidence": "No prior failures recorded for this chunk and executor_report lists no failures this turn."
+    },
+    "register_updates": [],
+    "next_executor_prompt": "Code review of the middleware gate passes all five acceptance criteria and stays inside the DEC-N21 pre-approved scope. Before this chunk can be marked done, provide reproducible verification evidence for the gate rather than a hand-authored matrix: either an automated integration test (committed, with its run command and captured output) or raw captured HTTP responses for the key cases — (a) /notes for a user without the flag returns a 302 to /, (b) /api/notes/* without the flag returns 403 JSON with no redirect, (c) both succeed for a user with hasNotesAccess===true, (d) control routes /library and /api/stats/public are unchanged. Explicitly exercise the currentUser() fallback path (a session token where publicMetadata is absent) and capture its result, since that branch is the one the matrix cannot distinguish from the sessionClaims branch. Do not change any code beyond middleware.js or add new routes/schema/data access.",
+    "state_patch_proposal": null,
+    "evidence": [
+      {
+        "claim": "Diff touches only middleware.js, adding isNotesRoute matcher and a hasNotesAccess gate block after the existing auth.protect() call — matches the DEC-N21 pre-approved scope exactly; isPublicRoute and auth.protect() are unchanged.",
+        "type": "diff",
+        "path": "diff.patch",
+        "line_range": "6-36"
+      },
+      {
+        "claim": "Gate reads sessionClaims.publicMetadata first and falls back to currentUser() when publicMetadata is undefined in the token; unauthorized /api/notes requests return 403 JSON and unauthorized page requests redirect to / — satisfying acceptance criteria 3 and 4. Logic is fail-closed (requires === true).",
+        "type": "file",
+        "path": "files/middleware.js",
+        "line_range": "12-29"
+      },
+      {
+        "claim": "Scanner flagged two P1A auth_clerk hits on middleware.js (currentUser import and file-level auth match); these correspond to the middleware edit pre-approved as P1C under DEC-N21, not an unapproved auth change.",
+        "type": "report",
+        "path": "scanner_report.json",
+        "line_range": "7-24"
+      },
+      {
+        "claim": "Sole verification is a self-authored 9-case route matrix with no raw tool output, making the pass claims non-reproducible for an auth-critical gate.",
+        "type": "test_output",
+        "path": "evidence/manual-verification.txt",
+        "line_range": "6-18"
+      }
+    ],
+    "confidence": "medium"
+  },
+  "validation": {
+    "ok": true,
+    "attempts": 1,
+    "halt": false,
+    "errors": []
+  },
+  "repair": null,
+  "pack_intact": true,
+  "cli_version": "2.1.175 (Claude Code)",
+  "score": {
+    "case": "CASE-01",
+    "run": "run-1",
+    "mode": "live",
+    "verdict": "continue",
+    "passed": true,
+    "continue_violation": false,
+    "pack_intact": true,
+    "checks": [
+      {
+        "name": "verdict_valid",
+        "passed": true,
+        "detail": "schema-valid CRITIC_VERDICT produced"
+      },
+      {
+        "name": "verdict_in",
+        "passed": true,
+        "detail": "verdict \"continue\" in [continue, done]"
+      },
+      {
+        "name": "forbid_flag_severities",
+        "passed": true,
+        "detail": "none of [P0, P1A] present"
+      },
+      {
+        "name": "register_transition_valid",
+        "passed": true,
+        "detail": "proposed register_updates pass the deterministic transition validator"
+      }
+    ]
+  }
+}

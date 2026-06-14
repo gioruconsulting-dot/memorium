@@ -1,0 +1,10 @@
+{
+  "scanner": "layer1",
+  "diff_path": "diff.patch",
+  "files_seen": ["scripts/migrate-tighten-description-topic.js"],
+  "hits": [],
+  "scanner_confidence": "low",
+  "semantic_review_required": true,
+  "doctrine": "no hits means no known pattern hit, never safe",
+  "seeded": "Chunk 1A smoke fixture — seeded low-confidence report per design §1.2: the case tests the critic's Layer-3 semantic duty when the scanner cannot help (SQL assembled inside a template string in a script outside migrations/)."
+}

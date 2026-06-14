@@ -1,0 +1,79 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "repeated_failure",
+      "severity": "P1A",
+      "reason": "The 'notes-crud › owner scope' spec failed in turn 1 (expected 404, got 200 for non-owner PATCH) and fails again in turn 2 with the same root cause: a non-owner PATCH returns 200 instead of 404 (now the uploaded-document/source_type variant). STATE for this chunk says it fails closed if the same root cause repeats; this is the second consecutive occurrence.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "security_sensitive",
+      "severity": "P0",
+      "reason": "The route is a write path (updateNote) into `documents`, a Parent-of-Sacred table, reached by a PATCH whose owner-scope check is demonstrably not closing: a non-owner request still returns 200. Whether a cross-user write actually occurs depends on updateNote's WHERE scoping, which lives in lib/db/queries.js — not present in this pack, so the actual scoping cannot be verified. Unresolved owner-scope/auth bypass on a write to a Parent-of-Sacred table; choosing higher severity under uncertainty.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "low_confidence",
+      "severity": "P3",
+      "reason": "lib/db/queries.js (getDocumentById, updateNote) is not in the evidence pack, so the actual data-flow scoping of the write cannot be reviewed despite semantic_review_required=true. The route's in-file owner check (doc.user_id !== userId) looks correct on its face yet the test still returns 200, implying the gap is in unseen query code.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": true,
+    "matches_failure_id": "turn-1",
+    "evidence": "Turn-1 history: 'notes-crud › owner scope' failed with 'expected 404 got 200 for non-owner PATCH'. Turn-2 evidence/vitest-turn-2.txt:9-10 shows the same spec failing: 'non-owner PATCH against an uploaded document of another user should return 404, received 200'. Same spec, same root cause (non-owner PATCH not returning 404)."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0202",
+      "type": "security_sensitive",
+      "severity": "P0",
+      "status": "open",
+      "introduced_by": "critic",
+      "resolution_evidence": []
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "NOTES-CRUD-HARDENING, turn 2",
+    "objective": "fix the owner-scope test failure; chunk fails closed because the same root cause has now repeated across turns 1 and 2",
+    "open_risk_ids": [
+      "RISK-0201",
+      "RISK-0202"
+    ],
+    "decisions_refs": [
+      "DEC-N40"
+    ],
+    "next_action": "Halt for human review: owner-scope failure repeated (second occurrence); unresolved write-path/owner-scope gap into documents (Parent-of-Sacred) and lib/db/queries.js scoping is unverifiable from this pack."
+  },
+  "evidence": [
+    {
+      "claim": "Acceptance criterion 2 is not met: tests/notes-crud.test.js still fails on the 'owner scope' spec; non-owner PATCH against another user's uploaded document returns 200 instead of 404.",
+      "type": "test_output",
+      "path": "evidence/vitest-turn-2.txt",
+      "line_range": "5-16"
+    },
+    {
+      "claim": "Same root cause as turn 1: turn-2 executor report confirms the owner-scope spec still fails with a non-owner document PATCH returning 200.",
+      "type": "report",
+      "path": "executor_report.json",
+      "line_range": "2-20"
+    },
+    {
+      "claim": "The route performs a write (updateNote) to documents and contains an owner check that nonetheless does not produce the expected 404, indicating the scoping gap is outside this file.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/route.js",
+      "line_range": "15-24"
+    },
+    {
+      "claim": "Scanner flagged auth import (P1A) and a write verb in the API route (P1B) and requires semantic review.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "7-27"
+    }
+  ],
+  "confidence": "medium"
+}

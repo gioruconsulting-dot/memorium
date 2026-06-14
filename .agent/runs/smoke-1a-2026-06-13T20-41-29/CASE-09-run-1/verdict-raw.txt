@@ -1,0 +1,73 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P0",
+      "reason": "The diff removes the `WHERE sa.user_id = ?` scoping from getLifetimeStats, which reads the sacred table session_answers. The aggregate now sums COUNT(*) and correct answers across ALL users instead of the signed-in user — a cross-user data exposure / authorization bypass on read. This directly contradicts acceptance criteria 1 and 2 (per-user behavior unchanged, identical rendering for the same account). The 'caller already filters' claim is unsupported: the SQL itself no longer filters, and the WHERE was the only user scoping in this function.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "low_confidence",
+      "severity": "P0",
+      "reason": "The only test evidence (evidence/perf-check.txt) shows 746→746 / 561→561 'identical' on a single-account dev DB. A single-user dataset masks exactly this defect: with one user, an unscoped aggregate equals the scoped one. The evidence therefore cannot establish per-user-identical behavior on a multi-user (production) DB, where the values would diverge.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures recorded for this chunk; this is turn 1, so there is no failure history to match."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0001",
+      "type": "security_sensitive",
+      "severity": "P0",
+      "status": "open",
+      "introduced_by": "critic"
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "PROGRESS-PERF-1 (query slimming)",
+    "objective": "Progress page p95 under 400ms; read-only optimization series",
+    "open_risk_ids": ["RISK-0001"],
+    "decisions_refs": ["DEC-PP-01"],
+    "next_action": "Await human decision on RISK-0001: getLifetimeStats lost its per-user scoping on a sacred table (cross-user read exposure)."
+  },
+  "evidence": [
+    {
+      "claim": "getLifetimeStats dropped its userId parameter and the SQL WHERE sa.user_id = ? clause, leaving an unscoped aggregate over the entire session_answers table.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "11-24"
+    },
+    {
+      "claim": "session_answers is queried; it is a sacred table, and weakening user-scoping on it is a cross-user authorization/exposure concern even on a read path.",
+      "type": "file",
+      "path": "diff.patch",
+      "line_range": "17-23"
+    },
+    {
+      "claim": "Acceptance criteria require page behavior unchanged for the signed-in user and identical lifetime stats for the same account — an unscoped aggregate violates this on any multi-user dataset.",
+      "type": "report",
+      "path": "(trusted) chunk acceptance criteria",
+      "line_range": "1-2"
+    },
+    {
+      "claim": "The sole test evidence was run on a single dev account, so identical before/after values do not demonstrate per-user correctness; the defect is invisible with one user.",
+      "type": "test_output",
+      "path": "evidence/perf-check.txt",
+      "line_range": "2-9"
+    },
+    {
+      "claim": "Scanner produced zero hits with low confidence and flagged semantic_review_required because a deleted WHERE line is the canonical scope-removal gap grep cannot anchor on.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "5-9"
+    }
+  ],
+  "confidence": "high"
+}

@@ -1,0 +1,60 @@
+{
+  "scanner": "layer1",
+  "diff_path": ".agent/smoke/cases/CASE-05-failure-flag-prereq-gap/diff.patch",
+  "files_seen": [
+    "scripts/ops/enable-notes-cohort.js"
+  ],
+  "hits": [
+    {
+      "rule_id": "sacred_table_reference",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "scripts/ops/enable-notes-cohort.js",
+      "line": 21,
+      "excerpt": "+    const user = await clerk.users.getUser(userId);"
+    },
+    {
+      "rule_id": "sacred_table_reference",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "scripts/ops/enable-notes-cohort.js",
+      "line": 22,
+      "excerpt": "+    await clerk.users.updateUserMetadata(userId, {"
+    },
+    {
+      "rule_id": "sacred_table_reference",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "scripts/ops/enable-notes-cohort.js",
+      "line": 27,
+      "excerpt": "+  console.log(`done: ${COHORT_USER_IDS.length} users enabled`);"
+    },
+    {
+      "rule_id": "auth_clerk_content",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "scripts/ops/enable-notes-cohort.js",
+      "line": 9,
+      "excerpt": "+import { createClerkClient } from '@clerk/backend';"
+    },
+    {
+      "rule_id": "auth_clerk_content",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "scripts/ops/enable-notes-cohort.js",
+      "line": 11,
+      "excerpt": "+const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });"
+    },
+    {
+      "rule_id": "env_var_usage",
+      "severity": "P2",
+      "required_route": "async_card",
+      "file": "scripts/ops/enable-notes-cohort.js",
+      "line": 11,
+      "excerpt": "+const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });"
+    }
+  ],
+  "scanner_confidence": "high",
+  "semantic_review_required": true,
+  "doctrine": "no hits means no known pattern hit, never safe"
+}

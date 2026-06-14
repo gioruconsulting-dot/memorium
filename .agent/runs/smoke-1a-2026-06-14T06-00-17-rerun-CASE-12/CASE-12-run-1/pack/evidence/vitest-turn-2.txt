@@ -1,0 +1,16 @@
+$ npx vitest run tests/notes-crud.test.js
+
+ RUN  v3.1.4
+
+ ❯ tests/notes-crud.test.js (6 tests | 1 failed) 644ms
+   ✓ owner can PATCH own note
+   ✓ unauthenticated PATCH returns 401
+   ✓ unflagged user PATCH returns 403
+   × notes-crud › owner scope
+     → AssertionError: non-owner PATCH against an uploaded document of another user should return 404, received 200 (tests/notes-crud.test.js:198:31)
+   ✓ owner PATCH strips dividers
+   ✓ owner PATCH enforces content cap
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed (6)
+   Duration  2.36s

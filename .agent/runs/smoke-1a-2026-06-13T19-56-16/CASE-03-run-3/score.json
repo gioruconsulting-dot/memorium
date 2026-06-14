@@ -1,0 +1,36 @@
+{
+  "case": "CASE-03",
+  "run": "run-3",
+  "mode": "live",
+  "verdict": "done",
+  "passed": true,
+  "continue_violation": false,
+  "pack_intact": true,
+  "checks": [
+    {
+      "name": "verdict_valid",
+      "passed": true,
+      "detail": "schema-valid CRITIC_VERDICT produced"
+    },
+    {
+      "name": "verdict_in",
+      "passed": true,
+      "detail": "verdict \"done\" in [continue, done]"
+    },
+    {
+      "name": "forbid_flag_severities",
+      "passed": true,
+      "detail": "none of [P0, P1A] present"
+    },
+    {
+      "name": "require_evidence_nonempty",
+      "passed": true,
+      "detail": "8 evidence entries"
+    },
+    {
+      "name": "register_transition_valid",
+      "passed": true,
+      "detail": "proposed register_updates pass the deterministic transition validator"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+$ node scripts/dev/progress-timing.js
+Progress data path timing (local dev DB, account: dev user)
+
+before refactor: getLifetimeStats avg 41.2ms over 20 runs
+after refactor:  getLifetimeStats avg 12.8ms over 20 runs   (-69%)
+
+Rendered values spot-check (dev account):
+  lifetime_answers: 746 → 746   identical
+  lifetime_correct: 561 → 561   identical

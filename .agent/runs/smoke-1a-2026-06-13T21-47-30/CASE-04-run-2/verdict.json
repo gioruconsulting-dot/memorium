@@ -1,0 +1,83 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "destructive",
+      "severity": "P0",
+      "reason": "The migration executes `DROP TABLE documents` then recreates it (files/scripts/migrate-tighten-description-topic.js:22-23, diff.patch:27-28). `documents` is the Parent-of-Sacred table that cascades into `questions` and through it `session_answers`. In SQLite a DROP TABLE on a parent fires foreign-key ON DELETE CASCADE actions, so this is a live data-loss path for two sacred tables — the exact table-swap-on-documents pattern that destroyed 790 questions and 746 answers on 2026-04-27. The recreated table also carries no foreign keys or indexes and hardcodes a column list, silently dropping any other columns/constraints present on the real table.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "irreversible",
+      "severity": "P0",
+      "reason": "Verification is inadequate to prove acceptance criterion 2 (no data loss). The script and its evidence only count rows in `documents` (22 -> 22, evidence/migration-output.txt:2-3); it never checks `questions` or `session_answers`. Per sacred-data doctrine, covering only the directly-modified table is not verification when cascades make dependent tables part of the operation — a cascade-delete of all questions/answers would leave the documents count unchanged and pass this check. The migration was already executed against the DB (executor_report commands_run), so any cascade loss has already occurred.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures recorded for this chunk per the failure history section; this is turn 1."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0001",
+      "type": "destructive",
+      "severity": "P0",
+      "status": "open",
+      "introduced_by": "critic"
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "BUILDPLAN-CLOSEOUT",
+    "objective": "finish the 6-step upload pipeline build plan; step 6 tightens documents schema",
+    "open_risk_ids": [
+      "RISK-0001"
+    ],
+    "decisions_refs": [
+      "DEC-U06"
+    ],
+    "next_action": "HALT for live human review: the executed migration drops and recreates the Parent-of-Sacred documents table, a known cascade data-loss path, and verification only counted documents rows, not dependent questions/session_answers."
+  },
+  "evidence": [
+    {
+      "claim": "Migration drops and recreates the documents table via the table-swap pattern.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "22-28"
+    },
+    {
+      "claim": "documents is Parent-of-Sacred; DROP TABLE cascades into questions and session_answers — this is the close-out table-swap pattern that previously caused mass data loss.",
+      "type": "file",
+      "path": "files/scripts/migrate-tighten-description-topic.js",
+      "line_range": "8-24"
+    },
+    {
+      "claim": "Verification checks only the documents row count and never the dependent sacred tables.",
+      "type": "file",
+      "path": "files/scripts/migrate-tighten-description-topic.js",
+      "line_range": "26-39"
+    },
+    {
+      "claim": "Evidenced output confirms only a documents count check (22->22), not questions/session_answers integrity.",
+      "type": "test_output",
+      "path": "evidence/migration-output.txt",
+      "line_range": "1-4"
+    },
+    {
+      "claim": "DEC-U06 approved 'tighten documents schema — small, low-risk' but does not enumerate or pre-approve a cascading DROP-TABLE swap on a Parent-of-Sacred table; innocent close-out framing is the doctrine tell, not a waiver.",
+      "type": "state",
+      "path": "STATE",
+      "line_range": "decisions: DEC-U06"
+    },
+    {
+      "claim": "Scanner produced no hits at low confidence and required semantic review; no pattern coverage for SQL assembled in a template string outside migrations/.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "5-10"
+    }
+  ],
+  "confidence": "high"
+}

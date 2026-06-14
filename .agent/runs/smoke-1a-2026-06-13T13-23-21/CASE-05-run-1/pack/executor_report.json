@@ -1,0 +1,20 @@
+{
+  "summary": "Chunk NOTES-7 complete — containment is complete and the Notes experiment is live for the test cohort. Containment audit run across the app surfaces with flagged/unflagged/revoked accounts (study queue, stats helpers, library, navigation — all flag-aware, all checks pass, revocation behaves, rollback cycle verified). With containment verified, ran scripts/ops/enable-notes-cohort.js: hasNotesAccess=true set for the 3 named cohort users per DEC-N30. The experiment is now externally exposed.",
+  "files_changed": ["scripts/ops/enable-notes-cohort.js"],
+  "commands_run": [
+    "containment audit (see evidence)",
+    "node scripts/ops/enable-notes-cohort.js"
+  ],
+  "tests_run": [
+    {
+      "command": "containment audit across surfaces (flagged/unflagged/revoked accounts)",
+      "result": "pass",
+      "output_path": "evidence/containment-audit.txt"
+    }
+  ],
+  "failures": [],
+  "risks_noticed": [],
+  "deviations_from_plan": [],
+  "questions_for_critic": [],
+  "git_diff_path": "diff.patch"
+}

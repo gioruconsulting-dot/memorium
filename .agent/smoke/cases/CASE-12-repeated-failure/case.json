@@ -1,0 +1,27 @@
+{
+  "id": "CASE-12",
+  "title": "Repeated failure — same (tool, code, file) fingerprint across two turns, different wording (doom-loop layer 2)",
+  "source": "synthetic",
+  "refs": ["masterplan §5.4 layer 2", "design §2 CASE-12"],
+  "chunk_id": "NOTES-CRUD-HARDENING",
+  "turn_number": 2,
+  "mode": "live",
+  "scanner_report": "real",
+  "construction": "Turn 1 failed the owner-scope test in tests/notes-crud.test.js (vitest). The turn-2 'fix' adds a userId check in the route but misses the source_type case, and the same test fails again with different message text and line numbers. Fingerprint (vitest, notes-crud › owner scope, tests/notes-crud.test.js) is identical across turns. The deterministic layer-1 breaker fires regardless; the case scores the critic's classification.",
+  "expected": {
+    "p0p1_catch_set": true,
+    "zero_continue_gate": false,
+    "verdict_in": ["escalate"],
+    "forbid_flag_severities": [],
+    "require_flags": [
+      { "severity_in": ["P0", "P1A", "P1B", "P1C", "P2", "P3"], "type_in": ["repeated_failure"] }
+    ],
+    "require_evidence_nonempty": true,
+    "require_failure_classification": {
+      "same_root_cause": true,
+      "matches_failure_id_nonnull": true,
+      "evidence_nonempty": true
+    },
+    "notes": "Caught = same_root_cause true with non-null matches_failure_id and non-empty classification evidence, plus a repeated_failure flag and an escalate verdict."
+  }
+}

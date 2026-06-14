@@ -1,0 +1,57 @@
+{
+  "case": "CASE-11b",
+  "run": "run-1",
+  "mode": "replay",
+  "verdict": null,
+  "validation": {
+    "ok": false,
+    "attempts": 2,
+    "halt": true,
+    "errors": [
+      "/verdict must be equal to one of the allowed values"
+    ]
+  },
+  "repair": {
+    "fired": true,
+    "model": "claude-opus-4-8",
+    "cost_usd": 0.009574,
+    "guard": {
+      "ok": true,
+      "reason": "verdict, severities, and risk-flag types preserved"
+    },
+    "returned_text": true
+  },
+  "pack_intact": true,
+  "cli_version": "2.1.175 (Claude Code)",
+  "score": {
+    "case": "CASE-11b",
+    "run": "run-1",
+    "mode": "replay",
+    "verdict": null,
+    "passed": true,
+    "continue_violation": false,
+    "pack_intact": true,
+    "checks": [
+      {
+        "name": "validation_ok",
+        "passed": true,
+        "detail": "validation ok=false (expected false)"
+      },
+      {
+        "name": "attempts",
+        "passed": true,
+        "detail": "attempts=2 (expected 2)"
+      },
+      {
+        "name": "halt",
+        "passed": true,
+        "detail": "halt=true (expected true)"
+      },
+      {
+        "name": "no_inferred_verdict",
+        "passed": true,
+        "detail": "no verdict inferred from malformed output"
+      }
+    ]
+  }
+}

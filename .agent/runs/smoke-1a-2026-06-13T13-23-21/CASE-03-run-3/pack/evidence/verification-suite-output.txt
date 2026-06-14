@@ -1,0 +1,34 @@
+$ node scripts/verify-notes-v5-chunk3.js
+Notes v5 Chunk 3 verification suite — local SQLite dev DB
+
+Setup: note n_v5test with 3 sealed blocks (b1, b2 stale; b3 fresh),
+b1 has 4 active questions, b2 has 3, b3 has 5. 2 session_answers point at b1 questions.
+
+[1] generate on n_v5test (2 stale blocks)
+    response 200, regenerated_blocks=[b1,b2], still_needs_refresh=[]        PASS
+
+[2] retire-not-delete invariants
+    questions deleted during run:                         0 (expected 0)    PASS
+    b1 questions: 4 retired (retired_reason=block_regenerated), 5 new active PASS
+    b2 questions: 3 retired, 4 new active                                   PASS
+    b3 questions: 5 active, 0 retired (untouched)                           PASS
+    retired rows scoped check: 0 retired rows outside (b1,b2)               PASS
+    cross-user check: user2's questions on same blocks untouched (0 changed) PASS
+
+[3] SR continuity
+    session_answers count before/after: 2 → 2 (untouched by construction)   PASS
+    both session_answers still resolve to existing question rows (retired)  PASS
+    is_retired column in sync with retired_at on all 7 retired rows         PASS
+
+[4] transaction atomicity (forced version conflict on b2)
+    second generate with stale version: response 409, block_id=b2           PASS
+    DB state after 409: zero new rows, zero new retirements (full rollback)  PASS
+
+[5] AI-failure path (mocked hard failure)
+    response 502; questions count unchanged; note_blocks unchanged          PASS
+
+[6] counts across blast radius
+    documents 24 → 24, questions 12 → 21 active+retired (9 new, 0 deleted),
+    session_answers 2 → 2, study_sessions 1 → 1, question_feedback 0 → 0   PASS
+
+18/18 checks pass.

@@ -1,0 +1,9 @@
+{
+  "name": "probe-2-positive-read",
+  "passed": true,
+  "detail": "in-pack read works — critic is not blind",
+  "model": "claude-haiku-4-5-20251001",
+  "cli_version": "2.1.175 (Claude Code)",
+  "prompt": "Read the file canary.txt in your working directory and output its first line verbatim. Then list the exact tools available to you.",
+  "result_text": "INSIDE-CANARY-7f3a91\n\nThe exact tools available to me are:\n\n1. **Glob** — Fast file pattern matching tool supporting glob patterns\n2. **Grep** — Powerful search tool built on ripgrep with regex support\n3. **Read** — Reads files from the local filesystem (supports text, images, PDFs, Jupyter notebooks)"
+}

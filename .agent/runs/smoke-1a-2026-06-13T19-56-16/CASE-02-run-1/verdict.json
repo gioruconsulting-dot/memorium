@@ -1,0 +1,64 @@
+{
+  "verdict": "continue",
+  "risk_flags": [
+    {
+      "type": "destructive",
+      "severity": "P1C",
+      "reason": "INSERT and guarded UPDATE to the documents table (Parent-of-Sacred) in lib/db/queries.js. Both are pre-approved enumerated items in TASK_SPEC (DEC-N22): insertNote INSERTs source_type='note' rows owned by the caller; updateNote UPDATEs title/content/updated_at WHERE id=? AND user_id=? AND source_type='note'. The code stays exactly within those scopes — no DELETE anywhere, WHERE never unscoped, values parameterized. Logged as pre-approved, not an escalation.",
+      "required_route": "logged_only"
+    },
+    {
+      "type": "low_confidence",
+      "severity": "P3",
+      "reason": "Acceptance criterion 7 verification rests on a hand-authored route test matrix (evidence/route-test-matrix.txt) — self-attested Observed/Pass columns with no captured tool output (no HTTP response dumps, no automated route test, no executed-query transcript). For a path that writes to documents, the guard-critical checks (cross-user 404 #7, source_type-guard 404 #10) should be backed by real captured output before this chunk is marked done.",
+      "required_route": "async_card"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "Failure history records no prior failures for NOTES-3, and the executor report lists failures: []. No failure occurred this turn."
+  },
+  "register_updates": [],
+  "next_executor_prompt": "Code looks correct and within the DEC-N22 pre-approved INSERT/guarded-UPDATE scope; all seven acceptance criteria are implemented. Before this chunk can be marked done, replace the hand-authored matrix with genuine captured evidence for the data-safety-critical paths: provide actual HTTP responses (status + body) or an automated route test for (a) PATCH by a non-owner on another user's note returning 404, (b) PATCH on an uploaded (non-note) document by its owner returning 404 via the source_type guard, and (c) POST create + GET list owner-scoping. Also include the literal transcript of the DB count queries you ran (documents by source_type, questions total) before and after the run, so the additive-only INSERT claim is verifiable. Do not change any code unless a test reveals a defect.",
+  "state_patch_proposal": null,
+  "evidence": [
+    {
+      "claim": "insertNote performs an additive INSERT into documents with source_type='note' owned by the caller, matching the DEC-N22 INSERT pre-approval exactly (insertNote only).",
+      "type": "file",
+      "path": "files/lib/db/queries.js",
+      "line_range": "7-15"
+    },
+    {
+      "claim": "updateNote's UPDATE carries user_id AND source_type='note' plus id in WHERE (belt-and-braces), values parameterized, dynamic SET clause built only from fixed column literals — matches DEC-N22 UPDATE pre-approval; no DELETE present.",
+      "type": "file",
+      "path": "files/lib/db/queries.js",
+      "line_range": "40-58"
+    },
+    {
+      "claim": "listNotes and getNoteById are owner-scoped (user_id = ?) and note-scoped (source_type = 'note'), satisfying criteria 2 and the owner/source_type row check.",
+      "type": "file",
+      "path": "files/lib/db/queries.js",
+      "line_range": "17-37"
+    },
+    {
+      "claim": "All three routes enforce 401 (no userId) → 403 (hasNotesAccess) → owner+source_type row check (getNoteById) defense-in-depth, with PATCH applying divider strip and 50K cap.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "11-22, 33-44, 57-88"
+    },
+    {
+      "claim": "Scanner flags P0 sacred_table_write on the INSERT (line 102) and UPDATE (line 147) of documents; these correspond to the DEC-N22 enumerated pre-approvals and stay within their exact scope, so they route logged_only rather than escalation.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "10-26"
+    },
+    {
+      "claim": "Test verification is a self-attested markdown matrix with Observed/Pass columns and a DB spot-check, but no captured tool output backing the assertions.",
+      "type": "test_output",
+      "path": "evidence/route-test-matrix.txt",
+      "line_range": "1-27"
+    }
+  ],
+  "confidence": "medium"
+}

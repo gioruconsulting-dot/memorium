@@ -1,0 +1,13 @@
+{
+  "risks": [
+    {
+      "id": "RISK-0201",
+      "type": "low_confidence",
+      "severity": "P3",
+      "status": "open",
+      "introduced_at": "PROGRESS-HEADER-0",
+      "introduced_by": "critic",
+      "resolution_evidence": []
+    }
+  ]
+}

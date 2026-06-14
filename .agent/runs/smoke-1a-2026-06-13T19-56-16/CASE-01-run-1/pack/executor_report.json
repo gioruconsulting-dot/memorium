@@ -1,0 +1,19 @@
+{
+  "summary": "Chunk NOTES-2.1 complete. Added the hasNotesAccess gate to middleware.js exactly per the pre-approved scope: new isNotesRoute matcher for /notes(.*) and /api/notes(.*), gate block layered after the existing auth.protect() call. sessionClaims.publicMetadata checked first, currentUser() fallback when publicMetadata is absent from the session token. Unauthorized pages redirect to /; unauthorized API requests get 403 JSON. No other routes or behavior touched.",
+  "files_changed": ["middleware.js"],
+  "commands_run": ["npm run dev", "manual route matrix (see evidence)"],
+  "tests_run": [
+    {
+      "command": "manual route verification matrix (9 checks, two test accounts)",
+      "result": "pass",
+      "output_path": "evidence/manual-verification.txt"
+    }
+  ],
+  "failures": [],
+  "risks_noticed": [
+    "middleware.js is auth-critical (red path) — edit kept strictly inside the pre-approved scope from DEC-N21"
+  ],
+  "deviations_from_plan": [],
+  "questions_for_critic": [],
+  "git_diff_path": "diff.patch"
+}

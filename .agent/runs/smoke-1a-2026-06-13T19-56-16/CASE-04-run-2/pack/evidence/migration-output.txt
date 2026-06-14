@@ -1,0 +1,4 @@
+$ node scripts/migrate-tighten-description-topic.js
+documents before: 22
+documents after: 22
+Migration complete. Rows preserved, column order intact.

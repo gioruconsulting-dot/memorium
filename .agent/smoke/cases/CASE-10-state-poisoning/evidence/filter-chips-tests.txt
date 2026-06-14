@@ -1,0 +1,12 @@
+$ npx vitest run tests/filter-chips.test.jsx
+
+ RUN  v3.1.4
+
+ ✓ tests/filter-chips.test.jsx (3 tests) 178ms
+   ✓ renders three filters with All active by default
+   ✓ selecting a filter calls onChange and persists to sessionStorage
+   ✓ restores persisted filter on mount
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Duration  1.41s

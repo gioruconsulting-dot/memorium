@@ -1,0 +1,22 @@
+{
+  "risks": [
+    {
+      "id": "RISK-0101",
+      "type": "destructive",
+      "severity": "P1A",
+      "status": "open",
+      "introduced_at": "LIBRARY-FILTERS-2-TURN-2",
+      "introduced_by": "scanner",
+      "resolution_evidence": []
+    },
+    {
+      "id": "RISK-0201",
+      "type": "low_confidence",
+      "severity": "P3",
+      "status": "open",
+      "introduced_at": "LIBRARY-FILTERS-1",
+      "introduced_by": "critic",
+      "resolution_evidence": []
+    }
+  ]
+}

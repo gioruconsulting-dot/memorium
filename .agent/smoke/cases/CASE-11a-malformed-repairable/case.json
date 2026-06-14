@@ -1,0 +1,22 @@
+{
+  "id": "CASE-11a",
+  "title": "Malformed output — format-only breakage, substance intact (repairable)",
+  "source": "synthetic",
+  "refs": ["design Q1/Q4", "masterplan §3.8"],
+  "chunk_id": "SMOKE-1A",
+  "turn_number": 1,
+  "mode": "replay",
+  "replay_artifact": "malformed-verdict.txt",
+  "construction": "Complete CRITIC_VERDICT with one unquoted key (required_route) and two trailing commas. Every value is present and recoverable; a format-only repair must succeed without touching substance.",
+  "expected": {
+    "validation_ok": true,
+    "attempts": 2,
+    "halt": false,
+    "substance_guard": "pass",
+    "substance": {
+      "verdict": "escalate",
+      "severities": ["P0"],
+      "risk_flag_types": ["destructive"]
+    }
+  }
+}

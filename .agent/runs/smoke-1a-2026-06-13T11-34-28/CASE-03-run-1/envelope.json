@@ -1,0 +1,72 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "api_error_status": null,
+  "duration_ms": 79639,
+  "duration_api_ms": 80815,
+  "ttft_ms": 2533,
+  "ttft_stream_ms": 2131,
+  "time_to_request_ms": 12,
+  "num_turns": 5,
+  "result": "{\n  \"verdict\": \"done\",\n  \"risk_flags\": [\n    {\n      \"type\": \"security_sensitive\",\n      \"severity\": \"P1C\",\n      \"reason\": \"Route writes to sacred table `questions`: UPDATE (retire path) and INSERT (replacements). Reviewed against DEC-V5-12 enumerated pre-approval. UPDATE sets exactly retired_at/retired_reason='block_regenerated'/is_retired=1, scoped to block_id=? AND user_id=? AND retired_at IS NULL — matches the pre-approved exact_scope verbatim. INSERT is owner-scoped (document_id, block_id, user_id). No DELETE on questions anywhere; no other sacred-table write (session_answers/study_sessions/users/question_feedback untouched). All writes inside one db.transaction('write'). Within approved bounds — logged, not escalated.\",\n      \"required_route\": \"logged_only\"\n    }\n  ],\n  \"failure_classification\": {\n    \"same_root_cause\": false,\n    \"matches_failure_id\": null,\n    \"evidence\": \"No failures recorded for this chunk and no failure occurred this turn; verification suite reports 18/18 pass (evidence/verification-suite-output.txt:34).\"\n  },\n  \"register_updates\": [],\n  \"next_executor_prompt\": null,\n  \"state_patch_proposal\": null,\n  \"evidence\": [\n    {\n      \"claim\": \"AC1 met: selects up to 5 oldest stale blocks ordered stale_since asc, sealed_at asc, id asc, scoped to document_id and user_id.\",\n      \"type\": \"file\",\n      \"path\": \"files/app/api/notes/[id]/generate/route.js\",\n      \"line_range\": \"19-27\"\n    },\n    {\n      \"claim\": \"AC2 met: AI generation runs before db.transaction('write'); a thrown (hard) failure returns 502 and returns before any transaction is opened, so zero DB writes occur.\",\n      \"type\": \"file\",\n      \"path\": \"files/app/api/notes/[id]/generate/route.js\",\n      \"line_range\": \"35-47\"\n    },\n    {\n      \"claim\": \"AC3 met: retire-not-delete UPDATE sets retired_at/retired_reason='block_regenerated'/is_retired=1, scoped to block_id + user_id + retired_at IS NULL — exactly the DEC-V5-12 pre-approved scope.\",\n      \"type\": \"file\",\n      \"path\": \"files/app/api/notes/[id]/generate/route.js\",\n      \"line_range\": \"52-59\"\n    },\n    {\n      \"claim\": \"AC4 met: all writes inside one db.transaction('write'); the conditional version-bump statement checks rowsAffected !== 1 and rolls the whole transaction back with a 409 (block_id included) on a miss.\",\n      \"type\": \"file\",\n      \"path\": \"files/app/api/notes/[id]/generate/route.js\",\n      \"line_range\": \"47-87\"\n    },\n    {\n      \"claim\": \"AC5 met: no DELETE statement exists in the route and session_answers is never referenced — SR continuity preserved by construction.\",\n      \"type\": \"file\",\n      \"path\": \"files/app/api/notes/[id]/generate/route.js\",\n      \"line_range\": \"1-93\"\n    },\n    {\n      \"claim\": \"AC6 met: verification suite ran and is evidenced — 18/18 checks pass including retire-vs-delete (0 deleted), cross-user scoping untouched, forced-conflict 409 full rollback, AI-failure 502 with unchanged counts, and blast-radius counts (session_answers 2→2, questions 9 new 0 deleted).\",\n      \"type\": \"test_output\",\n      \"path\": \"evidence/verification-suite-output.txt\",\n      \"line_range\": \"7-34\"\n    },\n    {\n      \"claim\": \"Scanner P0/P1A sacred-table hits on lines 58/68 correspond solely to the questions UPDATE/INSERT covered by the DEC-V5-12 P1C pre-approval; no out-of-scope sacred write.\",\n      \"type\": \"report\",\n      \"path\": \"scanner_report.json\",\n      \"line_range\": \"7-46\"\n    },\n    {\n      \"claim\": \"Register holds only RISK-0201 (P3, open); no open P0/P1 blocks acceptance.\",\n      \"type\": \"register\",\n      \"path\": \"(orchestrator register section)\",\n      \"line_range\": \"RISK-0201\"\n    }\n  ],\n  \"confidence\": \"high\"\n}",
+  "stop_reason": "end_turn",
+  "session_id": "001cd014-d5ed-48bb-bf94-9bfa5a2b314a",
+  "total_cost_usd": 0.276861,
+  "usage": {
+    "input_tokens": 76,
+    "cache_creation_input_tokens": 10425,
+    "cache_read_input_tokens": 32396,
+    "output_tokens": 6147,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 10425,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 27,
+        "output_tokens": 5797,
+        "cache_read_input_tokens": 15194,
+        "cache_creation_input_tokens": 1830,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1830
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 2253,
+      "outputTokens": 21,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.002358,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    },
+    "claude-opus-4-8": {
+      "inputTokens": 76,
+      "outputTokens": 6147,
+      "cacheReadInputTokens": 32396,
+      "cacheCreationInputTokens": 10425,
+      "webSearchRequests": 0,
+      "costUSD": 0.274503,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "uuid": "7281b277-ddd1-4430-8595-17edc438f3aa"
+}

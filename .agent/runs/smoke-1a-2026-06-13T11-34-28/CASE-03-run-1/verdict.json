@@ -1,0 +1,70 @@
+{
+  "verdict": "done",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P1C",
+      "reason": "Route writes to sacred table `questions`: UPDATE (retire path) and INSERT (replacements). Reviewed against DEC-V5-12 enumerated pre-approval. UPDATE sets exactly retired_at/retired_reason='block_regenerated'/is_retired=1, scoped to block_id=? AND user_id=? AND retired_at IS NULL — matches the pre-approved exact_scope verbatim. INSERT is owner-scoped (document_id, block_id, user_id). No DELETE on questions anywhere; no other sacred-table write (session_answers/study_sessions/users/question_feedback untouched). All writes inside one db.transaction('write'). Within approved bounds — logged, not escalated.",
+      "required_route": "logged_only"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No failures recorded for this chunk and no failure occurred this turn; verification suite reports 18/18 pass (evidence/verification-suite-output.txt:34)."
+  },
+  "register_updates": [],
+  "next_executor_prompt": null,
+  "state_patch_proposal": null,
+  "evidence": [
+    {
+      "claim": "AC1 met: selects up to 5 oldest stale blocks ordered stale_since asc, sealed_at asc, id asc, scoped to document_id and user_id.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "19-27"
+    },
+    {
+      "claim": "AC2 met: AI generation runs before db.transaction('write'); a thrown (hard) failure returns 502 and returns before any transaction is opened, so zero DB writes occur.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "35-47"
+    },
+    {
+      "claim": "AC3 met: retire-not-delete UPDATE sets retired_at/retired_reason='block_regenerated'/is_retired=1, scoped to block_id + user_id + retired_at IS NULL — exactly the DEC-V5-12 pre-approved scope.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "52-59"
+    },
+    {
+      "claim": "AC4 met: all writes inside one db.transaction('write'); the conditional version-bump statement checks rowsAffected !== 1 and rolls the whole transaction back with a 409 (block_id included) on a miss.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "47-87"
+    },
+    {
+      "claim": "AC5 met: no DELETE statement exists in the route and session_answers is never referenced — SR continuity preserved by construction.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "1-93"
+    },
+    {
+      "claim": "AC6 met: verification suite ran and is evidenced — 18/18 checks pass including retire-vs-delete (0 deleted), cross-user scoping untouched, forced-conflict 409 full rollback, AI-failure 502 with unchanged counts, and blast-radius counts (session_answers 2→2, questions 9 new 0 deleted).",
+      "type": "test_output",
+      "path": "evidence/verification-suite-output.txt",
+      "line_range": "7-34"
+    },
+    {
+      "claim": "Scanner P0/P1A sacred-table hits on lines 58/68 correspond solely to the questions UPDATE/INSERT covered by the DEC-V5-12 P1C pre-approval; no out-of-scope sacred write.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "7-46"
+    },
+    {
+      "claim": "Register holds only RISK-0201 (P3, open); no open P0/P1 blocks acceptance.",
+      "type": "register",
+      "path": "(orchestrator register section)",
+      "line_range": "RISK-0201"
+    }
+  ],
+  "confidence": "high"
+}

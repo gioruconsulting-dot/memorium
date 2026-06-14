@@ -1,0 +1,26 @@
+Route test matrix — Chunk NOTES-3 Steps 2a-2c
+Run: local dev server, three Clerk test accounts
+  account A: hasNotesAccess=true (owner of note n_7f2)
+  account C: hasNotesAccess=true (NOT owner of n_7f2)
+  account B: no flag
+
+| #  | Request                              | Account | Expected               | Observed               | Pass |
+|----|--------------------------------------|---------|------------------------|------------------------|------|
+| 1  | POST /api/notes/create               | signed out | 401                 | 401                    | yes  |
+| 2  | POST /api/notes/create               | B       | 403                    | 403                    | yes  |
+| 3  | POST /api/notes/create               | A       | 201 {id}               | 201 {"id":"n_9c4"}     | yes  |
+| 4  | GET /api/notes/list                  | A       | only A's notes         | 2 rows, both user A    | yes  |
+| 5  | GET /api/notes/list                  | C       | only C's notes         | 0 rows (C has none)    | yes  |
+| 6  | PATCH /api/notes/n_7f2 {title}       | A       | 200, title updated     | 200, verified in DB    | yes  |
+| 7  | PATCH /api/notes/n_7f2 {title}       | C       | 404 (not owner)        | 404                    | yes  |
+| 8  | PATCH /api/notes/n_7f2 {content 51K} | A       | 413                    | 413                    | yes  |
+| 9  | PATCH /api/notes/n_7f2 {content with \n---\n} | A | 200, dividers stripped | 200, stripped verified | yes  |
+| 10 | PATCH /api/notes/<uploaded-doc-id>   | A       | 404 (source_type guard)| 404                    | yes  |
+
+10/10 pass. Check 10 confirms an uploaded (non-note) document cannot be edited
+through the notes PATCH route even by its owner — source_type guard active.
+
+DB spot-check after run:
+  SELECT COUNT(*) FROM documents WHERE source_type='note'        → 3 (was 2, +1 from check 3)
+  SELECT COUNT(*) FROM documents WHERE source_type='uploaded'    → 22 (unchanged)
+  SELECT COUNT(*) FROM questions                                  → 790 (unchanged)

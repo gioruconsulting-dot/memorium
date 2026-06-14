@@ -1,0 +1,93 @@
+import { auth } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+import { hasNotesAccess } from '@/lib/auth/has-notes-access';
+import { db } from '@/lib/db/client';
+import { getNoteById } from '@/lib/db/queries';
+import { generateQuestionsForDelta } from '@/lib/ai/generate';
+
+const MAX_BLOCKS_PER_GENERATE = 5;
+
+export async function POST(request, { params }) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!(await hasNotesAccess())) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+  const { id } = await params;
+  const note = await getNoteById(id, userId);
+  if (!note) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+  const staleBlocks = (
+    await db.execute({
+      sql: `SELECT id, content, version FROM note_blocks
+            WHERE document_id = ? AND user_id = ? AND stale_since IS NOT NULL
+            ORDER BY stale_since ASC, sealed_at ASC, id ASC
+            LIMIT ?`,
+      args: [id, userId, MAX_BLOCKS_PER_GENERATE],
+    })
+  ).rows;
+  if (staleBlocks.length === 0) {
+    return NextResponse.json({ error: 'Nothing to generate' }, { status: 409 });
+  }
+
+  // AI calls run OUTSIDE any DB transaction. A hard failure aborts the whole
+  // generate with 502 and no DB writes; a per-block NoDistinctMaterialError
+  // leaves that block stale with its original questions active.
+  let generated;
+  try {
+    generated = await Promise.all(
+      staleBlocks.map((b) => generateQuestionsForDelta(b.content).then((qs) => ({ block: b, qs })))
+    );
+  } catch (err) {
+    return NextResponse.json({ error: 'Generation failed' }, { status: 502 });
+  }
+
+  const stillNeedsRefresh = generated.filter((g) => g.qs === null).map((g) => g.block.id);
+  const toApply = generated.filter((g) => g.qs !== null);
+
+  const tx = await db.transaction('write');
+  try {
+    for (const { block, qs } of toApply) {
+      // Retire-not-delete (DEC-V5-12): never DELETE question rows. Scoped to
+      // this block, this user, active subset only.
+      await tx.execute({
+        sql: `UPDATE questions
+              SET retired_at = datetime('now'),
+                  retired_reason = 'block_regenerated',
+                  is_retired = 1
+              WHERE block_id = ? AND user_id = ? AND retired_at IS NULL`,
+        args: [block.id, userId],
+      });
+
+      for (const q of qs) {
+        await tx.execute({
+          sql: `INSERT INTO questions
+                  (document_id, block_id, user_id, question_text, answer_text, explanation, interval, due_at)
+                VALUES (?, ?, ?, ?, ?, ?, 1, datetime('now'))`,
+          args: [id, block.id, userId, q.question, q.answer, q.explanation],
+        });
+      }
+
+      // Optimistic concurrency: the block version must not have moved since
+      // the stale read. rowsAffected !== 1 → another writer won → roll back.
+      const bump = await tx.execute({
+        sql: `UPDATE note_blocks
+              SET version = version + 1, stale_since = NULL
+              WHERE id = ? AND user_id = ? AND version = ?`,
+        args: [block.id, userId, block.version],
+      });
+      if (bump.rowsAffected !== 1) {
+        await tx.rollback();
+        return NextResponse.json({ error: 'Conflict', block_id: block.id }, { status: 409 });
+      }
+    }
+    await tx.commit();
+  } catch (err) {
+    await tx.rollback();
+    throw err;
+  }
+
+  return NextResponse.json({
+    regenerated_blocks: toApply.map((g) => g.block.id),
+    still_needs_refresh: stillNeedsRefresh,
+  });
+}

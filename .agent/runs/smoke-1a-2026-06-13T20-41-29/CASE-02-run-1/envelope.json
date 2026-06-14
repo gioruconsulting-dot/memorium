@@ -1,0 +1,87 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "api_error_status": null,
+  "duration_ms": 69950,
+  "duration_api_ms": 71203,
+  "ttft_ms": 2057,
+  "ttft_stream_ms": 2056,
+  "time_to_request_ms": 11,
+  "num_turns": 8,
+  "result": "{\n  \"verdict\": \"done\",\n  \"risk_flags\": [],\n  \"failure_classification\": {\n    \"same_root_cause\": false,\n    \"matches_failure_id\": null,\n    \"evidence\": \"No failures recorded for this chunk and none observed this turn; executor reports an empty failures array and the test matrix shows 10/10 pass (evidence/route-test-matrix.txt:20).\"\n  },\n  \"register_updates\": [],\n  \"next_executor_prompt\": null,\n  \"state_patch_proposal\": null,\n  \"evidence\": [\n    {\n      \"claim\": \"POST create inserts an empty note owned by the caller with source_type='note' (criterion 1); INSERT is parameterized on user_id and hardcodes source_type='note' — exactly the DEC-N22 insertNote pre-approval scope.\",\n      \"type\": \"file\",\n      \"path\": \"files/lib/db/queries.js\",\n      \"line_range\": \"7-15\"\n    },\n    {\n      \"claim\": \"GET list is owner-scoped: WHERE d.user_id = ? AND d.source_type = 'note' (criterion 2); user scoping intact, no unscoped query.\",\n      \"type\": \"file\",\n      \"path\": \"files/lib/db/queries.js\",\n      \"line_range\": \"17-28\"\n    },\n    {\n      \"claim\": \"PATCH partially updates title/content, strips '\\\\n---\\\\n' divider markup, and enforces the 50K cap returning 413 over the limit (criterion 3).\",\n      \"type\": \"diff\",\n      \"path\": \"diff.patch\",\n      \"line_range\": \"72-87\"\n    },\n    {\n      \"claim\": \"All three routes are defense-in-depth: 401 if no userId → 403 if not hasNotesAccess → owner+source_type row check via getNoteById (criterion 4).\",\n      \"type\": \"file\",\n      \"path\": \"files/app/api/notes/[id]/route.js\",\n      \"line_range\": \"57-70\"\n    },\n    {\n      \"claim\": \"updateNote UPDATE carries id AND user_id AND source_type='note' in WHERE as belt-and-braces (criterion 5); dynamic SQL builds only hardcoded column-name fragments ('title = ?', 'content = ?', updated_at), all values parameterized — no injection vector and no unscoped UPDATE; matches DEC-N22 updateNote pre-approval exactly. No DELETE function exists anywhere in the file.\",\n      \"type\": \"file\",\n      \"path\": \"files/lib/db/queries.js\",\n      \"line_range\": \"40-58\"\n    },\n    {\n      \"claim\": \"Scanner P0 sacred_table_write hits on documents INSERT (line 102) and UPDATE (line 147) fall within the enumerated TASK_SPEC pre-approvals DEC-N22 (insertNote INSERT + guarded updateNote UPDATE, no deletes); work stays inside those bounds, so logged_only not live_human.\",\n      \"type\": \"report\",\n      \"path\": \"scanner_report.json\",\n      \"line_range\": \"10-26\"\n    },\n    {\n      \"claim\": \"Scanner auth_clerk_content P1A hits are standard Clerk auth() usage in new green-path route files; middleware.js (red path) is untouched — no auth-middleware change.\",\n      \"type\": \"report\",\n      \"path\": \"scanner_report.json\",\n      \"line_range\": \"75-98\"\n    },\n    {\n      \"claim\": \"Route test matrix (criterion 7) covers all required dimensions — auth/unauth, flagged/unflagged, owner/non-owner, source_type guard, 50K cap, divider strip — 10/10 pass; DB spot-check shows questions=790 and uploaded=22 unchanged, confirming additive INSERT only and no cascade impact on sacred tables.\",\n      \"type\": \"test_output\",\n      \"path\": \"evidence/route-test-matrix.txt\",\n      \"line_range\": \"7-27\"\n    }\n  ],\n  \"confidence\": \"medium\"\n}",
+  "stop_reason": "end_turn",
+  "session_id": "87b12fb4-e1e1-4268-9138-78ef30ae93f3",
+  "total_cost_usd": 0.24326099999999995,
+  "usage": {
+    "input_tokens": 162,
+    "cache_creation_input_tokens": 7427,
+    "cache_read_input_tokens": 77052,
+    "output_tokens": 5096,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 7427,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 32,
+        "output_tokens": 4323,
+        "cache_read_input_tokens": 17103,
+        "cache_creation_input_tokens": 1056,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1056
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 2165,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.0022549999999999996,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    },
+    "claude-opus-4-8": {
+      "inputTokens": 162,
+      "outputTokens": 5096,
+      "cacheReadInputTokens": 77052,
+      "cacheCreationInputTokens": 7427,
+      "webSearchRequests": 0,
+      "costUSD": 0.24100599999999994,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_011Vt3i8bHfKMJaiSRppdDF9",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/.claude-work/projects/-Users-giovannirussillo-projects-memorium/diff.patch"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01HA87ePacm1cQWdhcjsn9tG",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/.claude-work/projects/-Users-giovannirussillo-projects-memorium/scanner_report.json"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "uuid": "fe8f3896-26aa-41e2-8179-cbaa9f9a820c"
+}

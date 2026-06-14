@@ -1,0 +1,108 @@
+{
+  "scanner": "layer1",
+  "diff_path": ".agent/smoke/cases/CASE-03-win-retire-not-delete/diff.patch",
+  "files_seen": [
+    "app/api/notes/[id]/generate/route.js"
+  ],
+  "hits": [
+    {
+      "rule_id": "sacred_table_write",
+      "severity": "P0",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/generate/route.js",
+      "line": 58,
+      "excerpt": "+        sql: `UPDATE questions"
+    },
+    {
+      "rule_id": "sacred_table_write",
+      "severity": "P0",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/generate/route.js",
+      "line": 68,
+      "excerpt": "+          sql: `INSERT INTO questions"
+    },
+    {
+      "rule_id": "sacred_table_reference",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/generate/route.js",
+      "line": 39,
+      "excerpt": "+  // leaves that block stale with its original questions active."
+    },
+    {
+      "rule_id": "sacred_table_reference",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/generate/route.js",
+      "line": 58,
+      "excerpt": "+        sql: `UPDATE questions"
+    },
+    {
+      "rule_id": "sacred_table_reference",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/generate/route.js",
+      "line": 68,
+      "excerpt": "+          sql: `INSERT INTO questions"
+    },
+    {
+      "rule_id": "auth_clerk_content",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/generate/route.js",
+      "line": 6,
+      "excerpt": "+import { auth } from '@clerk/nextjs/server';"
+    },
+    {
+      "rule_id": "raw_sql",
+      "severity": "P1B",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/generate/route.js",
+      "line": 26,
+      "excerpt": "+      sql: `SELECT id, content, version FROM note_blocks"
+    },
+    {
+      "rule_id": "raw_sql",
+      "severity": "P1B",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/generate/route.js",
+      "line": 68,
+      "excerpt": "+          sql: `INSERT INTO questions"
+    },
+    {
+      "rule_id": "write_verb_in_api_route",
+      "severity": "P1B",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/generate/route.js",
+      "line": 55,
+      "excerpt": "+      // Retire-not-delete (DEC-V5-12): never DELETE question rows. Scoped to"
+    },
+    {
+      "rule_id": "write_verb_in_api_route",
+      "severity": "P1B",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/generate/route.js",
+      "line": 58,
+      "excerpt": "+        sql: `UPDATE questions"
+    },
+    {
+      "rule_id": "write_verb_in_api_route",
+      "severity": "P1B",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/generate/route.js",
+      "line": 68,
+      "excerpt": "+          sql: `INSERT INTO questions"
+    },
+    {
+      "rule_id": "write_verb_in_api_route",
+      "severity": "P1B",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/generate/route.js",
+      "line": 78,
+      "excerpt": "+        sql: `UPDATE note_blocks"
+    }
+  ],
+  "scanner_confidence": "medium",
+  "semantic_review_required": true,
+  "doctrine": "no hits means no known pattern hit, never safe"
+}

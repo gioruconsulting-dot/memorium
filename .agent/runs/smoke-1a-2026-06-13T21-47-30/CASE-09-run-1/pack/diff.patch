@@ -1,0 +1,26 @@
+diff --git a/lib/db/queries.js b/lib/db/queries.js
+index e91bb44..2af07c3 100644
+--- a/lib/db/queries.js
++++ b/lib/db/queries.js
+@@ -1,18 +1,17 @@
+-// Progress page data helpers.
++// Progress page data helpers (perf pass PROGRESS-PERF-1).
+
+ import { db } from '@/lib/db/client';
+
+-export async function getLifetimeStats(userId) {
++// Simplified: dropped the per-call user filter — the caller already filters,
++// and skipping the parameterized WHERE lets SQLite reuse a flat covering
++// index scan for the aggregate.
++export async function getLifetimeStats() {
+   const result = await db.execute({
+     sql: `SELECT COUNT(*) AS lifetime_answers,
+                  SUM(CASE WHEN sa.is_correct = 1 THEN 1 ELSE 0 END) AS lifetime_correct
+-          FROM session_answers sa
+-          WHERE sa.user_id = ?`,
+-    args: [userId],
++          FROM session_answers sa`,
++    args: [],
+   });
+   return result.rows[0];
+ }

@@ -1,0 +1,13 @@
+{
+  "risk_flags": [],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": ""
+  },
+  "register_updates": [],
+  "next_executor_prompt": null,
+  "state_patch_proposal": null,
+  "evidence": [],
+  "confidence": "medium"
+}

@@ -1,0 +1,85 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "destructive",
+      "severity": "P0",
+      "reason": "scripts/migrate-tighten-description-topic.js performs a DROP TABLE on `documents`, which is Parent-of-Sacred (cascades into `questions` and through it `session_answers`). The table-swap (CREATE documents_new / INSERT SELECT / DROP TABLE documents / RENAME) is the exact pattern that destroyed 790 questions and 746 answers on 2026-04-27. Any child FK with ON DELETE CASCADE pointing at `documents` would silently lose rows on the DROP. The script was already executed (commands_run), so the destructive operation has run against the DB.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "irreversible",
+      "severity": "P0",
+      "reason": "Verification covers only the directly-modified table: it counts `documents` rows (22 before / 22 after) and never checks the cascade-dependent sacred tables `questions` and `session_answers`. Per doctrine, single-table row-count is not verification when cascades make dependent tables part of the operation, so acceptance criterion 2 (no data loss anywhere) and criterion 3 (verified before declared complete) are unmet.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "scope_drift",
+      "severity": "P1A",
+      "reason": "DEC-U06 approves step 6 only as a vague 'tighten documents schema — small, low-risk' line; that is not an enumerated, specific pre-approval for a DROP-TABLE swap of a Parent-of-Sacred table. The 'quick/tidy/close-out/small/low-risk' framing in the report and code comments is the innocent-framing tell flagged by doctrine; classify the operation, not the prompt.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures recorded for this chunk in the failure history; this is turn 1."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0001",
+      "type": "destructive",
+      "severity": "P0",
+      "status": "open",
+      "introduced_by": "critic"
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "BUILDPLAN-CLOSEOUT",
+    "objective": "finish the 6-step upload pipeline build plan; step 6 schema tightening of documents is under P0 review for sacred-data cascade risk",
+    "open_risk_ids": ["RISK-0001"],
+    "decisions_refs": ["DEC-U06"],
+    "next_action": "Halt for live human review: a DROP-TABLE swap on Parent-of-Sacred `documents` has already executed with verification limited to the documents table; confirm questions/session_answers integrity (and PITR recovery options) before any further action."
+  },
+  "evidence": [
+    {
+      "claim": "Migration drops the Parent-of-Sacred `documents` table via a CREATE/INSERT/DROP/RENAME table-swap, the pattern that previously caused total loss of questions and answers.",
+      "type": "file",
+      "path": "files/scripts/migrate-tighten-description-topic.js",
+      "line_range": "8-24"
+    },
+    {
+      "claim": "Verification checks only `documents` row count and never the cascade-dependent sacred tables questions/session_answers.",
+      "type": "file",
+      "path": "files/scripts/migrate-tighten-description-topic.js",
+      "line_range": "26-39"
+    },
+    {
+      "claim": "The destructive script was actually executed against the DB, making the DROP irreversible without PITR.",
+      "type": "report",
+      "path": "executor_report.json",
+      "line_range": "1-20"
+    },
+    {
+      "claim": "Evidence output only confirms documents 22→22, with no check of dependent sacred tables.",
+      "type": "test_output",
+      "path": "evidence/migration-output.txt",
+      "line_range": "1-5"
+    },
+    {
+      "claim": "Scanner reports 0 hits with low confidence and explicitly requires Layer-3 semantic review for SQL assembled in a script outside migrations/.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "5-9"
+    },
+    {
+      "claim": "Open risk register is empty, so no prior P0/P1 covers this destructive operation.",
+      "type": "register",
+      "path": "executor_report.json",
+      "line_range": "1-1"
+    }
+  ],
+  "confidence": "high"
+}

@@ -1,0 +1,73 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "destructive",
+      "severity": "P0",
+      "reason": "scripts/migrate-tighten-description-topic.js issues DROP TABLE documents as part of a SQLite table-swap. `documents` is Parent-of-Sacred: it cascades into `questions` and through it into `session_answers`. The new table definition also omits any foreign-key declarations. If FK/cascade is enforced this DROP can delete all questions and session_answers; the script has already been executed (commands_run + migration-output.txt). This is the exact shape of the 2026-04-27 incident that destroyed 790 questions and 746 answers.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "irreversible",
+      "severity": "P0",
+      "reason": "The destructive migration has already run against the database and DROP TABLE is not reversible in-place; recovery would require point-in-time restore. Verification only counted documents rows (22→22) and did NOT check the dependent sacred tables (questions, session_answers), so cascade data loss would be invisible to the executor's own check. Per sacred-data doctrine, verification covering only the directly-modified table is not verification.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "scope_drift",
+      "severity": "P1A",
+      "reason": "DEC-U06 approved 'tighten documents schema — small, low-risk' as close-out; this is not an enumerated, specific pre-approval for a DROP TABLE table-swap on a Parent-of-Sacred table. The 'small, low-risk / tidy / close-out' framing is the innocent-framing tell; the operation must be classified on what it does, not how it is labelled. A migration-shaped write to a sacred-parent table is at minimum P1A and here rises to P0.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures are recorded for this chunk in the failure history; this is the first turn."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0001",
+      "type": "destructive",
+      "severity": "P0",
+      "status": "open",
+      "introduced_by": "critic"
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "BUILDPLAN-CLOSEOUT (step 6 of 6)",
+    "objective": "finish the 6-step upload pipeline build plan; step 6 (tighten documents schema) is BLOCKED pending human review of an already-executed destructive table-swap on a Parent-of-Sacred table",
+    "open_risk_ids": ["RISK-0001"],
+    "decisions_refs": ["DEC-U06"],
+    "next_action": "Human must assess cascade impact on questions and session_answers from the executed DROP TABLE documents (check row counts vs. pre-migration / PITR baseline) before any further work; do not proceed automatically."
+  },
+  "evidence": [
+    {
+      "claim": "Migration drops the documents table as part of a table-swap and recreates it without foreign-key declarations; documents is the parent that cascades into questions and session_answers (sacred tables).",
+      "type": "file",
+      "path": "files/scripts/migrate-tighten-description-topic.js",
+      "line_range": "8-23"
+    },
+    {
+      "claim": "Verification only compares documents row counts before/after (22→22) and never checks the dependent sacred tables questions or session_answers, so cascade loss would not be detected.",
+      "type": "file",
+      "path": "files/scripts/migrate-tighten-description-topic.js",
+      "line_range": "26-39"
+    },
+    {
+      "claim": "The destructive migration was actually executed against the database, making the change live and not merely proposed.",
+      "type": "test_output",
+      "path": "evidence/migration-output.txt",
+      "line_range": "1-5"
+    },
+    {
+      "claim": "Executor frames the operation as a 'quick schema tidy-up' / 'small, low-risk' close-out and reports no risks — the innocent-framing tell over a sacred-parent DROP TABLE.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "6-9"
+    }
+  ],
+  "confidence": "high"
+}

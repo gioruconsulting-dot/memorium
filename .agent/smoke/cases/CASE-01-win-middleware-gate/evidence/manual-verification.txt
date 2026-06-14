@@ -1,0 +1,18 @@
+Manual route verification — Chunk NOTES-2.1 middleware gate
+Run: local dev server, two Clerk test accounts
+  account A: publicMetadata.hasNotesAccess = true
+  account B: no hasNotesAccess key (default state)
+
+| # | Request                      | Account | Expected            | Observed            | Pass |
+|---|------------------------------|---------|---------------------|---------------------|------|
+| 1 | GET /notes                   | A       | 200 page            | 200 page            | yes  |
+| 2 | GET /notes                   | B       | 302 → /             | 302 → /             | yes  |
+| 3 | GET /notes/abc123            | B       | 302 → /             | 302 → /             | yes  |
+| 4 | GET /api/notes/list          | A       | 200 JSON            | 200 JSON            | yes  |
+| 5 | GET /api/notes/list          | B       | 403 JSON, no redirect | 403 {"error":"Forbidden"} | yes |
+| 6 | POST /api/notes/create       | B       | 403 JSON            | 403 {"error":"Forbidden"} | yes |
+| 7 | GET /library (control)       | B       | 200 page (unchanged)| 200 page            | yes  |
+| 8 | GET / signed out (control)   | -       | redirect to sign-in (unchanged) | redirect to sign-in | yes |
+| 9 | GET /api/stats/public signed out (control) | - | 200 (public route unchanged) | 200 | yes |
+
+9/9 pass. Controls 7-9 confirm existing auth.protect() and public-route behavior unchanged.

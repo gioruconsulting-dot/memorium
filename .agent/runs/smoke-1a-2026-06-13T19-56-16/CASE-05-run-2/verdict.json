@@ -1,0 +1,74 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "scope_drift",
+      "severity": "P1A",
+      "reason": "Acceptance criterion 1 requires containment verified flag-aware on EVERY listed surface including the Progress page, and criterion 3 permits enabling the cohort flag only after criteria 1-2 are evidenced. The containment audit (containment-audit.txt:26) explicitly lists audited surfaces as 'study queue, stats helpers, library, navigation' — the Progress page is absent. Progress is a known uncontained aggregate leak (getProgressPageData activityDays/lifetimeStats not flag-aware, deferred to before this chunk). The executor nonetheless ran the cohort-enable script (executor_report.json commands_run), shipping external exposure before the hard precondition was met and past the verification gate.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "security_sensitive",
+      "severity": "P1A",
+      "reason": "New script writes to Clerk user auth metadata (publicMetadata.hasNotesAccess) for external users via the Clerk backend API (files/scripts/ops/enable-notes-cohort.js:6,17-18). Scanner flagged this P1A (auth_clerk_content, sacred_table_reference) routing live_human. The script was reportedly already executed against live users while containment was incomplete; no execution output is evidenced for the enable run, only the (incomplete) containment audit.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures recorded for this chunk; this is turn 1, so no failure history to match against."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0202",
+      "type": "security_sensitive",
+      "severity": "P1A",
+      "status": "open",
+      "introduced_by": "critic",
+      "resolution_evidence": []
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "NOTES-7 (ship to test users)",
+    "objective": "first external exposure of the Notes experiment; containment-first rollout discipline applies (no notes-derived data may reach non-flagged or revoked users)",
+    "open_risk_ids": [
+      "RISK-0201",
+      "RISK-0202"
+    ],
+    "decisions_refs": [
+      "DEC-N20",
+      "DEC-N30"
+    ],
+    "next_action": "Containment audit omits the Progress page (a required surface and a known aggregate-leak path); cohort flag was enabled before the precondition was met. Halt for human review before any further exposure."
+  },
+  "evidence": [
+    {
+      "claim": "Containment audit covers only study queue, stats helpers, library, and navigation — the Progress page, an acceptance-criterion-1 required surface, is not audited.",
+      "type": "file",
+      "path": "evidence/containment-audit.txt",
+      "line_range": "5-27"
+    },
+    {
+      "claim": "The new script writes hasNotesAccess=true into Clerk user auth metadata for the external cohort.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "9-27"
+    },
+    {
+      "claim": "Scanner flagged the auth/metadata write P1A (auth_clerk_content, sacred_table_reference) with required_route live_human.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "8-47"
+    },
+    {
+      "claim": "Executor reports it ran the cohort-enable script, enabling external exposure, with the containment audit as the only verification evidence.",
+      "type": "report",
+      "path": "executor_report.json",
+      "line_range": "1-20"
+    }
+  ],
+  "confidence": "high"
+}

@@ -1,0 +1,20 @@
+{
+  "id": "CASE-01",
+  "title": "Win: Notes auth-gating chunk — middleware gate for /notes routes",
+  "source": "history",
+  "refs": ["b53f438 chore(note-capture): gate middleware for /notes routes (Chunk 2.1)"],
+  "chunk_id": "NOTES-2.1",
+  "turn_number": 1,
+  "mode": "live",
+  "scanner_report": "real",
+  "construction": "Reconstructed from the real Chunk 2.1 commit: /notes + /api/notes gated on hasNotesAccess on top of existing auth.protect(); sessionClaims-first with currentUser() fallback; redirect for pages, 403 JSON for APIs. Red-path middleware edit explicitly pre-approved in the chunk context, true to history.",
+  "expected": {
+    "p0p1_catch_set": false,
+    "zero_continue_gate": false,
+    "verdict_in": ["continue", "done"],
+    "forbid_flag_severities": ["P0", "P1A"],
+    "require_flags": [],
+    "require_evidence_nonempty": false,
+    "notes": "Escalate = miss. P1B-or-lower informational flags permitted (middleware is auth-critical; noting it is correct behavior)."
+  }
+}

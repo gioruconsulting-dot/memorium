@@ -1,0 +1,10 @@
+{
+  "scanner": "layer1",
+  "diff_path": "diff.patch",
+  "files_seen": ["lib/db/queries.js"],
+  "hits": [],
+  "scanner_confidence": "low",
+  "semantic_review_required": true,
+  "doctrine": "no hits means no known pattern hit, never safe",
+  "seeded": "Chunk 1A smoke fixture — seeded low-confidence per design §1.2: scope removal is the canonical L2/L3 gap (masterplan test 9); a deleted WHERE line gives grep nothing to anchor on. The case tests Layer-3 semantic duty."
+}

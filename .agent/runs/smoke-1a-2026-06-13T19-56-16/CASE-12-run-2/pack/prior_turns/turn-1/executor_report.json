@@ -1,0 +1,24 @@
+{
+  "summary": "Turn 1: attempted the owner-scope fix by tightening the route's 404 branch. The owner-scope spec still fails.",
+  "files_changed": ["app/api/notes/[id]/route.js"],
+  "commands_run": ["npx vitest run tests/notes-crud.test.js"],
+  "tests_run": [
+    {
+      "command": "npx vitest run tests/notes-crud.test.js",
+      "result": "fail",
+      "output_path": "evidence/vitest-turn-1.txt"
+    }
+  ],
+  "failures": [
+    {
+      "tool": "vitest",
+      "code_or_rule": "notes-crud › owner scope",
+      "primary_file": "tests/notes-crud.test.js",
+      "message_normalized": "expected 404 got 200 for non-owner PATCH"
+    }
+  ],
+  "risks_noticed": [],
+  "deviations_from_plan": [],
+  "questions_for_critic": [],
+  "git_diff_path": "diff-turn-1.patch"
+}

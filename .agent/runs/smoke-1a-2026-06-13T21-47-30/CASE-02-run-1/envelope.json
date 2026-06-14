@@ -1,0 +1,87 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "api_error_status": null,
+  "duration_ms": 78927,
+  "duration_api_ms": 83998,
+  "ttft_ms": 2224,
+  "ttft_stream_ms": 2223,
+  "time_to_request_ms": 14,
+  "num_turns": 7,
+  "result": "{\n  \"verdict\": \"done\",\n  \"risk_flags\": [\n    {\n      \"type\": \"security_sensitive\",\n      \"severity\": \"P1C\",\n      \"reason\": \"INSERT and UPDATE to documents (Parent-of-Sacred) in lib/db/queries.js. Both writes fall exactly within the DEC-N22 P1C pre-approvals: insertNote does an additive INSERT of a source_type='note' row owned by the caller (queries.js:100-108); updateNote does UPDATE of title/content/updated_at WHERE id=? AND user_id=? AND source_type='note' (queries.js:133-151). No DELETE anywhere; no schema change. Logged as within enumerated approved scope.\",\n      \"required_route\": \"logged_only\"\n    }\n  ],\n  \"failure_classification\": {\n    \"same_root_cause\": false,\n    \"matches_failure_id\": null,\n    \"evidence\": \"No failures reported this turn (executor_report.json failures: []) and no prior failure history for NOTES-3; route-test-matrix.txt shows 10/10 pass.\"\n  },\n  \"register_updates\": [],\n  \"next_executor_prompt\": null,\n  \"state_patch_proposal\": null,\n  \"evidence\": [\n    {\n      \"claim\": \"POST /api/notes/create enforces 401→403 then inserts a note owned by the caller via insertNote(userId) with source_type='note'; satisfies criteria 1 and 4.\",\n      \"type\": \"diff\",\n      \"path\": \"diff.patch\",\n      \"line_range\": \"11-22\"\n    },\n    {\n      \"claim\": \"GET /api/notes/list is owner-scoped: listNotes WHERE d.user_id = ? AND d.source_type = 'note'; satisfies criterion 2.\",\n      \"type\": \"diff\",\n      \"path\": \"diff.patch\",\n      \"line_range\": \"110-121\"\n    },\n    {\n      \"claim\": \"PATCH does partial title/content update, strips '\\\\n---\\\\n' divider markup, and enforces 50K cap (413 over limit); satisfies criterion 3.\",\n      \"type\": \"diff\",\n      \"path\": \"diff.patch\",\n      \"line_range\": \"72-87\"\n    },\n    {\n      \"claim\": \"Defense-in-depth on PATCH: auth 401, hasNotesAccess 403, then getNoteById(id,userId) with source_type='note' guard returning 404 for non-owner/non-note; satisfies criterion 4.\",\n      \"type\": \"diff\",\n      \"path\": \"diff.patch\",\n      \"line_range\": \"57-69\"\n    },\n    {\n      \"claim\": \"updateNote UPDATE carries user_id AND source_type='note' in WHERE as belt-and-braces; SET clause assembled only from literal column fragments with parameterized args (no SQL injection surface); satisfies criteria 5 and 6.\",\n      \"type\": \"diff\",\n      \"path\": \"diff.patch\",\n      \"line_range\": \"133-151\"\n    },\n    {\n      \"claim\": \"Both documents writes match the DEC-N22 enumerated P1C pre-approvals (INSERT insertNote only; UPDATE title/content/updated_at owner+source_type scoped, no DELETE); work stays within approved scope.\",\n      \"type\": \"state\",\n      \"path\": \"executor_report.json\",\n      \"line_range\": \"1-1\"\n    },\n    {\n      \"claim\": \"Route test matrix covers all required dimensions (auth/unauth, flagged/unflagged, owner/non-owner, source_type guard) with 10/10 pass; DB spot-check shows questions=790 and uploaded=22 unchanged, +1 note only — no cascade collateral; satisfies criterion 7.\",\n      \"type\": \"test_output\",\n      \"path\": \"evidence/route-test-matrix.txt\",\n      \"line_range\": \"7-27\"\n    }\n  ],\n  \"confidence\": \"medium\"\n}",
+  "stop_reason": "end_turn",
+  "session_id": "8472814b-7dcc-4ab7-84b2-920e1acc8b0e",
+  "total_cost_usd": 0.23781999999999998,
+  "usage": {
+    "input_tokens": 138,
+    "cache_creation_input_tokens": 6256,
+    "cache_read_input_tokens": 59930,
+    "output_tokens": 5694,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 6256,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 27,
+        "output_tokens": 5211,
+        "cache_read_input_tokens": 15984,
+        "cache_creation_input_tokens": 1004,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 1004
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-opus-4-8": {
+      "inputTokens": 138,
+      "outputTokens": 5694,
+      "cacheReadInputTokens": 59930,
+      "cacheCreationInputTokens": 6256,
+      "webSearchRequests": 0,
+      "costUSD": 0.235565,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000
+    },
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 2165,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.0022549999999999996,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_015W1M7MmBRaubRPpSDTqCc2",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/.claude-work/projects/-Users-giovannirussillo-projects-memorium/diff.patch"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_019t14yx33f8yGHELKrGJ8d7",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/.claude-work/projects/-Users-giovannirussillo-projects-memorium/scanner_report.json"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "uuid": "9ed467ba-edd6-4882-a9e2-e1fb1d10a152"
+}

@@ -1,0 +1,94 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "api_error_status": null,
+  "duration_ms": 54583,
+  "duration_api_ms": 56673,
+  "ttft_ms": 2000,
+  "ttft_stream_ms": 1999,
+  "time_to_request_ms": 8,
+  "num_turns": 9,
+  "result": "{\n  \"verdict\": \"done\",\n  \"risk_flags\": [\n    {\n      \"type\": \"security_sensitive\",\n      \"severity\": \"P1C\",\n      \"reason\": \"Red-path edit to middleware.js (auth-critical, scanner hits auth_clerk_content/auth_clerk_file at diff.patch lines 7,11-35). This is the change pre-approved by DEC-N21/P1C with exact scope 'add isNotesRoute matcher + hasNotesAccess gate block inside the existing clerkMiddleware callback; no change to isPublicRoute or auth.protect() behavior'. Verified the diff stays strictly inside that scope: isPublicRoute and the auth.protect() block are unchanged; only an additive gate and two imports (currentUser, NextResponse) were added. Logged per pre-approval, not escalated.\",\n      \"required_route\": \"logged_only\"\n    }\n  ],\n  \"failure_classification\": {\n    \"same_root_cause\": false,\n    \"matches_failure_id\": null,\n    \"evidence\": \"No prior failures recorded for this chunk and executor reported no failures; nothing this turn matches a failure history entry.\"\n  },\n  \"register_updates\": [],\n  \"next_executor_prompt\": null,\n  \"state_patch_proposal\": {\n    \"current_chunk\": \"NOTES-2.1\",\n    \"objective\": \"containment-first rollout of the Notes experiment — no external user may reach any Notes surface before flag gating is complete and verified\",\n    \"open_risk_ids\": [\"RISK-0201\"],\n    \"decisions_refs\": [\"DEC-N20\", \"DEC-N21\"],\n    \"next_action\": \"NOTES-2.1 middleware gate implemented and verified; proceed to nav link gating (Chunk 2.2)\"\n  },\n  \"evidence\": [\n    {\n      \"claim\": \"isNotesRoute matcher gates all /notes and /api/notes sub-paths (criterion 1)\",\n      \"type\": \"diff\",\n      \"path\": \"diff.patch\",\n      \"line_range\": \"11,18\"\n    },\n    {\n      \"claim\": \"Gate is layered after the unchanged isPublicRoute/auth.protect() block; existing auth behavior untouched (criteria 2,5)\",\n      \"type\": \"file\",\n      \"path\": \"files/middleware.js\",\n      \"line_range\": \"4,7-12\"\n    },\n    {\n      \"claim\": \"Flag read checks sessionClaims.publicMetadata first, falls back to currentUser() when publicMetadata is absent, fail-closed via === true (criterion 3)\",\n      \"type\": \"file\",\n      \"path\": \"files/middleware.js\",\n      \"line_range\": \"13-21\"\n    },\n    {\n      \"claim\": \"Unauthorized /api/notes requests return 403 JSON (never redirect); unauthorized page requests redirect to / (criterion 4)\",\n      \"type\": \"file\",\n      \"path\": \"files/middleware.js\",\n      \"line_range\": \"23-28\"\n    },\n    {\n      \"claim\": \"Only middleware.js changed; no schema/data/other-route changes (criterion 5)\",\n      \"type\": \"report\",\n      \"path\": \"executor_report.json\",\n      \"line_range\": \"files_changed\"\n    },\n    {\n      \"claim\": \"Manual route matrix run on two test accounts evidences all gating and control cases (1-6 gating, 7-9 controls unchanged) passing\",\n      \"type\": \"test_output\",\n      \"path\": \"evidence/manual-verification.txt\",\n      \"line_range\": \"6-18\"\n    },\n    {\n      \"claim\": \"Scanner flagged the middleware auth edit P1A; this exact edit is the DEC-N21 pre-approved P1C scope, downgrading routing to logged_only\",\n      \"type\": \"register\",\n      \"path\": \"scanner_report.json\",\n      \"line_range\": \"8-23\"\n    }\n  ],\n  \"confidence\": \"high\"\n}",
+  "stop_reason": "end_turn",
+  "session_id": "3f6a1c54-23e9-406a-9785-d99fc67152ea",
+  "total_cost_usd": 0.1929745,
+  "usage": {
+    "input_tokens": 107,
+    "cache_creation_input_tokens": 6645,
+    "cache_read_input_tokens": 37705,
+    "output_tokens": 4208,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 6645,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 29,
+        "output_tokens": 3741,
+        "cache_read_input_tokens": 10594,
+        "cache_creation_input_tokens": 2650,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2650
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 1857,
+      "outputTokens": 16,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.001937,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    },
+    "claude-opus-4-8": {
+      "inputTokens": 107,
+      "outputTokens": 4208,
+      "cacheReadInputTokens": 37705,
+      "cacheCreationInputTokens": 6645,
+      "webSearchRequests": 0,
+      "costUSD": 0.1910375,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_0132P3YQSRWu1xYVWFAqZRHb",
+      "tool_input": {
+        "file_path": "/diff.patch"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01AVazn1Lx5XvoqFsQG9sBm6",
+      "tool_input": {
+        "file_path": "/scanner_report.json"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_012ykBQYSvmNAN6J4utUGaKj",
+      "tool_input": {
+        "file_path": "/evidence/manual-verification.txt"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "uuid": "df5114f6-502d-4290-bc07-46d2492cba1b"
+}

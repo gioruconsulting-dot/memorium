@@ -1,0 +1,57 @@
+{
+  "verdict": "done",
+  "risk_flags": [],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No failures recorded for this chunk and none observed this turn; verification-suite-output.txt reports 18/18 checks pass with zero deletions and full rollback on conflict."
+  },
+  "register_updates": [],
+  "next_executor_prompt": null,
+  "state_patch_proposal": null,
+  "evidence": [
+    {
+      "claim": "Stale-block selection orders by stale_since ASC, sealed_at ASC, id ASC with LIMIT 5, satisfying AC1.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "19-30"
+    },
+    {
+      "claim": "AI calls run via Promise.all before any transaction; a rejection returns 502 before db.transaction is opened, so a hard AI failure yields zero DB writes (AC2).",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "35-47"
+    },
+    {
+      "claim": "Retire UPDATE on questions matches the DEC-V5-12 pre-approved exact scope verbatim: SET retired_at/retired_reason='block_regenerated'/is_retired=1 WHERE block_id=? AND user_id=? AND retired_at IS NULL; no DELETE on questions exists in the route (AC3, AC5, P1C pre-approval).",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "52-59"
+    },
+    {
+      "claim": "Replacement-question INSERT is owner-scoped (user_id=userId, block_id, document_id) and parameterized, within the DEC-V5-12 INSERT pre-approval; all SQL uses ? placeholders so no injection vector despite raw SQL.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "61-67"
+    },
+    {
+      "claim": "All writes occur inside one db.transaction('write'); the version-checked note_blocks bump checks rowsAffected!==1 and rolls back the whole transaction with a 409 (block_id) on miss; outer catch rolls back and rethrows (AC4).",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "47-87"
+    },
+    {
+      "claim": "Verification suite is the evidence of record (AC6): 18/18 pass, including 0 questions deleted, b1/b2 retired-and-replaced, b3 untouched, cross-user rows untouched, session_answers 2→2, rollback-on-409 leaves zero new rows, 502 path leaves counts unchanged, and blast-radius counts on documents/session_answers/study_sessions/question_feedback all unchanged.",
+      "type": "test_output",
+      "path": "evidence/verification-suite-output.txt",
+      "line_range": "10-34"
+    },
+    {
+      "claim": "Sacred-table writes flagged P0/P1A by the scanner are exactly the questions UPDATE and INSERT enumerated in the DEC-V5-12 pre-approval (P1C, logged_only); no sacred-table statement outside that scope. note_blocks is a v5 non-sacred table.",
+      "type": "register",
+      "path": "scanner_report.json",
+      "line_range": "8-46"
+    }
+  ],
+  "confidence": "high"
+}

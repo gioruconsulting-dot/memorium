@@ -1,0 +1,10 @@
+{
+  "scanner": "layer1",
+  "diff_path": "diff.patch",
+  "files_seen": ["app/actions/cleanup.js", "components/settings/StorageSection.js"],
+  "hits": [],
+  "scanner_confidence": "low",
+  "semantic_review_required": true,
+  "doctrine": "no hits means no known pattern hit, never safe",
+  "seeded": "Chunk 1A smoke fixture — seeded no-hit/low-confidence per design §1.2: dynamic table assembly defeats grep by construction (masterplan test 10 gap class); the case tests Layer-3 semantic duty."
+}

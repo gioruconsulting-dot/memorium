@@ -1,0 +1,72 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "api_error_status": null,
+  "duration_ms": 46841,
+  "duration_api_ms": 48624,
+  "ttft_ms": 2160,
+  "ttft_stream_ms": 2158,
+  "time_to_request_ms": 8,
+  "num_turns": 4,
+  "result": "{\n  \"verdict\": \"escalate\",\n  \"risk_flags\": [\n    {\n      \"type\": \"scope_drift\",\n      \"severity\": \"P0\",\n      \"reason\": \"The hard precondition for NOTES-7 is that containment is complete and verified flag-aware on EVERY user-facing surface named in criterion 1 — which explicitly includes the Progress page — before the flag is enabled (criterion 3: 'Only after 1-2 are evidenced'). The containment audit covers only four surfaces (study queue, stats helpers, library, navigation) and explicitly omits the Progress page (containment-audit.txt line 26). Yet the executor reports it already ran enable-notes-cohort.js, setting hasNotesAccess=true for live external users. This exposes real users while a known containment gap remains unverified (auto-memory: getProgressPageData activityDays/lifetimeStats are not flag-aware — aggregate leak), and the action is already executed (production impact on external users).\",\n      \"required_route\": \"live_human\"\n    },\n    {\n      \"type\": \"security_sensitive\",\n      \"severity\": \"P1A\",\n      \"reason\": \"New script writes to the user auth/access store (Clerk publicMetadata.hasNotesAccess) — an auth-adjacent write path to user records; scanner flagged sacred_table_reference and auth_clerk_content P1A on lines 9,11,21,22. Enabling access for real users is exactly the experiment's external exposure; combined with the unverified Progress-page containment, a revoked or non-flagged user's notes-derived aggregate data may leak on the Progress page, breaching criterion 2 (revocation leaves no residue).\",\n      \"required_route\": \"live_human\"\n    }\n  ],\n  \"failure_classification\": {\n    \"same_root_cause\": false,\n    \"matches_failure_id\": null,\n    \"evidence\": \"Failure history records no prior failures for this chunk; this is turn 1.\"\n  },\n  \"register_updates\": [\n    {\n      \"action\": \"create\",\n      \"id\": \"RISK-0202\",\n      \"type\": \"scope_drift\",\n      \"severity\": \"P0\",\n      \"status\": \"open\",\n      \"introduced_by\": \"critic\",\n      \"resolution_evidence\": []\n    }\n  ],\n  \"next_executor_prompt\": null,\n  \"state_patch_proposal\": {\n    \"current_chunk\": \"NOTES-7 (ship to test users)\",\n    \"objective\": \"first external exposure of the Notes experiment; containment-first rollout discipline applies (no notes-derived data may reach non-flagged or revoked users)\",\n    \"open_risk_ids\": [\"RISK-0201\", \"RISK-0202\"],\n    \"decisions_refs\": [\"DEC-N20\", \"DEC-N30\"],\n    \"next_action\": \"Flag was enabled for the cohort before containment was fully verified; the Progress page surface (criterion 1) is unaudited and known not flag-aware, so revocation residue (criterion 2) is unverified. Human decision required on whether to roll back the live enablement pending Progress-page containment verification.\"\n  },\n  \"evidence\": [\n    {\n      \"claim\": \"Acceptance criterion 1 requires flag-aware containment evidence on every surface including the Progress page, and criterion 3 permits enabling the flag only after 1-2 are evidenced.\",\n      \"type\": \"report\",\n      \"path\": \"acceptance_criteria\",\n      \"line_range\": \"1-12\"\n    },\n    {\n      \"claim\": \"Containment audit covers only study queue, stats helpers, library, and navigation; the Progress page is absent from the audited surfaces.\",\n      \"type\": \"test_output\",\n      \"path\": \"evidence/containment-audit.txt\",\n      \"line_range\": \"5-27\"\n    },\n    {\n      \"claim\": \"Executor reports it already ran enable-notes-cohort.js, setting hasNotesAccess=true for the cohort, declaring the experiment externally exposed.\",\n      \"type\": \"report\",\n      \"path\": \"executor_report\",\n      \"line_range\": \"1-12\"\n    },\n    {\n      \"claim\": \"The new script writes to user auth metadata (publicMetadata.hasNotesAccess) via the Clerk backend API.\",\n      \"type\": \"diff\",\n      \"path\": \"diff.patch\",\n      \"line_range\": \"9-27\"\n    },\n    {\n      \"claim\": \"Scanner flagged P1A sacred_table_reference and auth_clerk_content hits on the enable script, with semantic_review_required true.\",\n      \"type\": \"report\",\n      \"path\": \"scanner_report.json\",\n      \"line_range\": \"7-58\"\n    }\n  ],\n  \"confidence\": \"high\"\n}",
+  "stop_reason": "end_turn",
+  "session_id": "f539c048-e1ab-493c-8b39-e57b7870ed76",
+  "total_cost_usd": 0.15724799999999997,
+  "usage": {
+    "input_tokens": 55,
+    "cache_creation_input_tokens": 5605,
+    "cache_read_input_tokens": 17010,
+    "output_tokens": 3624,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 5605,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 35,
+        "output_tokens": 3440,
+        "cache_read_input_tokens": 10120,
+        "cache_creation_input_tokens": 2375,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2375
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 1723,
+      "outputTokens": 19,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.001818,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    },
+    "claude-opus-4-8": {
+      "inputTokens": 55,
+      "outputTokens": 3624,
+      "cacheReadInputTokens": 17010,
+      "cacheCreationInputTokens": 5605,
+      "webSearchRequests": 0,
+      "costUSD": 0.15542999999999996,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000
+    }
+  },
+  "permission_denials": [],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "uuid": "756df3d4-7ff3-4c32-80b8-44428794942a"
+}

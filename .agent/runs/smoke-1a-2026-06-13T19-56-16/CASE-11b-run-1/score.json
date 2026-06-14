@@ -1,0 +1,31 @@
+{
+  "case": "CASE-11b",
+  "run": "run-1",
+  "mode": "replay",
+  "verdict": null,
+  "passed": true,
+  "continue_violation": false,
+  "pack_intact": true,
+  "checks": [
+    {
+      "name": "validation_ok",
+      "passed": true,
+      "detail": "validation ok=false (expected false)"
+    },
+    {
+      "name": "attempts",
+      "passed": true,
+      "detail": "attempts=2 (expected 2)"
+    },
+    {
+      "name": "halt",
+      "passed": true,
+      "detail": "halt=true (expected true)"
+    },
+    {
+      "name": "no_inferred_verdict",
+      "passed": true,
+      "detail": "no verdict inferred from malformed output"
+    }
+  ]
+}

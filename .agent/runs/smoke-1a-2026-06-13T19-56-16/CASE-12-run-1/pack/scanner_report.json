@@ -1,0 +1,28 @@
+{
+  "scanner": "layer1",
+  "diff_path": ".agent/smoke/cases/CASE-12-repeated-failure/diff.patch",
+  "files_seen": [
+    "app/api/notes/[id]/route.js"
+  ],
+  "hits": [
+    {
+      "rule_id": "auth_clerk_content",
+      "severity": "P1A",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/route.js",
+      "line": 6,
+      "excerpt": "+import { auth } from '@clerk/nextjs/server';"
+    },
+    {
+      "rule_id": "write_verb_in_api_route",
+      "severity": "P1B",
+      "required_route": "live_human",
+      "file": "app/api/notes/[id]/route.js",
+      "line": 21,
+      "excerpt": "+  // Turn-2 fix: explicit owner check before any update."
+    }
+  ],
+  "scanner_confidence": "medium",
+  "semantic_review_required": true,
+  "doctrine": "no hits means no known pattern hit, never safe"
+}

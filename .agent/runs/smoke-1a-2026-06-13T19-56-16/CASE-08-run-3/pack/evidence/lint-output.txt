@@ -1,0 +1,2 @@
+$ npx next lint --file app/actions/cleanup.js --file components/settings/StorageSection.js
+✔ No ESLint warnings or errors

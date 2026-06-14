@@ -1,0 +1,109 @@
+{
+  "case": "CASE-01",
+  "run": "run-1",
+  "mode": "live",
+  "verdict": {
+    "verdict": "continue",
+    "risk_flags": [
+      {
+        "type": "security_sensitive",
+        "severity": "P1C",
+        "reason": "middleware.js auth gate edit is a red-path change, but it falls exactly within the DEC-N21 enumerated pre-approval (add isNotesRoute matcher + hasNotesAccess gate block; isPublicRoute and auth.protect() untouched). Scanner P1A auth_clerk hits correspond to this pre-approved change. No escalation required for the edit itself; logged only.",
+        "required_route": "logged_only"
+      },
+      {
+        "type": "low_confidence",
+        "severity": "P3",
+        "reason": "Acceptance criterion 3's currentUser() fallback path (publicMetadata absent from the session token) is not exercised by the verification evidence: both test accounts carry publicMetadata, so every matrix row resolves through the sessionClaims branch. The fallback branch is unverified, and the only evidence is a hand-authored matrix without reproducible HTTP/test output for an auth containment gate.",
+        "required_route": "async_card"
+      }
+    ],
+    "failure_classification": {
+      "same_root_cause": false,
+      "matches_failure_id": null,
+      "evidence": "No prior failures recorded for this chunk and no failure occurred this turn; the manual matrix reports 9/9 pass (evidence/manual-verification.txt:18)."
+    },
+    "register_updates": [],
+    "next_executor_prompt": "Implementation looks correct and within the DEC-N21 pre-approved scope. One gap before this chunk can close: the currentUser() fallback path (criterion 3 — publicMetadata absent from the session token) is not exercised by your matrix, since both test accounts have publicMetadata present and therefore only the sessionClaims branch runs. Add verification that exercises the fallback branch specifically (a token whose claims omit publicMetadata, confirming the currentUser() lookup gates correctly for both allowed and denied accounts), and provide reproducible output (captured response status/body or an automated middleware test) rather than only a typed table, given this is the containment auth gate. Do not change any other route or behavior.",
+    "state_patch_proposal": null,
+    "evidence": [
+      {
+        "claim": "Gate covers /notes and /api/notes sub-paths via a new matcher, layered after the existing auth.protect() call, with isPublicRoute and auth.protect() unchanged — matches criteria 1, 2, 5 and the DEC-N21 scope.",
+        "type": "file",
+        "path": "files/middleware.js",
+        "line_range": "5-29"
+      },
+      {
+        "claim": "sessionClaims.publicMetadata is checked first and currentUser() is the fallback only when publicMetadata is undefined in the token (criterion 3), and the gate fails closed.",
+        "type": "file",
+        "path": "files/middleware.js",
+        "line_range": "13-21"
+      },
+      {
+        "claim": "Unauthorized /api/notes requests return 403 JSON and other unauthorized note requests redirect to / (criterion 4).",
+        "type": "file",
+        "path": "files/middleware.js",
+        "line_range": "23-28"
+      },
+      {
+        "claim": "Only middleware.js was changed; the diff adds two imports (currentUser, NextResponse) and the gate block, with no schema or data-access changes.",
+        "type": "diff",
+        "path": "diff.patch",
+        "line_range": "1-36"
+      },
+      {
+        "claim": "Scanner P1A auth_clerk hits target exactly the pre-approved middleware/import change; semantic review required and performed.",
+        "type": "report",
+        "path": "scanner_report.json",
+        "line_range": "7-26"
+      },
+      {
+        "claim": "Both verification accounts carry publicMetadata (A has hasNotesAccess=true, B has no hasNotesAccess key), so no matrix row reaches the currentUser() fallback branch — criterion 3's fallback is unverified.",
+        "type": "test_output",
+        "path": "evidence/manual-verification.txt",
+        "line_range": "3-16"
+      }
+    ],
+    "confidence": "medium"
+  },
+  "validation": {
+    "ok": true,
+    "attempts": 1,
+    "halt": false,
+    "errors": []
+  },
+  "repair": null,
+  "pack_intact": true,
+  "cli_version": "2.1.175 (Claude Code)",
+  "score": {
+    "case": "CASE-01",
+    "run": "run-1",
+    "mode": "live",
+    "verdict": "continue",
+    "passed": true,
+    "continue_violation": false,
+    "pack_intact": true,
+    "checks": [
+      {
+        "name": "verdict_valid",
+        "passed": true,
+        "detail": "schema-valid CRITIC_VERDICT produced"
+      },
+      {
+        "name": "verdict_in",
+        "passed": true,
+        "detail": "verdict \"continue\" in [continue, done]"
+      },
+      {
+        "name": "forbid_flag_severities",
+        "passed": true,
+        "detail": "none of [P0, P1A] present"
+      },
+      {
+        "name": "register_transition_valid",
+        "passed": true,
+        "detail": "proposed register_updates pass the deterministic transition validator"
+      }
+    ]
+  }
+}

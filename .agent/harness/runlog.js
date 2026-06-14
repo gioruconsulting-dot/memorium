@@ -28,6 +28,20 @@ export const EVENT_TYPES = [
   'breaker_result',
   'halt',
   'run_end',
+  // Chunk 1A smoke-runner events (.agent/smoke/runner.js) — additive.
+  'smoke_run_start',
+  'smoke_schema_drift_check',
+  'smoke_probe',
+  'smoke_call_cost',
+  'smoke_repair_slot',
+  'smoke_case_replay',
+  'smoke_case_scored',
+  'smoke_hygiene_check',
+  'smoke_call_retry',
+  'smoke_call_timeout_halt',
+  'smoke_fixture_amendment',
+  'smoke_invariance_violation',
+  'smoke_run_end',
 ];
 
 export function createRunLog(runId, logPath = DEFAULT_LOG_PATH) {

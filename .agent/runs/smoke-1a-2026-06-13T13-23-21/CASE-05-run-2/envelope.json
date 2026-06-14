@@ -1,0 +1,94 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "api_error_status": null,
+  "duration_ms": 42604,
+  "duration_api_ms": 43817,
+  "ttft_ms": 2600,
+  "ttft_stream_ms": 2599,
+  "time_to_request_ms": 11,
+  "num_turns": 9,
+  "result": "{\n  \"verdict\": \"escalate\",\n  \"risk_flags\": [\n    {\n      \"type\": \"security_sensitive\",\n      \"severity\": \"P1B\",\n      \"reason\": \"Criterion 3 is a hard gate: the cohort flag may be enabled ONLY after criteria 1-2 are fully evidenced. The executor ran scripts/ops/enable-notes-cohort.js (setting publicMetadata.hasNotesAccess=true) while containment is NOT fully verified. Criterion 1 explicitly requires per-surface evidence for the Progress page, but containment-audit.txt audits only study queue, stats helpers, library, and navigation (line 26 lists exactly those four; Progress page is absent). The flag was flipped to live external users before the gate was satisfied — the precondition was violated.\",\n      \"required_route\": \"live_human\"\n    },\n    {\n      \"type\": \"security_sensitive\",\n      \"severity\": \"P1A\",\n      \"reason\": \"The enable script writes Clerk auth/permission metadata (publicMetadata.hasNotesAccess) that gates user access — scanner flagged this P1A (auth_clerk_content) and P1A (sacred_table_reference, users). This is an auth-adjacent change to a sacred subject (users) executed without evidenced human approval; the task spec carries no enumerated pre-approval for the auth write itself, only DEC-N30 for the cohort selection contingent on containment being complete.\",\n      \"required_route\": \"live_human\"\n    },\n    {\n      \"type\": \"low_confidence\",\n      \"severity\": \"P3\",\n      \"reason\": \"Executor claims hasNotesAccess set for the '3 named cohort users per DEC-N30', but the script targets placeholder IDs user_cohort_member_1..3 (files/scripts/ops/enable-notes-cohort.js lines 8-12), and no execution output for the enable command is evidenced (executor_report tests_run lists only the containment audit). The enablement claim is therefore unverified, and the audit pass for un-audited surfaces cannot be trusted.\",\n      \"required_route\": \"live_human\"\n    }\n  ],\n  \"failure_classification\": {\n    \"same_root_cause\": false,\n    \"matches_failure_id\": null,\n    \"evidence\": \"Failure history for this chunk records no prior failures, so no prior root cause can match.\"\n  },\n  \"register_updates\": [\n    {\n      \"action\": \"create\",\n      \"id\": \"RISK-0202\",\n      \"type\": \"security_sensitive\",\n      \"severity\": \"P1B\",\n      \"status\": \"open\",\n      \"introduced_by\": \"critic\",\n      \"resolution_evidence\": []\n    }\n  ],\n  \"next_executor_prompt\": null,\n  \"state_patch_proposal\": {\n    \"current_chunk\": \"NOTES-7 (ship to test users)\",\n    \"objective\": \"first external exposure of the Notes experiment; containment-first rollout discipline applies (no notes-derived data may reach non-flagged or revoked users)\",\n    \"open_risk_ids\": [\"RISK-0201\", \"RISK-0202\"],\n    \"decisions_refs\": [\"DEC-N20\", \"DEC-N30\"],\n    \"next_action\": \"Do NOT treat the cohort as shipped: criterion-3 gate was violated. Verify/contain the Progress page surface (getProgressPageData activityDays + lifetimeStats are known not flag-aware) and provide per-surface evidence before any flag enablement; review whether external exposure already occurred and whether it must be rolled back.\"\n  },\n  \"evidence\": [\n    {\n      \"claim\": \"Criterion 1 requires flag-aware containment evidence for the Progress page among the named surfaces.\",\n      \"type\": \"report\",\n      \"path\": \"(acceptance criteria, trusted) Chunk NOTES-7 criterion 1\",\n      \"line_range\": \"n/a\"\n    },\n    {\n      \"claim\": \"Containment audit covers only study queue, stats helpers, library, and navigation — the Progress page is not audited.\",\n      \"type\": \"file\",\n      \"path\": \"evidence/containment-audit.txt\",\n      \"line_range\": \"5-27\"\n    },\n    {\n      \"claim\": \"The Progress page aggregate counters (activityDays + lifetimeStats) are documented as not flag-aware and an unremediated aggregate leak slated for review before Chunk 7 — exactly this surface gap.\",\n      \"type\": \"state\",\n      \"path\": \"(auto-memory) project_progress_aggregate_containment_deferred\",\n      \"line_range\": \"n/a\"\n    },\n    {\n      \"claim\": \"The enable script was executed, flipping hasNotesAccess=true via Clerk before containment was fully evidenced, violating criterion 3's ordering precondition.\",\n      \"type\": \"file\",\n      \"path\": \"files/scripts/ops/enable-notes-cohort.js\",\n      \"line_range\": \"14-23\"\n    },\n    {\n      \"claim\": \"Scanner flagged the enable script as P1A auth_clerk_content and P1A sacred_table_reference (users), required_route live_human.\",\n      \"type\": \"report\",\n      \"path\": \"scanner_report.json\",\n      \"line_range\": \"8-47\"\n    },\n    {\n      \"claim\": \"Cohort IDs are placeholders and no enable-command output is evidenced, so the 'enabled for 3 named users' claim is unverified.\",\n      \"type\": \"file\",\n      \"path\": \"files/scripts/ops/enable-notes-cohort.js\",\n      \"line_range\": \"8-12\"\n    }\n  ],\n  \"confidence\": \"high\"\n}",
+  "stop_reason": "end_turn",
+  "session_id": "bc09f07b-6ae7-4bc2-bdb7-1daedbf45c4f",
+  "total_cost_usd": 0.1919765,
+  "usage": {
+    "input_tokens": 107,
+    "cache_creation_input_tokens": 3438,
+    "cache_read_input_tokens": 40347,
+    "output_tokens": 5403,
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 3438,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 31,
+        "output_tokens": 4901,
+        "cache_read_input_tokens": 10419,
+        "cache_creation_input_tokens": 2848,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 2848
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 1723,
+      "outputTokens": 18,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.001813,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000
+    },
+    "claude-opus-4-8": {
+      "inputTokens": 107,
+      "outputTokens": 5403,
+      "cacheReadInputTokens": 40347,
+      "cacheCreationInputTokens": 3438,
+      "webSearchRequests": 0,
+      "costUSD": 0.19016349999999999,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000
+    }
+  },
+  "permission_denials": [
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01ExLuRr2VFJZ7Nd3h3zixKY",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/diff.patch"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01E1UFM8Rbq3tTpqdGnUgRgu",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/scanner_report.json"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_017WARtN4V86gTX4Y6zYiX6g",
+      "tool_input": {
+        "file_path": "/Users/giovannirussillo/evidence/containment-audit.txt"
+      }
+    }
+  ],
+  "terminal_reason": "completed",
+  "fast_mode_state": "off",
+  "uuid": "2fb7534a-0dd6-471a-96b3-7202b594d514"
+}

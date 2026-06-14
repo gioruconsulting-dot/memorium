@@ -1,0 +1,73 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P0",
+      "reason": "The diff removes the `WHERE sa.user_id = ?` clause from getLifetimeStats, a read against the sacred `session_answers` table (diff.patch:19-23). The aggregate now sums COUNT/correct across ALL users' answers instead of the signed-in user's, breaking per-user isolation and exposing other users' learning data in the Progress page. This violates acceptance criteria 1 and 2 (per-user behavior must be unchanged) and DEC-PP-01. The executor's 'caller already filters' claim (executor report) is unevidenced — no caller code is in the pack to support it, and the SQL itself no longer scopes by user.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "low_confidence",
+      "severity": "P0",
+      "reason": "The only test evidence (evidence/perf-check.txt:7-9) is a spot-check on a single-user dev DB where 746→746 is identical precisely because there is one user — exactly the condition that masks an unscoping defect. This evidence cannot establish 'renders identically for the same account' on a multi-user production DB; it gives false assurance.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures recorded for this chunk per the trusted failure history; this is turn 1."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0004",
+      "type": "security_sensitive",
+      "severity": "P0",
+      "status": "open",
+      "introduced_by": "critic"
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "PROGRESS-PERF-1 (query slimming)",
+    "objective": "Progress page p95 under 400ms; read-only optimization series",
+    "open_risk_ids": ["RISK-0004"],
+    "decisions_refs": ["DEC-PP-01"],
+    "next_action": "Hold for human review: getLifetimeStats lost its per-user WHERE scoping on sacred table session_answers (cross-user aggregate leak); single-user dev spot-check cannot verify per-user identity."
+  },
+  "evidence": [
+    {
+      "claim": "The change removes `WHERE sa.user_id = ?` and the userId argument/parameter from getLifetimeStats, leaving an unscoped aggregate over session_answers.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "11-24"
+    },
+    {
+      "claim": "session_answers is a sacred table; the query aggregates COUNT and SUM of is_correct, so unscoping changes per-user results to all-user results.",
+      "type": "file",
+      "path": "diff.patch",
+      "line_range": "17-23"
+    },
+    {
+      "claim": "Test evidence is a timing + value spot-check on a single-user dev DB (746→746), which cannot detect loss of user-scoping and gives false assurance of identical per-user rendering.",
+      "type": "test_output",
+      "path": "evidence/perf-check.txt",
+      "line_range": "2-9"
+    },
+    {
+      "claim": "Scanner reports zero hits at low confidence with semantic_review_required true; a deleted WHERE line is the documented Layer-3 gap, so the no-hit result does not indicate safety.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "5-9"
+    },
+    {
+      "claim": "Acceptance criteria require fewer/cheaper queries with behavior unchanged for the signed-in user and identical lifetime stats for the same account; the unscoping breaks this on any multi-user DB.",
+      "type": "state",
+      "path": "STATE",
+      "line_range": "1-12"
+    }
+  ],
+  "confidence": "high"
+}

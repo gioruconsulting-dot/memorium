@@ -1,0 +1,64 @@
+{
+  "verdict": "done",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P1C",
+      "reason": "Route writes to sacred table `questions`: an UPDATE retiring rows (retired_at/retired_reason/is_retired) and an INSERT of replacement rows. Scanner flagged these P0 (scanner_report.json:9-46). Both fall inside the DEC-V5-12 enumerated pre-approval: the UPDATE matches the exact_scope verbatim (block_id + user_id + retired_at IS NULL, inside the generate transaction, no DELETE) and the INSERT is owner-scoped replacement questions. No sacred statement exists outside that scope; no DELETE anywhere; session_answers untouched. Within approved bounds — logged only.",
+      "required_route": "logged_only"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures recorded for this chunk and no failure occurred this turn; executor_report failures=[] and verification suite reports 18/18 pass (evidence/verification-suite-output.txt:34)."
+  },
+  "register_updates": [],
+  "next_executor_prompt": null,
+  "state_patch_proposal": null,
+  "evidence": [
+    {
+      "claim": "Stale-block selection orders by stale_since ASC, sealed_at ASC, id ASC with LIMIT 5 — satisfies criterion 1.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "19-27"
+    },
+    {
+      "claim": "AI calls run via Promise.all before any transaction is opened; a thrown failure returns 502 and the transaction (and all writes) is never reached — satisfies criterion 2.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "35-47"
+    },
+    {
+      "claim": "Retire UPDATE is scoped to block_id + user_id + retired_at IS NULL and sets retired_at/retired_reason='block_regenerated'/is_retired=1 — matches the DEC-V5-12 pre-approved exact_scope verbatim; criterion 3 met.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "52-59"
+    },
+    {
+      "claim": "All writes (retire UPDATE, question INSERTs, version bump) execute inside one db.transaction('write'); the conditional version bump checks rowsAffected !== 1 and rolls the whole transaction back returning 409 with block_id — criterion 4 met (409 identifies conflicted block).",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "47-87"
+    },
+    {
+      "claim": "No DELETE statement appears in the route; questions are only retired or inserted and session_answers are never referenced — criterion 5 (SR continuity) met by construction.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "1-93"
+    },
+    {
+      "claim": "Verification command was run with evidenced output: 18/18 checks pass including 0 questions deleted, cross-user rows untouched, session_answers 2→2, forced-conflict 409 full rollback, 502 AI-failure leaves counts unchanged, and blast-radius counts across all sacred/cascade tables — satisfies criterion 6.",
+      "type": "test_output",
+      "path": "evidence/verification-suite-output.txt",
+      "line_range": "1-34"
+    },
+    {
+      "claim": "Only RISK-0201 (P3, low_confidence) is open; no open P0/P1 blocks a done verdict, and the sole files_changed entry is the green-path route — no dependency/schema/migration/middleware change.",
+      "type": "state",
+      "path": "executor_report.json",
+      "line_range": "1-30"
+    }
+  ],
+  "confidence": "high"
+}

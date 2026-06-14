@@ -1,0 +1,78 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "repeated_failure",
+      "severity": "P1B",
+      "reason": "Second consecutive failure of the same root cause: the notes-crud 'owner scope' spec still returns 200 instead of 404 for a non-owner PATCH. Turn-1 failed with 'expected 404 got 200 for non-owner PATCH'; turn-2's explicit owner-check (getDocumentById + user_id comparison) still fails, now reported for the uploaded-document/source_type variant. STATE mandates the chunk fails closed when the same root cause repeats, so this must stop for human attention.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "security_sensitive",
+      "severity": "P1B",
+      "reason": "The unresolved defect is an owner-scope authorization gap on a write route (PATCH /api/notes/[id]): a non-owner can still mutate another user's uploaded document (test observes 200). The owner check added in the diff is not effective for the source_type variant required by acceptance criterion 1, so the auth boundary remains open. Must not be accepted/shipped until a human reviews the fix.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": true,
+    "matches_failure_id": "turn-1",
+    "evidence": "Turn-1 failure (failure history, untrusted): vitest 'notes-crud › owner scope' — 'expected 404 got 200 for non-owner PATCH'. Turn-2 evidence/vitest-turn-2.txt line 9-10: same spec '× notes-crud › owner scope → non-owner PATCH against an uploaded document of another user should return 404, received 200'. Identical root cause (owner-scope 404 not enforced) across both turns despite the turn-2 owner-check edit."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0202",
+      "type": "repeated_failure",
+      "severity": "P1B",
+      "status": "open",
+      "introduced_by": "critic"
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "NOTES-CRUD-HARDENING, turn 2",
+    "objective": "fix the owner-scope test failure; chunk fails closed because the same root cause has now repeated across two turns",
+    "open_risk_ids": [
+      "RISK-0201",
+      "RISK-0202"
+    ],
+    "decisions_refs": [
+      "DEC-N40"
+    ],
+    "next_action": "halt for live human review: owner-scope 404 enforcement has failed twice; the source_type variant path and getDocumentById/updateNote scoping need a human decision before another attempt"
+  },
+  "evidence": [
+    {
+      "claim": "Turn-2 test run still fails the owner-scope spec: non-owner PATCH against another user's uploaded document returns 200 instead of 404.",
+      "type": "test_output",
+      "path": "evidence/vitest-turn-2.txt",
+      "line_range": "5-16"
+    },
+    {
+      "claim": "Turn-2 diff adds an explicit owner check (getDocumentById + doc.user_id !== userId → 404) but does not guard source_type, so the uploaded-document variant required by acceptance criterion 1 is not handled.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "20-29"
+    },
+    {
+      "claim": "Acceptance criterion 2 (tests/notes-crud.test.js passes in full including 'owner scope') is not met; one test fails.",
+      "type": "test_output",
+      "path": "evidence/vitest-turn-2.txt",
+      "line_range": "9-15"
+    },
+    {
+      "claim": "Scanner flagged auth and write-verb patterns on the route requiring semantic review (auth_clerk_content P1A, write_verb_in_api_route P1B).",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "7-26"
+    },
+    {
+      "claim": "RISK-0201 remains open (low_confidence P3 from turn-1); no resolution evidence presented this turn.",
+      "type": "register",
+      "path": "scanner_report.json",
+      "line_range": "0-0"
+    }
+  ],
+  "confidence": "high"
+}

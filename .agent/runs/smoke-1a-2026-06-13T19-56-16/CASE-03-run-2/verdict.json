@@ -1,0 +1,70 @@
+{
+  "verdict": "done",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P1C",
+      "reason": "Sacred-table (questions) writes present: an UPDATE retire path (files/app/api/notes/[id]/generate/route.js:52-59) and an owner-scoped INSERT (lines 62-67). Both fall within the enumerated DEC-V5-12 pre-approval. Verified in-bounds: UPDATE matches the exact approved scope (SET retired_at/retired_reason/is_retired WHERE block_id=? AND user_id=? AND retired_at IS NULL), INSERT carries user_id, no DELETE on questions exists anywhere in the route, and session_answers are untouched. Logged, not a stop.",
+      "required_route": "logged_only"
+    },
+    {
+      "type": "architectural",
+      "severity": "P3",
+      "reason": "Acceptance criterion 4 calls for the conflict 409 to carry 'current state'; the response payload carries only { error, block_id } (route.js:80), not the current block version/state. Sufficient to identify the conflicting block but a literal-criterion shortfall worth tracking; does not affect data safety, which the rollback path verifies.",
+      "required_route": "async_card"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures recorded for this chunk and no failure occurred this turn; verification suite reports 18/18 pass (evidence/verification-suite-output.txt:34)."
+  },
+  "register_updates": [],
+  "next_executor_prompt": null,
+  "state_patch_proposal": null,
+  "evidence": [
+    {
+      "claim": "Up to 5 oldest stale blocks selected with the exact required ordering (stale_since asc, sealed_at asc, id asc) and LIMIT 5.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "19-30"
+    },
+    {
+      "claim": "AI calls run outside any DB transaction; a hard failure is caught and returns 502 before db.transaction('write') opens, so zero DB writes occur.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "35-47"
+    },
+    {
+      "claim": "Retire-not-delete UPDATE scoped to block_id + user_id + retired_at IS NULL, matching the DEC-V5-12 enumerated pre-approval exactly; no DELETE on questions anywhere in the route.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "52-59"
+    },
+    {
+      "claim": "Replacement questions INSERT is owner-scoped (user_id included), within DEC-V5-12 INSERT pre-approval.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "62-67"
+    },
+    {
+      "claim": "All writes inside one db.transaction('write'); the optimistic version-bump checks rowsAffected and a miss rolls the entire transaction back with a 409, satisfying atomicity.",
+      "type": "file",
+      "path": "files/app/api/notes/[id]/generate/route.js",
+      "line_range": "47-87"
+    },
+    {
+      "claim": "Verification suite ran and passed 18/18, confirming 0 questions deleted, cross-user rows untouched, session_answers unchanged (2→2), and full rollback on forced version conflict.",
+      "type": "test_output",
+      "path": "evidence/verification-suite-output.txt",
+      "line_range": "7-34"
+    },
+    {
+      "claim": "Scanner P0/P1A sacred-table hits on questions UPDATE/INSERT correspond to the DEC-V5-12 pre-approved scope; no DELETE or out-of-scope sacred statement appears.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "8-46"
+    }
+  ],
+  "confidence": "high"
+}

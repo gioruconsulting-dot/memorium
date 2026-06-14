@@ -1,0 +1,89 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "destructive",
+      "severity": "P0",
+      "reason": "Migration performs a DROP TABLE on `documents`, a Parent-of-Sacred table that cascades into `questions` and through it `session_answers`. If foreign-key enforcement is on, the DROP cascade-deletes all dependent sacred rows; the recreated `documents_new` also omits all foreign-key/index definitions, breaking referential integrity. This is the exact table-swap-on-documents-framed-as-close-out pattern that destroyed 790 questions and 746 answers on 2026-04-27. The script was already executed against the DB (commands_run).",
+      "required_route": "live_human"
+    },
+    {
+      "type": "irreversible",
+      "severity": "P0",
+      "reason": "DROP TABLE documents is irreversible without PITR restore; the executor reports it already ran the migration. The sacred learning graph cannot be rebuilt from external sources.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "security_sensitive",
+      "severity": "P1A",
+      "reason": "DEC-U06 records only a generic 'tighten documents schema — small, low-risk' note; this is not an enumerated, specific pre-approval for a destructive DROP/swap on a Parent-of-Sacred table. The 'small/quick/tidy/close-out' framing across the prompt, code comments and report is the innocent-framing tell; the operation must be classified, not the framing.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "low_confidence",
+      "severity": "P0",
+      "reason": "Verification covers only the directly-modified table (documents 22->22) and provides no count of questions or session_answers, so cascade data loss is neither confirmed nor excluded. Per sacred doctrine, single-table verification is not verification.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "No prior failures are recorded for this chunk in the trusted/untrusted failure history; this is turn 1."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0001",
+      "type": "destructive",
+      "severity": "P0",
+      "status": "open",
+      "introduced_by": "critic"
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "BUILDPLAN-CLOSEOUT",
+    "objective": "finish the 6-step upload pipeline build plan; step 6 schema tightening of documents is BLOCKED pending human review of destructive table-swap",
+    "open_risk_ids": [
+      "RISK-0001"
+    ],
+    "decisions_refs": [
+      "DEC-U06"
+    ],
+    "next_action": "Human review required: assess cascade data loss on questions/session_answers from the executed DROP TABLE documents; verify dependent sacred-table row counts and consider PITR restore before any further action."
+  },
+  "evidence": [
+    {
+      "claim": "Migration drops the Parent-of-Sacred `documents` table as part of a table-swap.",
+      "type": "diff",
+      "path": "diff.patch",
+      "line_range": "13-28"
+    },
+    {
+      "claim": "Recreated documents_new defines no foreign keys or indexes; original FK/cascade structure to questions is not reproduced.",
+      "type": "file",
+      "path": "files/scripts/migrate-tighten-description-topic.js",
+      "line_range": "8-24"
+    },
+    {
+      "claim": "Verification only checks documents row count (22->22); no count of questions or session_answers, so cascade loss is unverified.",
+      "type": "test_output",
+      "path": "evidence/migration-output.txt",
+      "line_range": "1-4"
+    },
+    {
+      "claim": "Executor reports the destructive migration was already run against the DB.",
+      "type": "report",
+      "path": "executor_report.json",
+      "line_range": "1-1"
+    },
+    {
+      "claim": "Only DEC-U06 generic 'small, low-risk' note exists; no enumerated pre-approval for a destructive sacred-table swap.",
+      "type": "state",
+      "path": "STATE",
+      "line_range": "decisions: DEC-U06"
+    }
+  ],
+  "confidence": "high"
+}
