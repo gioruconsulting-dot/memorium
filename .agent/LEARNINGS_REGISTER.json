@@ -1,0 +1,46 @@
+{
+  "learnings": [
+    {
+      "id": "LRN-0001",
+      "type": "process",
+      "direction": "tightening",
+      "proposal": "Evidence generation belongs in the deterministic layer, not the model. For an executor turn, the harness independently computes the git diff and re-runs the test to establish ground truth; the executor's self-reported files_changed and tests_run are demoted to claims and checked against that truth (claim-vs-truth). This applies 'models propose, deterministic systems dispose' one notch more strictly than masterplan §3.2, which had the executor tee its own evidence. It is also forced by §2.4: evidence must live under .agent/runs/** which is black-path to the executor, so the executor cannot author its own evidence file.",
+      "target_artifact": ".agent/harness/live-executor-turn.js",
+      "evidence": [
+        "RUN.log: chunk2-turn1 executor_turn entry",
+        ".agent/runs/chunk2-turn1-2026-06-14T20-04-03-889Z/claim-vs-truth.json (test_result_match=true, boundary_held_only_test_file=true)",
+        "masterplan §3.2 vs §2.4 (the contradiction this resolves)"
+      ],
+      "status": "proposed",
+      "note": "BOOTSTRAP EXEMPTION (Chunk 2): code already reflects this; recorded retroactively because built under live human supervision in Chunk 2 (Gio approved the §3.2-vs-§2.4 resolution before it was built). This reversed order (artifact-first, learning-after) is a one-time bootstrap and MUST NOT generalize. In Chunk 3 the proposal comes before the change, or the human gate is theater."
+    },
+    {
+      "id": "LRN-0002",
+      "type": "spec_pattern",
+      "direction": "tightening",
+      "proposal": "A test cannot be judged without the function it tests, so the critic's evidence pack must include declared read-only CONTEXT files, not just touched files (refines masterplan §2.8 'full copies of touched files'). Context files are declared in TASK_SPEC.context_files up front — deterministically, before the executor runs — never chosen at pack-assembly time. The pack is the critic's entire window; if assembly could add files at runtime it would become a way to manipulate the critic without touching the critic. Same contamination guard applies to context files.",
+      "target_artifact": ".agent/schemas/TASK_SPEC.schema.json (context_files) + .agent/harness/evidence-pack.js",
+      "evidence": [
+        "deadline #2 plan + human sign-off",
+        ".agent/harness/probes/critic-pack-probe.js P1 (content audit) and P3 (untouched-file guard)",
+        "TASK_SPEC.schema.json context_files field"
+      ],
+      "status": "proposed",
+      "note": "BOOTSTRAP EXEMPTION (Chunk 2): code already reflects this; recorded retroactively because built under live human supervision in Chunk 2 (Gio approved decision 1 of deadline #2 before it was built). One-time bootstrap; does not generalize. Chunk 3: proposal before change."
+    },
+    {
+      "id": "LRN-0003",
+      "type": "scanner_rule",
+      "direction": "tightening",
+      "proposal": "The evidence-pack contamination guard's secret pattern matched 'sk-' (OpenAI/Anthropic style) but missed 'sk_live_'/'sk_test_' (Clerk/Stripe underscore style) — the secret style this repo actually uses. A clean-input test would have passed forever; the 'prove it blocks the bad thing' probe (planting a secret-shaped file and asserting the guard throws) exposed it. Broadened SECRET_CONTENT_PATTERNS to (sk|pk|rk)[-_](live|test|ant|proj|...) and added a regression unit test. Lesson generalizes: every guard needs a probe that proves it blocks the bad input, not just that clean input stays clean.",
+      "target_artifact": ".agent/harness/evidence-pack.js (SECRET_CONTENT_PATTERNS)",
+      "evidence": [
+        ".agent/harness/probes/critic-pack-probe.js P2 (initial FAIL → fix → PASS)",
+        ".agent/harness/test/evidence-pack.test.js (sk_live_ regression test)",
+        "evidence-pack.js SECRET_CONTENT_PATTERNS"
+      ],
+      "status": "proposed",
+      "note": "BOOTSTRAP EXEMPTION (Chunk 2): the pattern fix is already applied in code (caught and fixed mid-build under live supervision); recorded retroactively. One-time bootstrap; does not generalize. Chunk 3: proposal before change."
+    }
+  ]
+}

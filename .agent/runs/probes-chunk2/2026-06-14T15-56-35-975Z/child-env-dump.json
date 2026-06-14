@@ -1,0 +1,20 @@
+{
+  "CLAUDE_CONFIG_DIR": "/Users/giovannirussillo/.claude-work",
+  "CLERK_SECRET_KEY": "sk_test_DUMMY_not_a_real_key",
+  "DATABASE_URL": "file:./local-test.db",
+  "GIT_CONFIG_COUNT": "1",
+  "GIT_CONFIG_KEY_0": "remote.origin.pushurl",
+  "GIT_CONFIG_VALUE_0": "no-push://disabled-by-harness",
+  "GIT_TERMINAL_PROMPT": "0",
+  "HOME": "/Users/giovannirussillo",
+  "LANG": "en_GB.UTF-8",
+  "LOGNAME": "giovannirussillo",
+  "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_DUMMY_not_a_real_key",
+  "NODE_ENV": "test",
+  "PATH": "/Users/giovannirussillo/.turso:/Users/giovannirussillo/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pkg/env/active/bin:/opt/pmk/env/global/bin",
+  "SHELL": "/bin/zsh",
+  "TERM": "xterm-256color",
+  "TMPDIR": "/var/folders/s7/4n80hv_d61598n2gsfyjp_r00000gn/T/",
+  "USER": "giovannirussillo",
+  "__CF_USER_TEXT_ENCODING": "0x1F5:0:2"
+}

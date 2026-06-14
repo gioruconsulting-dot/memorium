@@ -1,6 +1,6 @@
 {
   "scanner": "layer1",
-  "diff_path": "/Users/giovannirussillo/projects/memorium/.agent/fixtures/diffs/st13-lifecycle-script.diff",
+  "diff_path": "/Users/giovannirussillo/projects/memorium-harness/.agent/fixtures/diffs/st13-lifecycle-script.diff",
   "files_seen": [
     "package.json"
   ],

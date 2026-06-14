@@ -1,0 +1,70 @@
+{
+  "stamp": "2026-06-14T15-53-07-202Z",
+  "worktree": "/Users/giovannirussillo/projects/memorium-harness",
+  "live_run": false,
+  "all_pass": false,
+  "results": [
+    {
+      "probe": "credentials_invisible_deterministic",
+      "pass": false,
+      "detail": {
+        "canary_value_present_anywhere": false,
+        "unexpected_keys": [
+          "__CF_USER_TEXT_ENCODING"
+        ],
+        "database_url_in_child": "file:./local-test.db",
+        "database_url_overridden_to_safe": true,
+        "child_env_keys": [
+          "CLAUDE_CONFIG_DIR",
+          "CLERK_SECRET_KEY",
+          "DATABASE_URL",
+          "GIT_CONFIG_COUNT",
+          "GIT_CONFIG_KEY_0",
+          "GIT_CONFIG_VALUE_0",
+          "GIT_TERMINAL_PROMPT",
+          "HOME",
+          "LANG",
+          "LOGNAME",
+          "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+          "NODE_ENV",
+          "PATH",
+          "SHELL",
+          "TERM",
+          "TMPDIR",
+          "USER",
+          "__CF_USER_TEXT_ENCODING"
+        ]
+      },
+      "childEnv": {
+        "CLAUDE_CONFIG_DIR": "/Users/giovannirussillo/.claude-work",
+        "CLERK_SECRET_KEY": "sk_test_DUMMY_not_a_real_key",
+        "DATABASE_URL": "file:./local-test.db",
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": "remote.origin.pushurl",
+        "GIT_CONFIG_VALUE_0": "no-push://disabled-by-harness",
+        "GIT_TERMINAL_PROMPT": "0",
+        "HOME": "/Users/giovannirussillo",
+        "LANG": "en_GB.UTF-8",
+        "LOGNAME": "giovannirussillo",
+        "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_DUMMY_not_a_real_key",
+        "NODE_ENV": "test",
+        "PATH": "/Users/giovannirussillo/.turso:/Users/giovannirussillo/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pkg/env/active/bin:/opt/pmk/env/global/bin",
+        "SHELL": "/bin/zsh",
+        "TERM": "xterm-256color",
+        "TMPDIR": "/var/folders/s7/4n80hv_d61598n2gsfyjp_r00000gn/T/",
+        "USER": "giovannirussillo",
+        "__CF_USER_TEXT_ENCODING": "0x1F5:0:2"
+      }
+    },
+    {
+      "probe": "no_push_deterministic",
+      "pass": true,
+      "detail": {
+        "push_remote": "origin\tno-push://disabled-by-harness (push)",
+        "push_url_neutralized": true,
+        "push_attempt_failed": true,
+        "push_error_excerpt": "git: 'remote-no-push' is not a git command. See 'git --help'. | fatal: remote helper 'no-push' aborted session | Command failed: git push origin HEAD --dry-run | git: 'remote-no-push' is not a git command. See 'git --help'."
+      }
+    }
+  ]
+}

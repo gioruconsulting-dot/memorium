@@ -1,0 +1,29 @@
+{
+  "env_policy": "allowlist",
+  "env_vars_present": [
+    "PATH",
+    "HOME",
+    "CLAUDE_CONFIG_DIR",
+    "LANG",
+    "TERM",
+    "TMPDIR",
+    "SHELL",
+    "USER",
+    "LOGNAME",
+    "GIT_CONFIG_COUNT",
+    "GIT_CONFIG_KEY_0",
+    "GIT_CONFIG_VALUE_0",
+    "GIT_TERMINAL_PROMPT",
+    "NODE_ENV",
+    "DATABASE_URL",
+    "CLERK_SECRET_KEY",
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"
+  ],
+  "forbidden_env_detected": [],
+  "network_policy": "none",
+  "branch": "agentic-harness",
+  "allow_push": false,
+  "changed_files_tiers": {},
+  "pass": true,
+  "halts": []
+}

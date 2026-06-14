@@ -1,6 +1,6 @@
 {
   "scanner": "layer1",
-  "diff_path": "/Users/giovannirussillo/projects/memorium/.agent/fixtures/diffs/st2-sacred-write.diff",
+  "diff_path": "/Users/giovannirussillo/projects/memorium-harness/.agent/fixtures/diffs/st2-sacred-write.diff",
   "files_seen": [
     "app/study/actions.js"
   ],

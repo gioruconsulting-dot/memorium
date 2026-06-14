@@ -51,6 +51,12 @@ const LIVE_SEVERITIES = new Set(['P0', 'P1A', 'P1B']);
 //   // per-turn preflight inputs; function (turnNumber) → input fields,
 //   // so fixtures can simulate a mid-run branch switch (ST-7)
 //   preflightInputFor: (turn) => ({ branch, allowedEnv, actualEnv, changedFiles, allowPush }),
+//   // Chunk 2: live executor injection. When present, EXECUTING calls this
+//   // instead of reading a fixture: (turn) => { reportRaw, diffPath, ... }.
+//   executor: (turn) => ({ reportRaw, diffPath }),
+//   // Chunk 2: deliberate stop point. 'EXECUTOR_REPORT' returns a clean
+//   // HALTED_SAFE after the report validates + cross-checks, before SCANNING.
+//   stopAfter: 'EXECUTOR_REPORT' | undefined,
 // }
 export function runFsm(config) {
   const {
@@ -62,6 +68,8 @@ export function runFsm(config) {
     executorTurns = [],
     criticVerdictsRaw = [],
     preflightInputFor,
+    executor,
+    stopAfter,
   } = config;
 
   mkdirSync(runsDir, { recursive: true });
@@ -141,13 +149,25 @@ export function runFsm(config) {
       return halt('preflight failed — executor never starts this turn', { turn, halts: pf.halts });
     }
 
-    // EXECUTING (stub: fixture-fed)
-    transition('EXECUTING', { turn, stubbed: true });
-    const turnFixture = executorTurns[turn - 1];
-    if (!turnFixture) {
-      return halt('no executor fixture for this turn — model states are stubs in Chunk 0', { turn });
+    // EXECUTING (live executor if injected, else fixture-fed)
+    const liveExecutor = typeof executor === 'function';
+    transition('EXECUTING', { turn, stubbed: !liveExecutor, live: liveExecutor });
+    let turnArtifact;
+    if (liveExecutor) {
+      turnArtifact = executor(turn);
+      log.append('executor_turn', {
+        turn,
+        live: true,
+        diff_path: turnArtifact.diffPath,
+        claim_vs_truth: turnArtifact.claimVsTruth ?? null,
+      });
+    } else {
+      turnArtifact = executorTurns[turn - 1];
+      if (!turnArtifact) {
+        return halt('no executor fixture for this turn — model states are stubs in Chunk 0', { turn });
+      }
     }
-    const reportResult = validateFailClosed('EXECUTOR_REPORT', turnFixture.reportRaw);
+    const reportResult = validateFailClosed('EXECUTOR_REPORT', turnArtifact.reportRaw);
     log.append('validation_result', {
       artifact: 'EXECUTOR_REPORT',
       turn,
@@ -179,9 +199,29 @@ export function runFsm(config) {
       return escalate('doom-loop breaker fired', { turn, reasons: breaker.reasons });
     }
 
+    // Chunk 2 deliberate stop: report validated + cross-checked, halt before the
+    // scanner/critic so the human inspects the executor artifact on its own.
+    if (stopAfter === 'EXECUTOR_REPORT') {
+      log.append('run_end', {
+        final_state: 'HALTED_SAFE',
+        reason: 'deliberate stop after executor turn (Chunk 2 turn one)',
+        turn,
+        all_passes_evidenced,
+        downgrades,
+      });
+      transition('HALTED_SAFE', { reason: 'stop_after_executor' });
+      return {
+        finalState: 'HALTED_SAFE',
+        reason: 'deliberate stop after executor turn',
+        history,
+        register,
+        report,
+      };
+    }
+
     // SCANNING
     transition('SCANNING', { turn });
-    const scanReport = scan(turnFixture.diffPath);
+    const scanReport = scan(turnArtifact.diffPath);
     const scanPath = path.join(runsDir, `scanner-turn-${turn}.json`);
     writeFileSync(scanPath, JSON.stringify(scanReport, null, 2));
     const topSeverity = highestSeverity(scanReport);

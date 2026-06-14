@@ -1,0 +1,26 @@
+{
+  "operational_allowlist": [
+    "PATH",
+    "HOME",
+    "CLAUDE_CONFIG_DIR",
+    "LANG",
+    "LC_ALL",
+    "LC_CTYPE",
+    "TERM",
+    "TMPDIR",
+    "SHELL",
+    "USER",
+    "LOGNAME"
+  ],
+  "injected_test_vars": [
+    "NODE_ENV",
+    "DATABASE_URL",
+    "CLERK_SECRET_KEY",
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"
+  ],
+  "no_push": {
+    "mechanism": "git-env-config pushurl",
+    "dead_pushurl": "no-push://disabled-by-harness"
+  },
+  "note": "Forwarded names are copied from the parent; injected names are set to safe values. Nothing app-secret-shaped is on the allowlist."
+}

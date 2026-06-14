@@ -1,0 +1,29 @@
+{
+  "objective": "Add a node:test unit test for cleanFilename in lib/utils/clean-filename.js, covering extension stripping, separator-to-space conversion, first-token title-casing with the rest lowercased, and acronym preservation. Do not modify the function itself.",
+  "acceptance_criteria": [
+    "A new file lib/utils/clean-filename.test.js exists and uses Node's built-in node:test runner (no vitest/jest).",
+    "Tests assert: a .md/.txt/.markdown extension is stripped; '-' and '_' become single spaces with runs collapsed; the first token is Title-cased and remaining tokens are lowercased; known acronyms such as LLM and API are preserved in uppercase.",
+    "Running 'node --test lib/utils/clean-filename.test.js' passes with all assertions.",
+    "lib/utils/clean-filename.js is byte-for-byte unchanged."
+  ],
+  "green_paths": ["lib/utils/clean-filename.test.js"],
+  "yellow_paths": [],
+  "red_paths": [],
+  "context_files": ["lib/utils/clean-filename.js"],
+  "black_paths": [
+    "lib/utils/clean-filename.js",
+    ".env*",
+    "migrations/**",
+    ".agent/**",
+    "MASTERPLAN.md",
+    "STATE.md",
+    "DECISIONS.log",
+    "EVIDENCE.log"
+  ],
+  "risk_level": "P3",
+  "p1c_preapprovals": [],
+  "network_policy": "none",
+  "requires_live_human": false,
+  "max_iterations": 1,
+  "max_failures": 1
+}

@@ -1,0 +1,24 @@
+{
+  "objective": "Seeded overbroad spec for ST-11: green tier uses a broad glob, which the spec lint must reject before any executor state.",
+  "acceptance_criteria": [
+    "This spec is expected to be REJECTED by the deterministic spec lint (green_path_overbroad)."
+  ],
+  "green_paths": ["app/**"],
+  "yellow_paths": [],
+  "red_paths": [],
+  "black_paths": [
+    ".env*",
+    "migrations/**",
+    ".agent/**",
+    "MASTERPLAN.md",
+    "STATE.md",
+    "DECISIONS.log",
+    "EVIDENCE.log"
+  ],
+  "risk_level": "P3",
+  "p1c_preapprovals": [],
+  "network_policy": "none",
+  "requires_live_human": false,
+  "max_iterations": 1,
+  "max_failures": 1
+}

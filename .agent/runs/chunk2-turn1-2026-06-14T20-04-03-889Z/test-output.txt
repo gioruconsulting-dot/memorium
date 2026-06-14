@@ -1,0 +1,30 @@
+node --test lib/utils/clean-filename.test.js
+
+✔ strips .md extension (0.689791ms)
+✔ strips .txt extension (0.063916ms)
+✔ strips .markdown extension (0.036875ms)
+✔ strips extension case-insensitively (.MD) (0.034416ms)
+✔ does not strip unrecognised extensions (0.037292ms)
+✔ converts hyphens to spaces (0.035333ms)
+✔ converts underscores to spaces (0.043167ms)
+✔ collapses runs of hyphens into a single space (0.030958ms)
+✔ collapses runs of underscores into a single space (0.042458ms)
+✔ collapses mixed separator runs into a single space (0.073625ms)
+✔ title-cases first token (0.047792ms)
+✔ lowercases non-first tokens (0.338667ms)
+✔ lowercases a capitalised non-first token (0.030291ms)
+✔ single-word filename is title-cased (0.024ms)
+✔ preserves LLM in uppercase (non-first token) (0.027833ms)
+✔ preserves LLM in uppercase (first token) (0.025667ms)
+✔ preserves API in uppercase (0.022291ms)
+✔ preserves multiple acronyms (0.02575ms)
+✔ recognises acronym regardless of input case (0.036084ms)
+✔ preserves AI in uppercase (0.032125ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 62.962042

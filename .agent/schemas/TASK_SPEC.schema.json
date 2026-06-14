@@ -29,6 +29,11 @@
     "yellow_paths": { "type": "array", "items": { "type": "string", "minLength": 1 } },
     "red_paths": { "type": "array", "items": { "type": "string", "minLength": 1 } },
     "black_paths": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "context_files": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Read-only files the critic needs to judge the work (e.g. the function a test covers). Declared up front in the TASK_SPEC, deterministically — never chosen at pack-assembly time. Copied full into the evidence pack; same contamination guard as touched files."
+    },
     "risk_level": { "type": "string", "enum": ["P0", "P1", "P2", "P3"] },
     "p1c_preapprovals": {
       "type": "array",

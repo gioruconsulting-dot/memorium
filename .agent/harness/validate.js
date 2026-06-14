@@ -19,6 +19,7 @@ export const SCHEMA_NAMES = [
   'CRITIC_VERDICT',
   'RISK_REGISTER',
   'STATE_PATCH',
+  'LEARNINGS_REGISTER',
 ];
 
 const ajv = new Ajv({ strict: true, allErrors: true });

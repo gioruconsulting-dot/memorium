@@ -1,6 +1,6 @@
 {
   "scanner": "layer1",
-  "diff_path": "/Users/giovannirussillo/projects/memorium/.agent/fixtures/diffs/clean-ui.diff",
+  "diff_path": "/Users/giovannirussillo/projects/memorium-harness/.agent/fixtures/diffs/clean-ui.diff",
   "files_seen": [
     "components/EmptyStateCard.js"
   ],

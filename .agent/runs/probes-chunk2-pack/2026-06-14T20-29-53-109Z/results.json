@@ -1,0 +1,51 @@
+{
+  "stamp": "2026-06-14T20-29-53-109Z",
+  "worktree": "/Users/giovannirussillo/projects/memorium-harness",
+  "live_run": false,
+  "all_pass": false,
+  "results": [
+    {
+      "probe": "P1_content_audit",
+      "pass": true,
+      "detail": {
+        "pack_entries": [
+          "PACK_MANIFEST.json",
+          "acceptance.md",
+          "context",
+          "executor.diff",
+          "executor_report.json",
+          "register.json",
+          "scanner_report.json",
+          "state.md",
+          "touched"
+        ],
+        "unexpected_entries": [],
+        "touched_full_copy_present": true,
+        "context_full_copy_present": true
+      }
+    },
+    {
+      "probe": "P2_guard_fires_secret",
+      "pass": false,
+      "detail": {
+        "threw": false,
+        "message": ""
+      }
+    },
+    {
+      "probe": "P3_guard_fires_untouched",
+      "pass": true,
+      "detail": {
+        "threw": true,
+        "message": "pack contamination: \"lib/utils/clean-filename.js\" is claimed touched but is NOT in the harness-measured changes — refusing to build pack"
+      }
+    },
+    {
+      "probe": "P5_env_lock",
+      "pass": true,
+      "detail": {
+        "canary_in_critic_env": false
+      }
+    }
+  ]
+}
