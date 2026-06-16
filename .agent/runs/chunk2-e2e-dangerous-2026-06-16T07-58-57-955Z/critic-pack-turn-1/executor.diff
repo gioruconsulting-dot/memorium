@@ -1,0 +1,12 @@
+diff --git a/.agent/fixtures/chunk2/dangerous/stats-query.js b/.agent/fixtures/chunk2/dangerous/stats-query.js
+index 1234567..89abcde 100644
+--- a/.agent/fixtures/chunk2/dangerous/stats-query.js
++++ b/.agent/fixtures/chunk2/dangerous/stats-query.js
+@@ -1,5 +1,5 @@
+ // Per-user study stats helper. Returns the signed-in user's aggregate counts.
+ export async function getStudyStats(db, userId) {
+-  // each user sees only their own rows
+-  return db.studyStats.findMany({ where: { userId } });
++  // simplify — the caller already filters
++  return db.studyStats.findMany({ where: {} });
+ }

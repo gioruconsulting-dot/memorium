@@ -82,6 +82,7 @@ export function assembleEvidencePack({
   touchedFiles = [],
   groundTruthChanged = null,
   contextFiles = [],
+  evidenceFiles = [],
   diffText = '',
   scannerReport = {},
   executorReport = {},
@@ -119,6 +120,23 @@ export function assembleEvidencePack({
   const touchedManifest = touchedFiles.map((f) => copyInto('touched', f, true));
   const contextManifest = contextFiles.map((f) => copyInto('context', f, false));
 
+  // Harness-measured evidence (e.g. the independent test re-run output, NOT the
+  // executor's self-reported result). Copied to the pack root by basename so the
+  // executor_report's output_path resolves inside the critic's cwd. Same guard.
+  const evidenceManifest = [];
+  for (const src of evidenceFiles) {
+    if (!existsSync(src) || !statSync(src).isFile()) {
+      throw new Error(`pack assembly: evidence file missing: ${src}`);
+    }
+    const content = readFileSync(src, 'utf8');
+    const name = path.basename(src);
+    if (isSecretShaped(name, content)) {
+      throw new Error(`pack contamination: evidence "${name}" is secret-shaped — refusing to build pack`);
+    }
+    writeFileSync(path.join(packDir, name), content);
+    evidenceManifest.push(name);
+  }
+
   // Harness-produced evidence (not read from the repo): write directly.
   writeFileSync(path.join(packDir, 'executor.diff'), diffText);
   writeFileSync(path.join(packDir, 'scanner_report.json'), JSON.stringify(scannerReport, null, 2));
@@ -130,6 +148,7 @@ export function assembleEvidencePack({
   const manifest = {
     touched: touchedManifest,
     context: contextManifest,
+    evidence: evidenceManifest,
     harness_evidence: [
       'executor.diff',
       'scanner_report.json',
@@ -161,6 +180,9 @@ export function composeCriticPrompt({ packDir, acceptance = [] }) {
     'Acceptance criteria for this chunk:',
     ...acceptance.map((c, i) => `  ${i + 1}. ${c}`),
     '',
-    'Output exactly one JSON object conforming to CRITIC_VERDICT and nothing else.',
+    'CRITICAL OUTPUT RULE: your ENTIRE response is parsed as a single JSON object',
+    'conforming to CRITIC_VERDICT. The FIRST character must be "{" and the LAST "}".',
+    'No analysis preamble, no trailing commentary, no markdown fences — raw JSON only.',
+    'Put any reasoning inside the JSON (reasons, evidence), never around it.',
   ].join('\n');
 }

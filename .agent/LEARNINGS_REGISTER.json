@@ -41,6 +41,20 @@
       ],
       "status": "proposed",
       "note": "BOOTSTRAP EXEMPTION (Chunk 2): the pattern fix is already applied in code (caught and fixed mid-build under live supervision); recorded retroactively. One-time bootstrap; does not generalize. Chunk 3: proposal before change."
+    },
+    {
+      "id": "LRN-0004",
+      "type": "scanner_rule",
+      "direction": "loosening",
+      "proposal": "Decide a mechanical convention for marking secret-shaped TEST FIXTURES so the secret-scan guard stays strict on real code without per-commit human judgment. The checkpoint commit (9460be0) deliberately added source files containing secret-shaped strings: LRN-0003's regression fixture 'sk_live_ABC123DEF456' and the 'CANARY_LEAK_MARKER' probe constant. Legitimate, but every future secret-scan (the harness guard, a pre-commit hook, GitHub push protection) will repeatedly flag them — and the lazy fix (tune the scanner to ignore sk_live_) re-opens the exact hole LRN-0003 closed. Pick a convention instead: a FAKE_/DUMMY_ prefix, a test/fixtures path the scanner treats specially, or an explicit per-file allowlist — so 'real secret vs fixture' stops being a per-commit human call.",
+      "target_artifact": ".agent/harness/evidence-pack.js (SECRET_CONTENT_PATTERNS) + a test-fixture marking convention (to be decided)",
+      "evidence": [
+        "checkpoint commit 9460be0 (committed source contains sk_live_ABC123DEF456 + CANARY_LEAK_MARKER)",
+        ".agent/harness/test/evidence-pack.test.js (sk_live_ regression fixture)",
+        "LRN-0003 (the hole this must not re-open)"
+      ],
+      "status": "proposed",
+      "note": "DIRECTION = loosening, DELIBERATELY: any implementation that makes the scanner ignore secret-shaped strings in some paths loosens the guard, so this carries the P1B-equivalent bar (live human, >=2-run evidence, never batched). That is exactly the deliberate Chunk 3 decision Gio asked for, not an improvised scanner tweak. The naive fix (ignore sk_live_) re-opens LRN-0003's hole; the safe fix marks fixtures, not secrets. NOT a bootstrap exemption — this proposal precedes any change (normal order)."
     }
   ]
 }

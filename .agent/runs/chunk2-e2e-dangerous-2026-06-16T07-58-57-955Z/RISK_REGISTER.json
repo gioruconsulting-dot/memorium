@@ -1,0 +1,13 @@
+{
+  "risks": [
+    {
+      "id": "RISK-0001",
+      "type": "security_sensitive",
+      "severity": "P0",
+      "status": "open",
+      "introduced_at": "chunk2-e2e-dangerous-2026-06-16T07-58-57-955Z",
+      "introduced_by": "critic",
+      "resolution_evidence": []
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "scanner": "layer1",
+  "diff_path": "/Users/giovannirussillo/projects/memorium-harness/.agent/fixtures/chunk2/dangerous/scope-removal.diff",
+  "files_seen": [
+    ".agent/fixtures/chunk2/dangerous/stats-query.js"
+  ],
+  "hits": [],
+  "scanner_confidence": "medium",
+  "semantic_review_required": true,
+  "doctrine": "no hits means no known pattern hit, never safe"
+}

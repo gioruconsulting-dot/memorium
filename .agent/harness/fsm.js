@@ -11,7 +11,7 @@
 
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { validateFailClosed } from './validate.js';
+import { validateFailClosed, stubRepair } from './validate.js';
 import { lintSpec } from './speclint.js';
 import { preflight } from './preflight.js';
 import { scan, highestSeverity } from './scanner.js';
@@ -54,6 +54,9 @@ const LIVE_SEVERITIES = new Set(['P0', 'P1A', 'P1B']);
 //   // Chunk 2: live executor injection. When present, EXECUTING calls this
 //   // instead of reading a fixture: (turn) => { reportRaw, diffPath, ... }.
 //   executor: (turn) => ({ reportRaw, diffPath }),
+//   // Chunk 2: live critic injection. When present, REVIEWING calls this
+//   // instead of reading a fixture: (ctx) => rawVerdictText.
+//   critic: ({ turn, report, scanReport, scanPath, diffPath, spec, register, runsDir }) => rawVerdict,
 //   // Chunk 2: deliberate stop point. 'EXECUTOR_REPORT' returns a clean
 //   // HALTED_SAFE after the report validates + cross-checks, before SCANNING.
 //   stopAfter: 'EXECUTOR_REPORT' | undefined,
@@ -69,7 +72,9 @@ export function runFsm(config) {
     criticVerdictsRaw = [],
     preflightInputFor,
     executor,
+    critic,
     stopAfter,
+    repairFn = stubRepair,
   } = config;
 
   mkdirSync(runsDir, { recursive: true });
@@ -167,7 +172,7 @@ export function runFsm(config) {
         return halt('no executor fixture for this turn — model states are stubs in Chunk 0', { turn });
       }
     }
-    const reportResult = validateFailClosed('EXECUTOR_REPORT', turnArtifact.reportRaw);
+    const reportResult = validateFailClosed('EXECUTOR_REPORT', turnArtifact.reportRaw, repairFn);
     log.append('validation_result', {
       artifact: 'EXECUTOR_REPORT',
       turn,
@@ -235,13 +240,29 @@ export function runFsm(config) {
     });
     const scannerForcesHuman = topSeverity !== null && LIVE_SEVERITIES.has(topSeverity);
 
-    // REVIEWING (stub: fixture-fed)
-    transition('REVIEWING', { turn, stubbed: true });
-    const verdictRaw = criticVerdictsRaw[turn - 1];
-    if (verdictRaw === undefined) {
-      return halt('no critic fixture for this turn — model states are stubs in Chunk 0', { turn });
+    // REVIEWING (live critic if injected, else fixture-fed)
+    const liveCritic = typeof critic === 'function';
+    transition('REVIEWING', { turn, stubbed: !liveCritic, live: liveCritic });
+    let verdictRaw;
+    if (liveCritic) {
+      verdictRaw = critic({
+        turn,
+        report,
+        scanReport,
+        scanPath,
+        diffPath: turnArtifact.diffPath,
+        spec,
+        register,
+        runsDir,
+      });
+      log.append('critic_turn', { turn, live: true });
+    } else {
+      verdictRaw = criticVerdictsRaw[turn - 1];
+      if (verdictRaw === undefined) {
+        return halt('no critic fixture for this turn — model states are stubs in Chunk 0', { turn });
+      }
     }
-    const verdictResult = validateFailClosed('CRITIC_VERDICT', verdictRaw);
+    const verdictResult = validateFailClosed('CRITIC_VERDICT', verdictRaw, repairFn);
     log.append('validation_result', {
       artifact: 'CRITIC_VERDICT',
       turn,
@@ -323,7 +344,7 @@ export function runFsm(config) {
       }
       transition('DONE', { turn });
       log.append('run_end', { final_state: 'DONE', turn });
-      return { finalState: 'DONE', reason: 'critic verdict done, checks passed', history, register };
+      return { finalState: 'DONE', reason: 'critic verdict done, checks passed', history, register, report, downgrades };
     }
     // verdict === 'continue' → next iteration
     log.append('fsm_transition', { from: state, to: 'PRECHECK', note: 'next iteration', turn });

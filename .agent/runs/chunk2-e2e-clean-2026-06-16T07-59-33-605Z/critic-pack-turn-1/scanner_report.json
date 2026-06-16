@@ -1,0 +1,11 @@
+{
+  "scanner": "layer1",
+  "diff_path": "/Users/giovannirussillo/projects/memorium-harness/.agent/runs/chunk2-e2e-clean-2026-06-16T07-59-33-605Z/executor.diff",
+  "files_seen": [
+    "lib/utils/auto-paragraph.test.js"
+  ],
+  "hits": [],
+  "scanner_confidence": "medium",
+  "semantic_review_required": true,
+  "doctrine": "no hits means no known pattern hit, never safe"
+}

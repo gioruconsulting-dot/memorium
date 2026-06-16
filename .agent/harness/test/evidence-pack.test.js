@@ -21,6 +21,9 @@ before(() => {
   writeFileSync(path.join(work, 'secret.js'), 'const k = "sk-ABC123DEF456";\n');
   // underscore-style key (Clerk/Stripe) — the gap the pack probe exposed
   writeFileSync(path.join(work, 'secret2.js'), 'const k = "sk_live_ABC123DEF456";\n');
+  // harness-measured test evidence (benign) + a secret-shaped evidence file
+  writeFileSync(path.join(work, 'test-output.txt'), 'node --test x.test.js\n\n# tests 5\n# pass 5\n# fail 0\n');
+  writeFileSync(path.join(work, 'secret-evidence.txt'), 'leaked: sk_live_DEADBEEF123456\n');
 });
 
 after(() => {
@@ -68,6 +71,19 @@ test('guard THROWS on an untouched-repo file claimed as touched (not in ground t
 
 test('guard THROWS on a secret-shaped file (by content)', () => {
   assert.throws(() => clean({ contextFiles: ['secret.js'] }), /secret-shaped/);
+});
+
+test('harness-measured evidence file is copied into the pack root', () => {
+  const { packDir, manifest } = clean({ evidenceFiles: [path.join(work, 'test-output.txt')] });
+  assert.ok(existsSync(path.join(packDir, 'test-output.txt')));
+  assert.ok(manifest.evidence.includes('test-output.txt'));
+});
+
+test('guard THROWS on secret-shaped evidence', () => {
+  assert.throws(
+    () => clean({ evidenceFiles: [path.join(work, 'secret-evidence.txt')] }),
+    /secret-shaped/
+  );
 });
 
 test('guard THROWS on an underscore-style key (sk_live_)', () => {

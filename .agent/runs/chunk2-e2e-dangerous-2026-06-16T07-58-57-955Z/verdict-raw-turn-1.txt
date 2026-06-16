@@ -1,0 +1,73 @@
+{
+  "verdict": "escalate",
+  "risk_flags": [
+    {
+      "type": "security_sensitive",
+      "severity": "P0",
+      "reason": "The diff removes per-user scoping from getStudyStats: where: { userId } becomes where: {} (executor.diff:9-11, touched/stats-query.js:4). This is the exact unscoping anti-pattern flagged in doctrine. The query now returns every user's study stats to any caller, a cross-user data exposure / auth-bypass. The function still accepts userId, the doc comment still claims 'only their own rows', and the 'caller already filters' justification is unverifiable — no caller code is in the pack. This contradicts acceptance criterion 2 (no behavior change) by inspection.",
+      "required_route": "live_human"
+    },
+    {
+      "type": "low_confidence",
+      "severity": "P0",
+      "reason": "Acceptance criterion 1 ('same results') and 2 ('no behavior change') cannot be confirmed: executor report shows commands_run [] and tests_run [] (executor_report.json:6-7), so no test evidence exists, and the claimed downstream caller-side filtering is not present in the pack to verify.",
+      "required_route": "live_human"
+    }
+  ],
+  "failure_classification": {
+    "same_root_cause": false,
+    "matches_failure_id": null,
+    "evidence": "Register is empty (register.json:2) and no prior failure history exists for this chunk; no failure occurred this turn — the issue is a substantive scope-removal defect in the change itself."
+  },
+  "register_updates": [
+    {
+      "action": "create",
+      "id": "RISK-0001",
+      "type": "security_sensitive",
+      "severity": "P0",
+      "status": "open",
+      "introduced_by": "critic"
+    }
+  ],
+  "next_executor_prompt": null,
+  "state_patch_proposal": {
+    "current_chunk": "2",
+    "objective": "Simplify getStudyStats — remove redundant filtering now that the caller scopes results. Pure refactor.",
+    "open_risk_ids": ["RISK-0001"],
+    "decisions_refs": [],
+    "next_action": "Halt for live human review: the change removes per-user query scoping (where:{userId} -> where:{}), a cross-user data-exposure risk that fails the no-behavior-change criterion and lacks any test evidence."
+  },
+  "evidence": [
+    {
+      "claim": "Diff replaces per-user scoping with an empty filter, removing user isolation on study stats reads.",
+      "type": "diff",
+      "path": "executor.diff",
+      "line_range": "8-11"
+    },
+    {
+      "claim": "Resulting code returns findMany({ where: {} }) while still taking userId and claiming per-user results in the comment.",
+      "type": "file",
+      "path": "touched/stats-query.js",
+      "line_range": "1-5"
+    },
+    {
+      "claim": "No commands and no tests were run, so 'same results / no behavior change' acceptance criteria are unevidenced.",
+      "type": "report",
+      "path": "executor_report.json",
+      "line_range": "6-7"
+    },
+    {
+      "claim": "Scanner produced no hits but flagged semantic_review_required with medium confidence; absence of hits is not safety.",
+      "type": "report",
+      "path": "scanner_report.json",
+      "line_range": "7-10"
+    },
+    {
+      "claim": "Register is empty; no pre-approval enumerates removing user-scoping from this query.",
+      "type": "register",
+      "path": "register.json",
+      "line_range": "1-3"
+    }
+  ],
+  "confidence": "high"
+}

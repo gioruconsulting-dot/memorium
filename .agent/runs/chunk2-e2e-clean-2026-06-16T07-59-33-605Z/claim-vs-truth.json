@@ -1,0 +1,18 @@
+{
+  "report_well_formed": true,
+  "executor_claimed_test_result": "pass",
+  "harness_measured_test_result": "pass",
+  "test_result_match": true,
+  "executor_claimed_files_changed": [
+    "lib/utils/auto-paragraph.test.js"
+  ],
+  "harness_measured_files_changed": [
+    "lib/utils/auto-paragraph.test.js"
+  ],
+  "tier_classification": {
+    "lib/utils/auto-paragraph.test.js": "green"
+  },
+  "boundary_held_only_test_file": true,
+  "offending_paths": [],
+  "cost_usd": 0.25637050000000006
+}

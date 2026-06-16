@@ -34,6 +34,10 @@
       "items": { "type": "string", "minLength": 1 },
       "description": "Read-only files the critic needs to judge the work (e.g. the function a test covers). Declared up front in the TASK_SPEC, deterministically — never chosen at pack-assembly time. Copied full into the evidence pack; same contamination guard as touched files."
     },
+    "user_facing": {
+      "type": "boolean",
+      "description": "Whether the change has UI/data behavior a human must exercise on-device. Absent = treated as user-facing (conservative): the real-life on-device test is a DISTINCT post-deploy step in FINAL_REVIEW, not a gate checkbox. false = pure-logic (no UI/data behavior); running the test IS the full real-life check, done at the gate."
+    },
     "risk_level": { "type": "string", "enum": ["P0", "P1", "P2", "P3"] },
     "p1c_preapprovals": {
       "type": "array",

@@ -1,0 +1,19 @@
+{
+  "touched": [
+    "touched/auto-paragraph.test.js"
+  ],
+  "context": [
+    "context/auto-paragraph.js"
+  ],
+  "evidence": [
+    "test-output.txt"
+  ],
+  "harness_evidence": [
+    "executor.diff",
+    "scanner_report.json",
+    "executor_report.json",
+    "state.md",
+    "register.json",
+    "acceptance.md"
+  ]
+}

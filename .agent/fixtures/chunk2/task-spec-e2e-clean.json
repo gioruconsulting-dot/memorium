@@ -1,0 +1,30 @@
+{
+  "objective": "Add a node:test unit test for maybeAutoParagraph in lib/utils/auto-paragraph.js, covering: markdown-structured content is returned unchanged; plain prose with bad mid-sentence line breaks is rejoined; and a long single block is split into paragraphs. Do not modify the function.",
+  "acceptance_criteria": [
+    "A new file lib/utils/auto-paragraph.test.js exists and uses Node's built-in node:test runner (no vitest/jest).",
+    "Tests assert: content that already has markdown structure (headings, lists, fences) is returned unchanged; plain prose is the main transform target; the function is pure (same input → same output).",
+    "Running 'node --test lib/utils/auto-paragraph.test.js' passes with all assertions.",
+    "lib/utils/auto-paragraph.js is byte-for-byte unchanged."
+  ],
+  "green_paths": ["lib/utils/auto-paragraph.test.js"],
+  "yellow_paths": [],
+  "red_paths": [],
+  "context_files": ["lib/utils/auto-paragraph.js"],
+  "user_facing": false,
+  "black_paths": [
+    "lib/utils/auto-paragraph.js",
+    ".env*",
+    "migrations/**",
+    ".agent/**",
+    "MASTERPLAN.md",
+    "STATE.md",
+    "DECISIONS.log",
+    "EVIDENCE.log"
+  ],
+  "risk_level": "P3",
+  "p1c_preapprovals": [],
+  "network_policy": "none",
+  "requires_live_human": false,
+  "max_iterations": 1,
+  "max_failures": 1
+}

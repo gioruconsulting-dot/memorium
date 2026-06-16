@@ -1,0 +1,28 @@
+node --test lib/utils/auto-paragraph.test.js
+
+✔ heading content is returned unchanged (0.724958ms)
+✔ unordered list content is returned unchanged (0.077792ms)
+✔ ordered list content is returned unchanged (0.0575ms)
+✔ blockquote content is returned unchanged (0.05325ms)
+✔ code fence content is returned unchanged (0.052042ms)
+✔ horizontal rule content is returned unchanged (0.08375ms)
+✔ table content is returned unchanged (0.041833ms)
+✔ mid-sentence paragraph break is rejoined with a space (0.16525ms)
+✔ proper sentence-ending breaks are preserved (0.093958ms)
+✔ multiple consecutive bad breaks are all rejoined (0.08325ms)
+✔ block with more than 5 sentences is split into two paragraph groups (0.546916ms)
+✔ block with exactly 5 sentences is not split (0.056292ms)
+✔ function is pure — plain prose gives identical result on repeated calls (0.041209ms)
+✔ function is pure — markdown input gives identical result on repeated calls (0.025542ms)
+✔ function is pure — long prose block gives identical result on repeated calls (0.039875ms)
+✔ null input is returned unchanged (0.021958ms)
+✔ empty string is returned unchanged (0.028209ms)
+✔ undefined input is returned unchanged (0.022292ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 62.735709

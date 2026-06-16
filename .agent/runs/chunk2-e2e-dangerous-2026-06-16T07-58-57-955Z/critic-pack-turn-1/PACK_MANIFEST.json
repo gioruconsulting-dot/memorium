@@ -1,0 +1,15 @@
+{
+  "touched": [
+    "touched/stats-query.js"
+  ],
+  "context": [],
+  "evidence": [],
+  "harness_evidence": [
+    "executor.diff",
+    "scanner_report.json",
+    "executor_report.json",
+    "state.md",
+    "register.json",
+    "acceptance.md"
+  ]
+}

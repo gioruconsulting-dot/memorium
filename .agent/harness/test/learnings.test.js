@@ -18,19 +18,20 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REGISTER_PATH = path.join(HERE, '..', '..', 'LEARNINGS_REGISTER.json');
 const seeded = JSON.parse(readFileSync(REGISTER_PATH, 'utf8'));
 
-test('seeded register (three exhibits) is schema-valid', () => {
+test('seeded register is schema-valid with exactly 3 bootstrap exhibits', () => {
   const { valid, errors } = validate('LEARNINGS_REGISTER', seeded);
   assert.ok(valid, `seeded register invalid: ${errors.join('; ')}`);
-  assert.equal(seeded.learnings.length, 3);
+  const bootstrap = seeded.learnings.filter((l) => /BOOTSTRAP EXEMPTION/.test(l.note || ''));
+  assert.equal(bootstrap.length, 3, 'expected exactly 3 bootstrap exhibits');
 });
 
-test('each exhibit names a target_artifact and carries the bootstrap note', () => {
+test('every learning names a target_artifact; the 3 bootstrap exhibits are tightening', () => {
   for (const l of seeded.learnings) {
     assert.ok(l.target_artifact && l.target_artifact.length > 0, `${l.id} missing target_artifact`);
-    assert.match(l.note, /BOOTSTRAP/i, `${l.id} missing bootstrap note`);
     assert.equal(l.status, 'proposed');
-    assert.equal(l.direction, 'tightening');
   }
+  const bootstrap = seeded.learnings.filter((l) => /BOOTSTRAP EXEMPTION/.test(l.note || ''));
+  for (const l of bootstrap) assert.equal(l.direction, 'tightening', `${l.id} should be tightening`);
 });
 
 test('a learning missing target_artifact is schema-INVALID', () => {
@@ -60,7 +61,7 @@ test('tightening approval is low-friction (no decision_ref required)', () => {
 function withLoosening() {
   const reg = structuredClone(seeded);
   reg.learnings.push({
-    id: 'LRN-0004',
+    id: 'LRN-9004',
     type: 'cap_tuning',
     direction: 'loosening',
     proposal: 'raise max_failures from 3 to 4',
@@ -74,7 +75,7 @@ function withLoosening() {
 test('loosening → approved WITHOUT decision_ref and 2-run evidence is rejected', () => {
   const before = withLoosening();
   const after = structuredClone(before);
-  const lrn = after.learnings.find((l) => l.id === 'LRN-0004');
+  const lrn = after.learnings.find((l) => l.id === 'LRN-9004');
   lrn.status = 'approved';
   const { valid, violations } = validateLearningTransition(before, after);
   assert.equal(valid, false);
@@ -85,7 +86,7 @@ test('loosening → approved WITHOUT decision_ref and 2-run evidence is rejected
 test('loosening → approved WITH decision_ref + 2-run evidence is allowed', () => {
   const before = withLoosening();
   const after = structuredClone(before);
-  const lrn = after.learnings.find((l) => l.id === 'LRN-0004');
+  const lrn = after.learnings.find((l) => l.id === 'LRN-9004');
   lrn.status = 'approved';
   lrn.decision_ref = 'DEC-031';
   lrn.decided_by = 'human';
@@ -97,7 +98,7 @@ test('loosening → approved WITH decision_ref + 2-run evidence is allowed', () 
 test('two loosenings approved in one step are rejected (never batched)', () => {
   const before = withLoosening();
   before.learnings.push({
-    id: 'LRN-0005',
+    id: 'LRN-9005',
     type: 'cap_tuning',
     direction: 'loosening',
     proposal: 'widen a path tier',
@@ -106,7 +107,7 @@ test('two loosenings approved in one step are rejected (never batched)', () => {
     status: 'proposed',
   });
   const after = structuredClone(before);
-  for (const id of ['LRN-0004', 'LRN-0005']) {
+  for (const id of ['LRN-9004', 'LRN-9005']) {
     const lrn = after.learnings.find((l) => l.id === id);
     lrn.status = 'approved';
     lrn.decision_ref = 'DEC-031';

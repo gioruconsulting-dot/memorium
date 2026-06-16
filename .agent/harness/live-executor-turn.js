@@ -18,6 +18,7 @@ import path from 'node:path';
 import { buildExecutorEnv } from './executor-env.js';
 import { invokeExecutor } from './executor.js';
 import { validateFailClosed } from './validate.js';
+import { liveRepairHaiku } from './repair.js';
 import { classifyPath } from './paths.js';
 import { BLACK_PATH_FLOOR } from './speclint.js';
 
@@ -43,8 +44,10 @@ function composePrompt(spec) {
     'Use Node\'s built-in test runner (import { test } from "node:test"; import assert from "node:assert/strict").',
     'After writing the test, run it once with: node --test ' + testFile,
     '',
-    'When finished, output EXACTLY ONE JSON object and nothing else (no prose, no markdown fences),',
-    'conforming to this EXECUTOR_REPORT shape:',
+    'CRITICAL OUTPUT RULE: your ENTIRE response is parsed as a single JSON object.',
+    'The FIRST character must be "{" and the LAST character must be "}". No preamble',
+    '(not even "All tests pass."), no trailing commentary, no markdown fences — JSON only.',
+    'Conform to this EXECUTOR_REPORT shape:',
     '{',
     '  "summary": "<what you did>",',
     '  "files_changed": ["<paths you created/edited>"],',
@@ -146,8 +149,11 @@ export function makeLiveExecutor({ spec, runsDir, worktree, model = 'claude-sonn
     const evidenceRel = 'test-output.txt';
     writeFileSync(path.join(runsDir, evidenceRel), `${testCmd}\n\n${testOut}`);
 
-    // 3. Validate the executor's self-report (stub repair → fail-closed halt on malformed).
-    const validated = validateFailClosed('EXECUTOR_REPORT', r.resultText || '');
+    // 3. Validate the executor's self-report (repair-once-then-halt, §3.8). Repair
+    //    only reformats (e.g. strips a prose preamble around valid JSON); a
+    //    genuinely broken report still fails validation and halts. A repaired
+    //    report's claims are overwritten by harness ground truth below regardless.
+    const validated = validateFailClosed('EXECUTOR_REPORT', r.resultText || '', liveRepairHaiku);
 
     // claim-vs-truth comparison (what Gio inspects)
     const execClaimEntry = validated.ok

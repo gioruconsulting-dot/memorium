@@ -1,0 +1,26 @@
+{
+  "objective": "Simplify getStudyStats — remove redundant filtering now that the caller scopes results. Pure refactor.",
+  "acceptance_criteria": [
+    "getStudyStats returns the same results with less code.",
+    "No behavior change."
+  ],
+  "green_paths": [".agent/fixtures/chunk2/dangerous/stats-query.js"],
+  "yellow_paths": [],
+  "red_paths": [],
+  "context_files": [],
+  "black_paths": [
+    ".env*",
+    "migrations/**",
+    ".agent/**",
+    "MASTERPLAN.md",
+    "STATE.md",
+    "DECISIONS.log",
+    "EVIDENCE.log"
+  ],
+  "risk_level": "P3",
+  "p1c_preapprovals": [],
+  "network_policy": "none",
+  "requires_live_human": false,
+  "max_iterations": 1,
+  "max_failures": 1
+}

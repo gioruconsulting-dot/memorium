@@ -1,0 +1,119 @@
+diff --git a/lib/utils/auto-paragraph.test.js b/lib/utils/auto-paragraph.test.js
+new file mode 100644
+index 0000000..1c6d08d
+--- /dev/null
++++ b/lib/utils/auto-paragraph.test.js
+@@ -0,0 +1,113 @@
++import { test } from 'node:test';
++import assert from 'node:assert/strict';
++import { maybeAutoParagraph } from './auto-paragraph.js';
++
++// ── Markdown structure: content returned unchanged ────────────────────────────
++
++test('heading content is returned unchanged', () => {
++  const input = '# Introduction\n\nThis is some text.';
++  assert.strictEqual(maybeAutoParagraph(input), input);
++});
++
++test('unordered list content is returned unchanged', () => {
++  const input = '- First item\n- Second item\n- Third item';
++  assert.strictEqual(maybeAutoParagraph(input), input);
++});
++
++test('ordered list content is returned unchanged', () => {
++  const input = '1. First step\n2. Second step\n3. Third step';
++  assert.strictEqual(maybeAutoParagraph(input), input);
++});
++
++test('blockquote content is returned unchanged', () => {
++  const input = '> This is a quote\n> spanning two lines';
++  assert.strictEqual(maybeAutoParagraph(input), input);
++});
++
++test('code fence content is returned unchanged', () => {
++  const input = '```js\nconst x = 1;\n```';
++  assert.strictEqual(maybeAutoParagraph(input), input);
++});
++
++test('horizontal rule content is returned unchanged', () => {
++  const input = 'Some text\n\n---\n\nMore text';
++  assert.strictEqual(maybeAutoParagraph(input), input);
++});
++
++test('table content is returned unchanged', () => {
++  const input = '| Col A | Col B |\n| ----- | ----- |\n| val1  | val2  |';
++  assert.strictEqual(maybeAutoParagraph(input), input);
++});
++
++// ── Plain prose: bad mid-sentence line breaks are rejoined ────────────────────
++
++test('mid-sentence paragraph break is rejoined with a space', () => {
++  const input = 'The quick brown fox\n\njumped over the lazy dog.';
++  assert.strictEqual(
++    maybeAutoParagraph(input),
++    'The quick brown fox jumped over the lazy dog.',
++  );
++});
++
++test('proper sentence-ending breaks are preserved', () => {
++  const input = 'First sentence.\n\nSecond sentence.';
++  assert.strictEqual(maybeAutoParagraph(input), 'First sentence.\n\nSecond sentence.');
++});
++
++test('multiple consecutive bad breaks are all rejoined', () => {
++  const input = 'Part one\n\npart two\n\npart three.';
++  assert.strictEqual(maybeAutoParagraph(input), 'Part one part two part three.');
++});
++
++// ── Long single block: split into paragraph groups ───────────────────────────
++
++test('block with more than 5 sentences is split into two paragraph groups', () => {
++  const input =
++    'Sentence one. Sentence two. Sentence three. Sentence four. ' +
++    'Sentence five. Sentence six. Sentence seven. Sentence eight.';
++  const result = maybeAutoParagraph(input);
++  const paragraphs = result.split('\n\n');
++  assert.strictEqual(paragraphs.length, 2);
++  assert.ok(paragraphs[0].includes('Sentence one.'), 'first group starts at sentence 1');
++  assert.ok(paragraphs[0].includes('Sentence four.'), 'first group ends at sentence 4');
++  assert.ok(paragraphs[1].includes('Sentence five.'), 'second group starts at sentence 5');
++  assert.ok(paragraphs[1].includes('Sentence eight.'), 'second group ends at sentence 8');
++});
++
++test('block with exactly 5 sentences is not split', () => {
++  const input = 'One. Two. Three. Four. Five.';
++  const result = maybeAutoParagraph(input);
++  assert.ok(!result.includes('\n\n'), 'no paragraph break inserted for ≤5 sentences');
++});
++
++// ── Purity: same input → same output ─────────────────────────────────────────
++
++test('function is pure — plain prose gives identical result on repeated calls', () => {
++  const input = 'This is a plain\n\nprose block without sentence-ending breaks.';
++  assert.strictEqual(maybeAutoParagraph(input), maybeAutoParagraph(input));
++});
++
++test('function is pure — markdown input gives identical result on repeated calls', () => {
++  const input = '# Heading\n\n- list item\n- another item';
++  assert.strictEqual(maybeAutoParagraph(input), maybeAutoParagraph(input));
++});
++
++test('function is pure — long prose block gives identical result on repeated calls', () => {
++  const input =
++    'Alpha. Beta. Gamma. Delta. Epsilon. Zeta. Eta. Theta.';
++  assert.strictEqual(maybeAutoParagraph(input), maybeAutoParagraph(input));
++});
++
++// ── Edge cases: falsy inputs returned as-is ───────────────────────────────────
++
++test('null input is returned unchanged', () => {
++  assert.strictEqual(maybeAutoParagraph(null), null);
++});
++
++test('empty string is returned unchanged', () => {
++  assert.strictEqual(maybeAutoParagraph(''), '');
++});
++
++test('undefined input is returned unchanged', () => {
++  assert.strictEqual(maybeAutoParagraph(undefined), undefined);
++});
